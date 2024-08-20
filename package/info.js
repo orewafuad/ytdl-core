@@ -405,7 +405,7 @@ async function _getBasicInfo(id, options) {
         throw Error('Unable to find html5player file');
     }
     const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString(), PLAYER_API_RESPONSES = await Promise.allSettled([fetchWebCreatorPlayer(id, HTML5_PLAYER_URL, options), fetchIosJsonPlayer(id, options), fetchAndroidJsonPlayer(id, options)]), WEB_CREATOR_RESPONSE = PLAYER_API_RESPONSES[0].status === 'fulfilled' ? PLAYER_API_RESPONSES[0].value : null, IOS_PLAYER_RESPONSE = PLAYER_API_RESPONSES[1].status === 'fulfilled' ? PLAYER_API_RESPONSES[1].value : null, ANDROID_PLAYER_RESPONSE = PLAYER_API_RESPONSES[2].status === 'fulfilled' ? PLAYER_API_RESPONSES[2].value : null;
-    VIDEO_INFO.html5player = HTML5_PLAYER_URL;
+    VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
     PLAYER_API_RESPONSES.forEach((response, i) => {
         if (response.status === 'rejected') {
             const NAMES = ['WebCreator', 'iOS', 'Android'];
@@ -441,10 +441,9 @@ async function _getInfo(id, options) {
     utils_1.default.applyDefaultAgent(options);
     utils_1.default.applyOldLocalAddress(options);
     const INFO = await getBasicInfo(id, options), FUNCTIONS = [];
-    console.log(INFO);
     try {
         const FORMATS = INFO.formats;
-        FUNCTIONS.push(sig_1.default.decipherFormats(FORMATS, INFO.html5player, options));
+        FUNCTIONS.push(sig_1.default.decipherFormats(FORMATS, INFO.html5Player, options));
         for (const RESPONSE of FORMATS) {
             FUNCTIONS.push(...parseAdditionalManifests(RESPONSE, options));
         }
@@ -452,7 +451,7 @@ async function _getInfo(id, options) {
     catch (err) {
         console.warn('error in player API; falling back to web-scraping');
         // TODO: tv client
-        FUNCTIONS.push(sig_1.default.decipherFormats(parseFormats(INFO.watchPageInfo.player_response), INFO.html5player, options));
+        FUNCTIONS.push(sig_1.default.decipherFormats(parseFormats(INFO.watchPageInfo.player_response), INFO.html5Player, options));
         FUNCTIONS.push(...parseAdditionalManifests(INFO.watchPageInfo.player_response, options));
     }
     const RESULTS = await Promise.all(FUNCTIONS);

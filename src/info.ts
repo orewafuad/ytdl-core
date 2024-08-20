@@ -527,7 +527,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions): Promise<
         IOS_PLAYER_RESPONSE = PLAYER_API_RESPONSES[1].status === 'fulfilled' ? PLAYER_API_RESPONSES[1].value : null,
         ANDROID_PLAYER_RESPONSE = PLAYER_API_RESPONSES[2].status === 'fulfilled' ? PLAYER_API_RESPONSES[2].value : null;
 
-    VIDEO_INFO.html5player = HTML5_PLAYER_URL;
+    VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
 
     PLAYER_API_RESPONSES.forEach((response, i) => {
         if (response.status === 'rejected') {
@@ -578,12 +578,10 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
     const INFO: YTDL_VideoInfo = await getBasicInfo(id, options),
         FUNCTIONS = [];
 
-    console.log(INFO)
-
     try {
         const FORMATS = INFO.formats as any as Array<YT_YTInitialPlayerResponse>;
 
-        FUNCTIONS.push(sig.decipherFormats(FORMATS, INFO.html5player, options));
+        FUNCTIONS.push(sig.decipherFormats(FORMATS, INFO.html5Player, options));
 
         for (const RESPONSE of FORMATS) {
             FUNCTIONS.push(...parseAdditionalManifests(RESPONSE, options));
@@ -592,7 +590,7 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
         console.warn('error in player API; falling back to web-scraping');
 
         // TODO: tv client
-        FUNCTIONS.push(sig.decipherFormats(parseFormats(INFO.watchPageInfo.player_response), INFO.html5player, options));
+        FUNCTIONS.push(sig.decipherFormats(parseFormats(INFO.watchPageInfo.player_response), INFO.html5Player, options));
         FUNCTIONS.push(...parseAdditionalManifests(INFO.watchPageInfo.player_response, options));
     }
 

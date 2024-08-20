@@ -385,7 +385,7 @@ export type YTDL_MoreVideoDetails = Omit<YTDL_VideoDetails, 'author' | 'thumbnai
 export type YTDL_VideoInfo = {
     page: 'watch';
     watchPageInfo: YTDL_WatchPageInfo;
-    html5player: string;
+    html5Player: string;
     formats: Array<YTDL_VideoFormat>;
     related_videos: Array<YTDL_RelatedVideo>;
     videoDetails: YTDL_MoreVideoDetails;
