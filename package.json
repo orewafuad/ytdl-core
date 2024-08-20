@@ -7,7 +7,7 @@
     "download",
     "distube"
   ],
-  "version": "4.14.4",
+  "version": "4.15.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/ybd-project/ytdl-core.git"
@@ -20,10 +20,7 @@
     "typings"
   ],
   "scripts": {
-    "lint": "eslint ./",
-    "lint:fix": "eslint --fix ./",
-    "lint:typings": "tslint typings/index.d.ts",
-    "lint:typings:fix": "tslint --fix typings/index.d.ts"
+    "build": "tsc"
   },
   "dependencies": {
     "http-cookie-agent": "^6.0.5",
@@ -35,12 +32,12 @@
   },
   "devDependencies": {
     "@types/node": "^22.1.0",
+    "@types/sax": "^1.2.7",
     "eslint": "^8.57.0",
     "typescript": "^5.5.4"
   },
   "engines": {
     "node": ">=14.0"
   },
-  "license": "MIT",
-  "funding": "https://github.com/distubejs/ytdl-core?sponsor"
+  "license": "MIT"
 }
