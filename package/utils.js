@@ -216,7 +216,7 @@ function checkForUpdates() {
         }).then((response) => {
             const BUFFER = Buffer.from(response.content, response.encoding), PKG_FILE = JSON.parse(BUFFER.toString('ascii'));
             if (PKG_FILE.version !== package_json_1.default.version && updateWarnTimes++ < 5) {
-                console.warn('\x1b[33mWARNING:\x1B[0m @distube/ytdl-core is out of date! Update with "npm install @distube/ytdl-core@latest".');
+                console.warn('\x1b[33mWARNING:\x1B[0m @ybd-project/ytdl-core is out of date! Update with "npm install @ybd-project/ytdl-core@latest".');
             }
         }, (err) => {
             console.warn('Error checking for updates:', err.message);

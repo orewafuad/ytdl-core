@@ -17,13 +17,7 @@ const sig_1 = __importDefault(require("./sig"));
 /* Private Constants */
 const BASE_URL = 'https://www.youtube.com/watch?v=', BASE_EMBED_URL = 'https://www.youtube.com/embed/', AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], JSON_CLOSING_CHARS = /^[)\]}'\s]+/;
 /* Get Info */
-const LOCALE = { hl: 'en', timeZone: 'UTC', utcOffsetMinutes: 0 }, CHECK_FLAGS = { contentCheckOk: true, racyCheckOk: true }, WEB_CREATOR_CONTEXT = {
-    client: {
-        clientName: 'WEB_CREATOR',
-        clientVersion: '1.20240723.03.00',
-        ...LOCALE,
-    },
-}, IOS_CLIENT_VERSION = '19.28.1', IOS_DEVICE_MODEL = 'iPhone16,2', IOS_USER_AGENT_VERSION = '17_5_1', IOS_OS_VERSION = '17.5.1.21F90', ANDROID_CLIENT_VERSION = '19.30.36', ANDROID_OS_VERSION = '14', ANDROID_SDK_VERSION = '34';
+const IOS_CLIENT_VERSION = '19.28.1', IOS_DEVICE_MODEL = 'iPhone16,2', IOS_USER_AGENT_VERSION = '17_5_1', IOS_OS_VERSION = '17.5.1.21F90', ANDROID_CLIENT_VERSION = '19.30.36', ANDROID_OS_VERSION = '14', ANDROID_SDK_VERSION = '34';
 /* ----------- */
 /* Private Classes */
 class PlayerRequestError extends Error {
@@ -194,27 +188,43 @@ function parseAdditionalManifests(playerResponse, options) {
     }
     return MANIFESTS;
 }
-async function playerAPI(videoId, payload, userAgent, options) {
-    const { jar, dispatcher } = options.agent || {}, OPTS = {
-        requestOptions: {
-            method: 'POST',
-            dispatcher,
-            query: {
-                prettyPrint: false,
-                t: utils_1.default.generateClientPlaybackNonce(12),
-                id: videoId,
-            },
-            headers: {
+async function playerAPI(videoId, payload, userAgent, options, apiUrl) {
+    const { jar, dispatcher } = options.agent || {}, HEADER = (() => {
+        if (apiUrl) {
+            return {
                 'Content-Type': 'application/json',
                 cookie: jar?.getCookieStringSync('https://www.youtube.com'),
                 'User-Agent': userAgent,
                 'X-Goog-Api-Format-Version': '2',
                 Origin: 'https://www.youtube.com',
                 'X-Goog-Visitor-Id': options.visitorId,
+            };
+        }
+        else {
+            return {
+                'Content-Type': 'application/json',
+                cookie: jar?.getCookieStringSync('https://www.youtube.com'),
+                Origin: 'https://www.youtube.com',
+                'User-Agent': userAgent,
+                'x-youtube-client-name:': '56',
+                'x-youtube-client-version': '1.20240814.01.00',
+                'X-Goog-Visitor-Id': options.visitorData,
+            };
+        }
+    })(), OPTS = {
+        requestOptions: {
+            method: 'POST',
+            dispatcher,
+            query: {
+                prettyPrint: false,
+                t: apiUrl ? utils_1.default.generateClientPlaybackNonce(12) : undefined,
+                id: videoId,
             },
+            headers: HEADER,
             body: JSON.stringify(payload),
         },
-    }, RESPONSE = await utils_1.default.request('https://www.youtube.com/youtubei/v1/player', OPTS), PLAY_ERROR = utils_1.default.playError(RESPONSE);
+    }, RESPONSE = await utils_1.default.request(apiUrl || 'https://www.youtube.com/youtubei/v1/player', OPTS), PLAY_ERROR = utils_1.default.playError(RESPONSE);
+    console.log(RESPONSE.playabilityStatus);
     if (PLAY_ERROR) {
         throw PLAY_ERROR;
     }
@@ -225,22 +235,52 @@ async function playerAPI(videoId, payload, userAgent, options) {
     }
     return RESPONSE;
 }
-async function getPlaybackContext(html5player, options) {
+async function getSignatureTimestamp(html5player, options) {
     const BODY = await utils_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
-    return {
-        contentPlaybackContext: {
-            html5Preference: 'HTML5_PREF_WANTS',
-            signatureTimestamp: MO ? MO[1] : undefined,
-        },
-    };
+    return MO ? MO[1] : undefined;
 }
 async function fetchWebCreatorPlayer(videoId, html5player, options) {
     const SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined, PAYLOAD = {
-        context: WEB_CREATOR_CONTEXT,
+        cpn: utils_1.default.generateClientPlaybackNonce(16),
         videoId,
         serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
-        playbackContext: await getPlaybackContext(html5player, options),
-        ...CHECK_FLAGS,
+        context: {
+            client: {
+                clientName: 'WEB_EMBEDDED_PLAYER',
+                clientScreen: 'EMBED',
+                clientVersion: '1.20240814.01.00',
+                osName: 'Windows',
+                osVersion: '10.0',
+                platform: 'DESKTOP',
+                utcOffsetMinutes: -240,
+                visitorData: options.visitorData,
+            },
+            request: {
+                useSsl: true,
+                internalExperimentFlags: [],
+                consistencyTokenJars: [],
+            },
+            user: {
+                lockedSafetyMode: false,
+                onBehalfOfUser: '107632795008989148822',
+            },
+        },
+        playbackContext: {
+            contentPlaybackContext: {
+                vis: 0,
+                splay: false,
+                referer: BASE_URL + videoId,
+                currentUrl: BASE_URL + videoId,
+                autonavState: 'STATE_ON',
+                autoCaptionsDefaultOn: false,
+                html5Preference: 'HTML5_PREF_WANTS',
+                lactMilliseconds: '-1',
+                signatureTimestamp: (await getSignatureTimestamp(html5player, options)) || 19950,
+            },
+        },
+        attestationRequest: {
+            omitBotguardData: true,
+        },
     };
     return await playerAPI(videoId, PAYLOAD, undefined, options);
 }
@@ -251,6 +291,22 @@ async function fetchIosJsonPlayer(videoId, options) {
         contentCheckOk: true,
         racyCheckOk: true,
         serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
+        playbackContext: {
+            contentPlaybackContext: {
+                vis: 0,
+                splay: false,
+                referer: BASE_URL + videoId,
+                currentUrl: BASE_URL + videoId,
+                autonavState: 'STATE_ON',
+                autoCaptionsDefaultOn: false,
+                html5Preference: 'HTML5_PREF_WANTS',
+                lactMilliseconds: '-1',
+                signatureTimestamp: 19950,
+            },
+        },
+        attestationRequest: {
+            omitBotguardData: true,
+        },
         context: {
             client: {
                 clientName: 'IOS',
@@ -263,6 +319,7 @@ async function fetchIosJsonPlayer(videoId, options) {
                 hl: 'en',
                 gl: 'US',
                 utcOffsetMinutes: -240,
+                visitorData: options.visitorData,
             },
             request: {
                 internalExperimentFlags: [],
@@ -273,7 +330,7 @@ async function fetchIosJsonPlayer(videoId, options) {
             },
         },
     }, IOS_USER_AGENT = `com.google.ios.youtube/${IOS_CLIENT_VERSION}(${IOS_DEVICE_MODEL}; U; CPU iOS ${IOS_USER_AGENT_VERSION} like Mac OS X; en_US)`;
-    return await playerAPI(videoId, PAYLOAD, IOS_USER_AGENT, options);
+    return await playerAPI(videoId, PAYLOAD, IOS_USER_AGENT, options, 'https://youtubei.googleapis.com/youtubei/v1/player');
 }
 async function fetchAndroidJsonPlayer(videoId, options) {
     const SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined, PAYLOAD = {
@@ -282,6 +339,22 @@ async function fetchAndroidJsonPlayer(videoId, options) {
         contentCheckOk: true,
         racyCheckOk: true,
         serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
+        playbackContext: {
+            contentPlaybackContext: {
+                vis: 0,
+                splay: false,
+                referer: BASE_URL + videoId,
+                currentUrl: BASE_URL + videoId,
+                autonavState: 'STATE_ON',
+                autoCaptionsDefaultOn: false,
+                html5Preference: 'HTML5_PREF_WANTS',
+                lactMilliseconds: '-1',
+                signatureTimestamp: 19950,
+            },
+        },
+        attestationRequest: {
+            omitBotguardData: true,
+        },
         context: {
             client: {
                 clientName: 'ANDROID',
@@ -293,6 +366,7 @@ async function fetchAndroidJsonPlayer(videoId, options) {
                 hl: 'en',
                 gl: 'US',
                 utcOffsetMinutes: -240,
+                visitorData: options.visitorData,
             },
             request: {
                 internalExperimentFlags: [],
@@ -303,7 +377,7 @@ async function fetchAndroidJsonPlayer(videoId, options) {
             },
         },
     }, IOS_USER_AGENT = `com.google.android.youtube/${ANDROID_CLIENT_VERSION} (Linux; U; Android ${ANDROID_OS_VERSION}; en_US) gzip`;
-    return await playerAPI(videoId, PAYLOAD, IOS_USER_AGENT, options);
+    return await playerAPI(videoId, PAYLOAD, IOS_USER_AGENT, options, 'https://youtubei.googleapis.com/youtubei/v1/player');
 }
 /* ----------- */
 /* ----------- */
@@ -325,7 +399,7 @@ async function _getBasicInfo(id, options) {
     options.requestOptions.dispatcher ??= dispatcher;
     const RETRY_OPTIONS = Object.assign({}, options.requestOptions), WATCH_PAGE_INFO = await retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), PLAY_ERROR = utils_1.default.playError(WATCH_PAGE_INFO.player_response);
     if (PLAY_ERROR) {
-        throw PLAY_ERROR;
+        console.warn(PLAY_ERROR);
     }
     Object.assign(WATCH_PAGE_INFO, {
         // TODO: Replace with formats from iosPlayerResponse
@@ -362,7 +436,7 @@ async function _getInfo(id, options) {
     utils_1.default.applyDefaultHeaders(options);
     utils_1.default.applyDefaultAgent(options);
     utils_1.default.applyOldLocalAddress(options);
-    const INFO = await getBasicInfo(id, options), FUNCTIONS = [], HTML5_PLAYER = INFO.html5player || getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
+    const INFO = {}, FUNCTIONS = [], HTML5_PLAYER = INFO.html5player || getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
     if (!HTML5_PLAYER) {
         throw Error('Unable to find html5player file');
     }
