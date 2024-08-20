@@ -18,6 +18,25 @@ export type YT_StreamingFormat = {
     audioChannels: number;
 };
 
+type YT_EndscreenElementRenderer = {
+    endscreenElementRenderer: {
+        style: 'CHANNEL';
+        image: {
+            thumbnails: Array<YTDL_Thumbnail>;
+        };
+        title: {
+            runs: Array<{ text: string }>;
+        };
+        metadata: {
+            runs: Array<{ text: string }>;
+        };
+        endpoint: {
+            browseEndpoint: {
+                browseId: string;
+            };
+        };
+    };
+};
 export type YT_YTInitialPlayerResponse = {
     playabilityStatus: {
         status: string;
@@ -82,6 +101,11 @@ export type YT_YTInitialPlayerResponse = {
         serverAbrStreamingUrl: string;
         dashManifestUrl?: string;
         hlsManifestUrl?: string;
+    };
+    endscreen: {
+        endscreenRenderer: {
+            elements: Array<YT_EndscreenElementRenderer>;
+        };
     };
 };
 
@@ -365,7 +389,8 @@ export interface YTDL_MoreVideoDetailsAdditions {
     published?: number | null;
 }
 
-export type YTDL_MoreVideoDetails = Omit<YTDL_VideoDetails, 'author' | 'thumbnail' | 'shortDescription'> & Omit<YTDL_MicroformatRenderer, 'title' | 'description'> & YTDL_MoreVideoDetailsAdditions;
+// Omit<YTDL_VideoDetails, 'author' | 'thumbnail' | 'shortDescription'> & Omit<YTDL_MicroformatRenderer, 'title' | 'description'> & YTDL_MoreVideoDetailsAdditions;
+export type YTDL_MoreVideoDetails = YTDL_VideoDetails & YTDL_MoreVideoDetailsAdditions;
 
 export type YTDL_VideoInfo = {
     iv_load_policy?: string;

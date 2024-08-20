@@ -2,6 +2,10 @@
 
 YBD Project fork of `ytdl-core`. This fork is dedicated to improving the @DisTube fork.
 
+## Caution
+We are currently unable to retrieve much basic information about videos (such as number of likes, etc.) in order to avoid the “Sign in to confirm you're not a bot” error.
+We are working on a way to get this information, so please wait for an update.
+
 ## Installation
 
 ```bash

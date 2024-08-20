@@ -2,7 +2,7 @@ import querystring from 'querystring';
 import { parseTimestamp } from 'm3u8stream';
 
 import utils from './utils';
-import { YTDL_Media, YTDL_Author, YTDL_WatchPageInfo, YTDL_Thumbnail, YTDL_RelatedVideo, YT_CompactVideoRenderer, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_MoreVideoDetails } from '@/types/youtube';
+import { YTDL_Media, YTDL_Author, YTDL_WatchPageInfo, YTDL_Thumbnail, YTDL_RelatedVideo, YT_CompactVideoRenderer, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_MoreVideoDetails, YT_YTInitialPlayerResponse } from '@/types/youtube';
 
 /* Private Constants */
 const BASE_URL = 'https://www.youtube.com/watch?v=',
@@ -81,9 +81,9 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, rvsParams: Array<qu
 
 /* Public Functions */
 
-/** Get video media. */
+/** Get video media. [Note]: Media cannot be obtained for several reasons. */
 function getMedia(info: YTDL_WatchPageInfo): YTDL_Media | null {
-    let media: YTDL_Media = {
+    /*     let media: YTDL_Media = {
             category: '',
             category_url: '',
             thumbnails: [],
@@ -145,42 +145,43 @@ function getMedia(info: YTDL_WatchPageInfo): YTDL_Media | null {
         }
     } catch (err) {}
 
-    return media;
+    return media; */
+
+    return null;
 }
 
-function getAuthor(info: YTDL_WatchPageInfo): YTDL_Author | null {
+function getAuthor(info: YT_YTInitialPlayerResponse | null): YTDL_Author | null {
+    if (!info) {
+        return null;
+    }
+
     let channelId: string | null = null,
         thumbnails: YTDL_Author['thumbnails'] = [],
-        subscriberCount: number | null = null,
-        verified = false;
+        subscriberCount: number | null = null;
 
     try {
-        const RESULTS = info.response.contents.twoColumnWatchNextResults.results.results.contents,
-            SECONDARY_INFO_RENDERER = RESULTS.find((v) => v.videoSecondaryInfoRenderer && v.videoSecondaryInfoRenderer.owner && v.videoSecondaryInfoRenderer.owner.videoOwnerRenderer),
-            VIDEO_OWNER_RENDERER = SECONDARY_INFO_RENDERER.videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
+        const ENDSCREEN_RENDERER = info.endscreen.endscreenRenderer.elements.filter(({ endscreenElementRenderer }) => endscreenElementRenderer.style === 'CHANNEL' && endscreenElementRenderer?.endpoint?.browseEndpoint?.browseId === info.videoDetails.channelId)[0].endscreenElementRenderer;
 
-        channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId;
-        thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails.map((thumbnail: YTDL_Thumbnail) => {
-            thumbnail.url = new URL(thumbnail.url, BASE_URL).toString();
-            return thumbnail;
-        });
-        subscriberCount = utils.parseAbbreviatedNumber(getText(VIDEO_OWNER_RENDERER.subscriberCountText));
-        verified = isVerified(VIDEO_OWNER_RENDERER.badges);
-    } catch (err) {}
+        channelId = ENDSCREEN_RENDERER.endpoint.browseEndpoint.browseId || info.videoDetails.channelId;
+        thumbnails = ENDSCREEN_RENDERER.image.thumbnails || [];
+        subscriberCount = utils.parseAbbreviatedNumber(getText(ENDSCREEN_RENDERER.metadata));
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
 
     try {
-        const VIDEO_DETAILS = info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer,
-            CHANNEL_ID = (VIDEO_DETAILS && VIDEO_DETAILS.channelId) || channelId || info.player_response.videoDetails.channelId,
+        const VIDEO_DETAILS = info.videoDetails,
             AUTHOR: any = {
-                id: CHANNEL_ID,
-                name: VIDEO_DETAILS ? VIDEO_DETAILS.ownerChannelName : info.player_response.videoDetails.author,
-                user: VIDEO_DETAILS ? VIDEO_DETAILS.ownerProfileUrl.split('/').slice(-1)[0] : null,
-                channel_url: `https://www.youtube.com/channel/${CHANNEL_ID}`,
-                external_channel_url: VIDEO_DETAILS ? `https://www.youtube.com/channel/${VIDEO_DETAILS.externalChannelId}` : null,
-                user_url: VIDEO_DETAILS ? new URL(VIDEO_DETAILS.ownerProfileUrl, BASE_URL).toString() : '',
+                id: channelId,
+                name: VIDEO_DETAILS.author || 'Unknown',
+                user: null,
+                channel_url: `https://www.youtube.com/channel/${channelId}`,
+                external_channel_url: null,
+                user_url: '',
                 thumbnails,
                 subscriber_count: subscriberCount,
-                verified,
+                verified: false,
             };
 
         if (thumbnails?.length) {
@@ -236,6 +237,7 @@ function getRelatedVideos(info: YTDL_WatchPageInfo): Array<YTDL_RelatedVideo> {
     return VIDEOS;
 }
 
+/* [Note]: Likes count cannot be obtained for several reasons. */
 function getLikes(info: YTDL_WatchPageInfo): number | null {
     try {
         const CONTENTS = info.response.contents.twoColumnWatchNextResults.results.results.contents,
@@ -250,7 +252,7 @@ function getLikes(info: YTDL_WatchPageInfo): number | null {
 }
 
 function cleanVideoDetails(videoDetails: YTDL_VideoDetails, info: YTDL_WatchPageInfo): YTDL_MoreVideoDetails {
-    const DETAILS = (videoDetails as any);
+    const DETAILS = videoDetails as any;
 
     DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
     delete DETAILS.thumbnail;
@@ -266,8 +268,12 @@ function cleanVideoDetails(videoDetails: YTDL_VideoDetails, info: YTDL_WatchPage
     return DETAILS;
 }
 
-function getStoryboards(info: YTDL_WatchPageInfo): Array<YTDL_Storyboard> {
-    const PARTS = info.player_response.storyboards && info.player_response.storyboards.playerStoryboardSpecRenderer && info.player_response.storyboards.playerStoryboardSpecRenderer.spec && info.player_response.storyboards.playerStoryboardSpecRenderer.spec.split('|');
+function getStoryboards(info: YT_YTInitialPlayerResponse | null): Array<YTDL_Storyboard> {
+    if (!info) {
+        return [];
+    }
+
+    const PARTS = info.storyboards && info.storyboards.playerStoryboardSpecRenderer && info.storyboards.playerStoryboardSpecRenderer.spec && info.storyboards.playerStoryboardSpecRenderer.spec.split('|');
 
     if (!PARTS) {
         return [];

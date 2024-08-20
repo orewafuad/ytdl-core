@@ -206,8 +206,8 @@ async function playerAPI(videoId, payload, userAgent, options, apiUrl) {
                 cookie: jar?.getCookieStringSync('https://www.youtube.com'),
                 Origin: 'https://www.youtube.com',
                 'User-Agent': userAgent,
-                'x-youtube-client-name:': '56',
-                'x-youtube-client-version': '1.20240814.01.00',
+                'X-Youtube-Client-Name': '56',
+                'X-Youtube-Client-Version': '1.20240814.01.00',
                 'X-Goog-Visitor-Id': options.visitorData,
             };
         }
@@ -224,7 +224,6 @@ async function playerAPI(videoId, payload, userAgent, options, apiUrl) {
             body: JSON.stringify(payload),
         },
     }, RESPONSE = await utils_1.default.request(apiUrl || 'https://www.youtube.com/youtubei/v1/player', OPTS), PLAY_ERROR = utils_1.default.playError(RESPONSE);
-    console.log(RESPONSE.playabilityStatus);
     if (PLAY_ERROR) {
         throw PLAY_ERROR;
     }
@@ -246,9 +245,8 @@ async function fetchWebCreatorPlayer(videoId, html5player, options) {
         serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
         context: {
             client: {
-                clientName: 'WEB_EMBEDDED_PLAYER',
-                clientScreen: 'EMBED',
-                clientVersion: '1.20240814.01.00',
+                clientName: 'WEB_CREATOR',
+                clientVersion: '1.20240723.03.00',
                 osName: 'Windows',
                 osVersion: '10.0',
                 platform: 'DESKTOP',
@@ -262,7 +260,6 @@ async function fetchWebCreatorPlayer(videoId, html5player, options) {
             },
             user: {
                 lockedSafetyMode: false,
-                onBehalfOfUser: '107632795008989148822',
             },
         },
         playbackContext: {
@@ -397,30 +394,36 @@ async function _getBasicInfo(id, options) {
     const { jar, dispatcher } = options.agent || {};
     utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
-    const RETRY_OPTIONS = Object.assign({}, options.requestOptions), WATCH_PAGE_INFO = await retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), PLAY_ERROR = utils_1.default.playError(WATCH_PAGE_INFO.player_response);
-    if (PLAY_ERROR) {
-        console.warn(PLAY_ERROR);
+    const VIDEO_INFO = {}, HTML5_PLAYER = getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
+    if (!HTML5_PLAYER) {
+        throw Error('Unable to find html5player file');
     }
-    Object.assign(WATCH_PAGE_INFO, {
-        // TODO: Replace with formats from iosPlayerResponse
-        // formats: parseFormats(info.player_response),
-        related_videos: info_extras_1.default.getRelatedVideos(WATCH_PAGE_INFO),
+    VIDEO_INFO.html5player = HTML5_PLAYER;
+    const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString(), PLAYER_API_RESPONSES = await Promise.allSettled([fetchWebCreatorPlayer(id, HTML5_PLAYER_URL, options), fetchIosJsonPlayer(id, options), fetchAndroidJsonPlayer(id, options)]), WEB_CREATOR_RESPONSE = PLAYER_API_RESPONSES[0].status === 'fulfilled' ? PLAYER_API_RESPONSES[0].value : null, IOS_PLAYER_RESPONSE = PLAYER_API_RESPONSES[1].status === 'fulfilled' ? PLAYER_API_RESPONSES[1].value : null, ANDROID_PLAYER_RESPONSE = PLAYER_API_RESPONSES[2].status === 'fulfilled' ? PLAYER_API_RESPONSES[2].value : null;
+    PLAYER_API_RESPONSES.forEach((response, i) => {
+        if (response.status === 'rejected') {
+            const NAMES = ['WebCreator', 'iOS', 'Android'];
+            console.warn(`Request to ${NAMES[i]} Player failed.\nReason: ${response.reason}`);
+        }
     });
-    const MEDIA = info_extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = (() => {
-        const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));
-        return !!IS_AGE_RESTRICTED;
-    })(), ADDITIONAL_DATA = {
-        author: info_extras_1.default.getAuthor(WATCH_PAGE_INFO),
+    // Media cannot be obtained for several reasons.
+    const MEDIA = null, //extras.getMedia(IOS_PLAYER_RESPONSE) || extras.getMedia(ANDROID_PLAYER_RESPONSE)
+    /*AGE_RESTRICTED = (() => {const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));return !!IS_AGE_RESTRICTED;})(),*/
+    ADDITIONAL_DATA = {
+        author: info_extras_1.default.getAuthor(IOS_PLAYER_RESPONSE) || info_extras_1.default.getAuthor(ANDROID_PLAYER_RESPONSE),
         media: MEDIA,
-        likes: info_extras_1.default.getLikes(WATCH_PAGE_INFO),
-        age_restricted: AGE_RESTRICTED,
+        likes: null, // extras.getLikes(WATCH_PAGE_INFO),
+        age_restricted: false,
         video_url: BASE_URL + id,
-        storyboards: info_extras_1.default.getStoryboards(WATCH_PAGE_INFO),
-        chapters: info_extras_1.default.getChapters(WATCH_PAGE_INFO),
-    }, VIDEO_INFO = {
-        ...WATCH_PAGE_INFO,
-    };
-    VIDEO_INFO.videoDetails = info_extras_1.default.cleanVideoDetails(Object.assign({}, WATCH_PAGE_INFO.player_response && WATCH_PAGE_INFO.player_response.microformat && WATCH_PAGE_INFO.player_response.microformat.playerMicroformatRenderer, WATCH_PAGE_INFO.player_response && WATCH_PAGE_INFO.player_response.videoDetails, ADDITIONAL_DATA), WATCH_PAGE_INFO);
+        storyboards: info_extras_1.default.getStoryboards(WEB_CREATOR_RESPONSE),
+        chapters: [], // extras.getChapters(WATCH_PAGE_INFO),
+    }, VIDEO_DETAILS = (WEB_CREATOR_RESPONSE || IOS_PLAYER_RESPONSE || ANDROID_PLAYER_RESPONSE || {}).videoDetails || {};
+    VIDEO_DETAILS.isLiveContent ??= false;
+    VIDEO_DETAILS.isLive = VIDEO_DETAILS.isLiveContent;
+    delete VIDEO_DETAILS.isLiveContent;
+    delete VIDEO_DETAILS.arrowRatings;
+    VIDEO_INFO.videoDetails = Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA);
+    VIDEO_INFO.formats = [...parseFormats(WEB_CREATOR_RESPONSE), ...parseFormats(IOS_PLAYER_RESPONSE), ...parseFormats(ANDROID_PLAYER_RESPONSE)].filter((res) => res);
     return VIDEO_INFO;
 }
 async function getBasicInfo(link, options = {}) {
@@ -436,23 +439,17 @@ async function _getInfo(id, options) {
     utils_1.default.applyDefaultHeaders(options);
     utils_1.default.applyDefaultAgent(options);
     utils_1.default.applyOldLocalAddress(options);
-    const INFO = {}, FUNCTIONS = [], HTML5_PLAYER = INFO.html5player || getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
+    const INFO = await getBasicInfo(id, options), FUNCTIONS = [], HTML5_PLAYER = INFO.html5player || getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
     if (!HTML5_PLAYER) {
         throw Error('Unable to find html5player file');
     }
     INFO.html5player = HTML5_PLAYER;
     const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString();
     try {
-        if (INFO.videoDetails.age_restricted) {
-            throw new Error('Cannot download age restricted videos with mobile clients');
-        }
-        const PLAYER_API_RESPONSES = await Promise.allSettled([fetchWebCreatorPlayer(id, HTML5_PLAYER_URL, options), fetchIosJsonPlayer(id, options), fetchAndroidJsonPlayer(id, options)]), PARSED_RESPONSES = PLAYER_API_RESPONSES.map((r) => parseFormats(r.value));
-        INFO.formats = [].concat(...PARSED_RESPONSES);
-        FUNCTIONS.push(sig_1.default.decipherFormats(INFO.formats, HTML5_PLAYER_URL, options));
-        for (const RESPONSE of PLAYER_API_RESPONSES) {
-            if (RESPONSE.status === 'fulfilled' && RESPONSE.value) {
-                FUNCTIONS.push(...parseAdditionalManifests(RESPONSE.value, options));
-            }
+        const FORMATS = INFO.formats;
+        FUNCTIONS.push(sig_1.default.decipherFormats(FORMATS, HTML5_PLAYER_URL, options));
+        for (const RESPONSE of FORMATS) {
+            FUNCTIONS.push(...parseAdditionalManifests(RESPONSE, options));
         }
     }
     catch (err) {

@@ -74,47 +74,60 @@ function parseRelatedVideo(details, rvsParams) {
     }
 }
 /* Public Functions */
-/** Get video media. */
+/** Get video media. [Note]: Media cannot be obtained for several reasons. */
 function getMedia(info) {
-    let media = {
-        category: '',
-        category_url: '',
-        thumbnails: [],
-    }, results = [];
+    /*     let media: YTDL_Media = {
+            category: '',
+            category_url: '',
+            thumbnails: [],
+        },
+        results = [];
+
     try {
         results = info.response.contents.twoColumnWatchNextResults.results.results.contents;
-    }
-    catch (err) { }
+    } catch (err) {}
+
     let videoSecondaryInfoRenderer = results.find((v) => v.videoSecondaryInfoRenderer);
     if (!videoSecondaryInfoRenderer) {
         return null;
     }
+
     try {
         const METADATA_ROWS = (videoSecondaryInfoRenderer.metadataRowContainer || videoSecondaryInfoRenderer.videoSecondaryInfoRenderer.metadataRowContainer).metadataRowContainerRenderer.rows;
+
         for (const ROW of METADATA_ROWS) {
-            const ROW_RENDERER = ROW.metadataRowRenderer, RICH_ROW_RENDERER = ROW.richMetadataRowRenderer;
+            const ROW_RENDERER = ROW.metadataRowRenderer,
+                RICH_ROW_RENDERER = ROW.richMetadataRowRenderer;
+
             if (ROW_RENDERER) {
-                const TITLE = getText(ROW.metadataRowRenderer.title).toLowerCase(), CONTENTS = ROW_RENDERER.contents[0];
+                const TITLE = getText(ROW.metadataRowRenderer.title).toLowerCase(),
+                    CONTENTS = ROW_RENDERER.contents[0];
+
                 media[TITLE] = getText(CONTENTS);
+
                 const RUNS = CONTENTS.runs;
                 if (RUNS && RUNS[0].navigationEndpoint) {
                     media[`${TITLE}_url`] = new URL(RUNS[0].navigationEndpoint.commandMetadata.webCommandMetadata.url, BASE_URL).toString();
                 }
+
                 if (TITLE in TITLE_TO_CATEGORY) {
                     media.category = TITLE_TO_CATEGORY[TITLE].name;
                     media.category_url = TITLE_TO_CATEGORY[TITLE].url;
                 }
-            }
-            else if (RICH_ROW_RENDERER) {
-                const CONTENTS = RICH_ROW_RENDERER.contents, BOX_ART = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_BOX_ART');
+            } else if (RICH_ROW_RENDERER) {
+                const CONTENTS = RICH_ROW_RENDERER.contents as Array<any>,
+                    BOX_ART = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_BOX_ART');
+
                 for (const { richMetadataRenderer } of BOX_ART) {
                     const META = richMetadataRenderer;
                     media.year = getText(META.subtitle);
+
                     const TYPE = getText(META.callToAction).split(' ')[1];
                     media[TYPE] = getText(META.title);
                     media[`${TYPE}_url`] = new URL(META.endpoint.commandMetadata.webCommandMetadata.url, BASE_URL).toString();
                     media.thumbnails = META.thumbnail.thumbnails;
                 }
+
                 const TOPIC = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_TOPIC');
                 for (const { richMetadataRenderer } of TOPIC) {
                     const META = richMetadataRenderer;
@@ -123,34 +136,37 @@ function getMedia(info) {
                 }
             }
         }
-    }
-    catch (err) { }
-    return media;
+    } catch (err) {}
+
+    return media; */
+    return null;
 }
 function getAuthor(info) {
-    let channelId = null, thumbnails = [], subscriberCount = null, verified = false;
-    try {
-        const RESULTS = info.response.contents.twoColumnWatchNextResults.results.results.contents, SECONDARY_INFO_RENDERER = RESULTS.find((v) => v.videoSecondaryInfoRenderer && v.videoSecondaryInfoRenderer.owner && v.videoSecondaryInfoRenderer.owner.videoOwnerRenderer), VIDEO_OWNER_RENDERER = SECONDARY_INFO_RENDERER.videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
-        channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId;
-        thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails.map((thumbnail) => {
-            thumbnail.url = new URL(thumbnail.url, BASE_URL).toString();
-            return thumbnail;
-        });
-        subscriberCount = utils_1.default.parseAbbreviatedNumber(getText(VIDEO_OWNER_RENDERER.subscriberCountText));
-        verified = isVerified(VIDEO_OWNER_RENDERER.badges);
+    if (!info) {
+        return null;
     }
-    catch (err) { }
+    let channelId = null, thumbnails = [], subscriberCount = null;
     try {
-        const VIDEO_DETAILS = info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer, CHANNEL_ID = (VIDEO_DETAILS && VIDEO_DETAILS.channelId) || channelId || info.player_response.videoDetails.channelId, AUTHOR = {
-            id: CHANNEL_ID,
-            name: VIDEO_DETAILS ? VIDEO_DETAILS.ownerChannelName : info.player_response.videoDetails.author,
-            user: VIDEO_DETAILS ? VIDEO_DETAILS.ownerProfileUrl.split('/').slice(-1)[0] : null,
-            channel_url: `https://www.youtube.com/channel/${CHANNEL_ID}`,
-            external_channel_url: VIDEO_DETAILS ? `https://www.youtube.com/channel/${VIDEO_DETAILS.externalChannelId}` : null,
-            user_url: VIDEO_DETAILS ? new URL(VIDEO_DETAILS.ownerProfileUrl, BASE_URL).toString() : '',
+        const ENDSCREEN_RENDERER = info.endscreen.endscreenRenderer.elements.filter(({ endscreenElementRenderer }) => endscreenElementRenderer.style === 'CHANNEL' && endscreenElementRenderer?.endpoint?.browseEndpoint?.browseId === info.videoDetails.channelId)[0].endscreenElementRenderer;
+        channelId = ENDSCREEN_RENDERER.endpoint.browseEndpoint.browseId || info.videoDetails.channelId;
+        thumbnails = ENDSCREEN_RENDERER.image.thumbnails || [];
+        subscriberCount = utils_1.default.parseAbbreviatedNumber(getText(ENDSCREEN_RENDERER.metadata));
+    }
+    catch (err) {
+        console.log(err);
+        return null;
+    }
+    try {
+        const VIDEO_DETAILS = info.videoDetails, AUTHOR = {
+            id: channelId,
+            name: VIDEO_DETAILS.author || 'Unknown',
+            user: null,
+            channel_url: `https://www.youtube.com/channel/${channelId}`,
+            external_channel_url: null,
+            user_url: '',
             thumbnails,
             subscriber_count: subscriberCount,
-            verified,
+            verified: false,
         };
         if (thumbnails?.length) {
             utils_1.default.deprecate(AUTHOR, 'avatar', AUTHOR.thumbnails[0]?.url, 'author.thumbnails', 'author.thumbnails[0].url');
@@ -197,6 +213,7 @@ function getRelatedVideos(info) {
     }
     return VIDEOS;
 }
+/* [Note]: Likes count cannot be obtained for several reasons. */
 function getLikes(info) {
     try {
         const CONTENTS = info.response.contents.twoColumnWatchNextResults.results.results.contents, VIDEO = CONTENTS.find((r) => r.videoPrimaryInfoRenderer), BUTTONS = VIDEO.videoPrimaryInfoRenderer.videoActions.menuRenderer.topLevelButtons, ACCESSIBILITY_TEXT = BUTTONS.find((b) => b.segmentedLikeDislikeButtonViewModel).segmentedLikeDislikeButtonViewModel.likeButtonViewModel.likeButtonViewModel.toggleButtonViewModel.toggleButtonViewModel.defaultButtonViewModel.buttonViewModel.accessibilityText;
@@ -219,7 +236,10 @@ function cleanVideoDetails(videoDetails, info) {
     return DETAILS;
 }
 function getStoryboards(info) {
-    const PARTS = info.player_response.storyboards && info.player_response.storyboards.playerStoryboardSpecRenderer && info.player_response.storyboards.playerStoryboardSpecRenderer.spec && info.player_response.storyboards.playerStoryboardSpecRenderer.spec.split('|');
+    if (!info) {
+        return [];
+    }
+    const PARTS = info.storyboards && info.storyboards.playerStoryboardSpecRenderer && info.storyboards.playerStoryboardSpecRenderer.spec && info.storyboards.playerStoryboardSpecRenderer.spec.split('|');
     if (!PARTS) {
         return [];
     }
