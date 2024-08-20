@@ -205,9 +205,7 @@ function getRelatedVideos(info: YTDL_WatchPageInfo): Array<YTDL_RelatedVideo> {
 
     try {
         secondaryResults = info.response.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
-    } catch (err) {
-        return [];
-    }
+    } catch (err) {}
 
     const VIDEOS: Array<YTDL_RelatedVideo> = [];
 

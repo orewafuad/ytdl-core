@@ -70,7 +70,6 @@ function findJSON(source, varName, body, left, right, prependJSON) {
     }
     return parseJSON(source, varName, utils_1.default.cutAfterJS(`${prependJSON}${JSON_STR}`));
 }
-// TODO: Infoの型特定
 function findPlayerResponse(source, info) {
     const PLAYER_RESPONSE = info && ((info.args && info.args.player_response) || info.player_response || info.playerResponse || info.embedded_player_response);
     return parseJSON(source, 'player_response', PLAYER_RESPONSE);
@@ -94,14 +93,14 @@ async function getWatchHTMLPage(id, options) {
     const BODY = await getWatchHTMLPageBody(id, options), INFO = { page: 'watch' };
     try {
         try {
-            INFO.player_response = null; //utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', '}};', '', '}}') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';var') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';</script>') || findJSON<YT_YTInitialPlayerResponse>('watch.html', 'player_response', BODY, /\bytInitialPlayerResponse\s*=\s*\{/i, '</script>', '{');
+            INFO.player_response = utils_1.default.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', '}};', '', '}}') || utils_1.default.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';var') || utils_1.default.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';</script>') || findJSON('watch.html', 'player_response', BODY, /\bytInitialPlayerResponse\s*=\s*\{/i, '</script>', '{') || null;
         }
         catch (err) {
             const ARGS = findJSON('watch.html', 'player_response', BODY, /\bytplayer\.config\s*=\s*{/, '</script>', '{');
             INFO.player_response = findPlayerResponse('watch.html', ARGS);
         }
         INFO.response = utils_1.default.tryParseBetween(BODY, 'var ytInitialData = ', '}};', '', '}}') || utils_1.default.tryParseBetween(BODY, 'var ytInitialData = ', ';</script>') || utils_1.default.tryParseBetween(BODY, 'window["ytInitialData"] = ', '}};', '', '}}') || utils_1.default.tryParseBetween(BODY, 'window["ytInitialData"] = ', ';</script>') || findJSON('watch.html', 'response', BODY, /\bytInitialData("\])?\s*=\s*\{/i, '</script>', '{');
-        INFO.html5player = getHTML5Player(BODY);
+        INFO.html5Player = getHTML5Player(BODY);
     }
     catch (err) {
         throw Error('Error when parsing watch.html, maybe YouTube made a change.\n' + `Please report this issue with the "${utils_1.default.saveDebugFile('watch.html', BODY)}" file on https://github.com/ybd-project/ytdl-core/issues.`);
@@ -188,6 +187,7 @@ function parseAdditionalManifests(playerResponse, options) {
     }
     return MANIFESTS;
 }
+// HACK: iOS Player APIとAndroid Player APIはvisitorDataを返却します。
 async function playerAPI(videoId, payload, userAgent, options, apiUrl) {
     const { jar, dispatcher } = options.agent || {}, HEADER = (() => {
         if (apiUrl) {
@@ -196,8 +196,6 @@ async function playerAPI(videoId, payload, userAgent, options, apiUrl) {
                 cookie: jar?.getCookieStringSync('https://www.youtube.com'),
                 'User-Agent': userAgent,
                 'X-Goog-Api-Format-Version': '2',
-                Origin: 'https://www.youtube.com',
-                'X-Goog-Visitor-Id': options.visitorId,
             };
         }
         else {
@@ -205,7 +203,7 @@ async function playerAPI(videoId, payload, userAgent, options, apiUrl) {
                 'Content-Type': 'application/json',
                 cookie: jar?.getCookieStringSync('https://www.youtube.com'),
                 Origin: 'https://www.youtube.com',
-                'User-Agent': userAgent,
+                'User-Agent': userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
                 'X-Youtube-Client-Name': '56',
                 'X-Youtube-Client-Version': '1.20240814.01.00',
                 'X-Goog-Visitor-Id': options.visitorData,
@@ -393,25 +391,24 @@ async function _getBasicInfo(id, options) {
     const { jar, dispatcher } = options.agent || {};
     utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
+    if (options.poToken && !options.visitorData) {
+        console.warn('\x1b[33mWARNING:\x1B[0m If you specify a poToken, you must also specify the visitorData.');
+    }
     const RETRY_OPTIONS = Object.assign({}, options.requestOptions), RETRY_FUNC_PROMISE = retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options), EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE), VIDEO_INFO = {
-        page: 'watch',
         watchPageInfo: WATCH_PAGE_INFO,
-        relatedVideos: [],
+        related_videos: [],
         videoDetails: {},
         formats: [],
         html5Player: null,
     };
     if (!HTML5_PLAYER) {
-        throw Error('Unable to find html5player file');
+        throw new Error('Unable to find html5player file');
     }
     const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString(), PLAYER_API_RESPONSES = await Promise.allSettled([fetchWebCreatorPlayer(id, HTML5_PLAYER_URL, options), fetchIosJsonPlayer(id, options), fetchAndroidJsonPlayer(id, options)]), WEB_CREATOR_RESPONSE = PLAYER_API_RESPONSES[0].status === 'fulfilled' ? PLAYER_API_RESPONSES[0].value : null, IOS_PLAYER_RESPONSE = PLAYER_API_RESPONSES[1].status === 'fulfilled' ? PLAYER_API_RESPONSES[1].value : null, ANDROID_PLAYER_RESPONSE = PLAYER_API_RESPONSES[2].status === 'fulfilled' ? PLAYER_API_RESPONSES[2].value : null;
+    if (WEB_CREATOR_RESPONSE === null && IOS_PLAYER_RESPONSE === null && ANDROID_PLAYER_RESPONSE === null) {
+        throw new Error('Web Creator, iOS, and Android player APIs all returned errors.');
+    }
     VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
-    PLAYER_API_RESPONSES.forEach((response, i) => {
-        if (response.status === 'rejected') {
-            const NAMES = ['WebCreator', 'iOS', 'Android'];
-            console.warn(`Request to ${NAMES[i]} Player failed.\nReason: ${response.reason}`);
-        }
-    });
     const MEDIA = info_extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = (() => {
         const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));
         return !!IS_AGE_RESTRICTED;
@@ -424,6 +421,7 @@ async function _getBasicInfo(id, options) {
         storyboards: info_extras_1.default.getStoryboards(WEB_CREATOR_RESPONSE),
         chapters: info_extras_1.default.getChapters(WATCH_PAGE_INFO),
     }, VIDEO_DETAILS = (WEB_CREATOR_RESPONSE || IOS_PLAYER_RESPONSE || ANDROID_PLAYER_RESPONSE || {}).videoDetails || {};
+    VIDEO_INFO.related_videos = info_extras_1.default.getRelatedVideos(WATCH_PAGE_INFO);
     VIDEO_INFO.videoDetails = info_extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA));
     VIDEO_INFO.formats = [...parseFormats(WEB_CREATOR_RESPONSE), ...parseFormats(IOS_PLAYER_RESPONSE), ...parseFormats(ANDROID_PLAYER_RESPONSE)].filter((res) => res);
     return VIDEO_INFO;

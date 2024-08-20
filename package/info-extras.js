@@ -172,9 +172,7 @@ function getRelatedVideos(info) {
     try {
         secondaryResults = info.response.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
     }
-    catch (err) {
-        return [];
-    }
+    catch (err) { }
     const VIDEOS = [];
     for (const RESULT of secondaryResults) {
         const DETAILS = RESULT.compactVideoRenderer;

@@ -1,11 +1,11 @@
 import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
-import info from './info';
+import { CACHE as INFO_CACHE, WATCH_PAGE_CACHE, getBasicInfo, getInfo } from './info';
 import utils from './utils';
-import formatUtils from './format-utils';
-import urlUtils from './url-utils';
-import agent from './agent';
+import { chooseFormat, filterFormats } from './format-utils';
+import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
+import { createAgent, createProxyAgent } from './agent';
 import pkg from '../package.json';
 
 import { YTDL_DownloadOptions } from '@/types/options';
@@ -48,7 +48,7 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
 
     let format;
     try {
-        format = formatUtils.chooseFormat(info.formats, options);
+        format = chooseFormat(info.formats, options);
     } catch (e) {
         stream.emit('error', e);
         return;
@@ -177,11 +177,18 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
     };
 }
 
+/* Public Constants */
+const cache = {
+        info: INFO_CACHE,
+        watch: WATCH_PAGE_CACHE,
+    },
+    version = pkg.version;
+
 /* Public Functions */
 const ytdl = (link: string, options: YTDL_DownloadOptions = {}) => {
     const STREAM = createStream(options);
 
-    info.getInfo(link, options).then((info) => {
+    getInfo(link, options).then((info) => {
         downloadFromInfoCallback(STREAM, info, options);
     }, STREAM.emit.bind(STREAM, 'error'));
 
@@ -206,21 +213,20 @@ function downloadFromInfo(info: YTDL_VideoInfo, options: YTDL_DownloadOptions = 
 }
 
 ytdl.downloadFromInfo = downloadFromInfo;
-ytdl.getBasicInfo = info.getBasicInfo;
-ytdl.getInfo = info.getInfo;
-ytdl.chooseFormat = formatUtils.chooseFormat;
-ytdl.filterFormats = formatUtils.filterFormats;
-ytdl.validateID = urlUtils.validateID;
-ytdl.validateURL = urlUtils.validateURL;
-ytdl.getURLVideoID = urlUtils.getURLVideoID;
-ytdl.getVideoID = urlUtils.getVideoID;
-ytdl.createAgent = agent.createAgent;
-ytdl.createProxyAgent = agent.createProxyAgent;
-ytdl.cache = {
-    info: info.CACHE,
-    watch: info.WATCH_PAGE_CACHE,
-};
-ytdl.version = pkg.version;
+ytdl.getBasicInfo = getBasicInfo;
+ytdl.getInfo = getInfo;
+ytdl.chooseFormat = chooseFormat;
+ytdl.filterFormats = filterFormats;
+ytdl.validateID = validateID;
+ytdl.validateURL = validateURL;
+ytdl.getURLVideoID = getURLVideoID;
+ytdl.getVideoID = getVideoID;
+ytdl.createAgent = createAgent;
+ytdl.createProxyAgent = createProxyAgent;
+ytdl.cache = cache;
+ytdl.version = version;
 
 module.exports = ytdl;
+
+export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, validateID, validateURL, getURLVideoID, getVideoID, createAgent, createProxyAgent, cache, version };
 export default ytdl;

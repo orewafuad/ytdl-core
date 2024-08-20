@@ -3,8 +3,23 @@
 YBD Project fork of `ytdl-core`. This fork is dedicated to improving the @DisTube fork.
 
 ## ℹ️Announcements at this timeℹ️
-> [!NOTE]  
+
+There are no announcements at this time.
+
+<!-- > [!NOTE]
 > As of v5.0.5, related videos cannot be retrieved. This will be fixed later.
+
+> [!TIP]
+> Optional information to help a user be more successful.
+
+> [!IMPORTANT]
+> Crucial information necessary for users to succeed.
+
+> [!WARNING]
+> Critical content demanding immediate user attention due to potential risks.
+
+> [!CAUTION]
+> Negative potential consequences of an action. -->
 
 ## Installation
 
@@ -17,51 +32,54 @@ Make sure you're installing the latest version of `@ybd-project/ytdl-core` to ke
 ## Usage
 
 ```js
-const ytdl = require("@ybd-project/ytdl-core");
+const ytdl = require('@ybd-project/ytdl-core');
 // TypeScript: import ytdl from '@ybd-project/ytdl-core'; with --esModuleInterop
 // TypeScript: import * as ytdl from '@ybd-project/ytdl-core'; with --allowSyntheticDefaultImports
 // TypeScript: import ytdl = require('@ybd-project/ytdl-core'); with neither of the above
 
 // Download a video
-ytdl("http://www.youtube.com/watch?v=aqz-KE-bpKQ").pipe(require("fs").createWriteStream("video.mp4"));
+ytdl('http://www.youtube.com/watch?v=aqz-KE-bpKQ').pipe(require('fs').createWriteStream('video.mp4'));
 
 // Get video info
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ").then(info => {
-  console.log(info.title);
+ytdl.getBasicInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ').then((info) => {
+    console.log(info.title);
 });
 
 // Get video info with download formats
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ").then(info => {
-  console.log(info.formats);
+ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ').then((info) => {
+    console.log(info.formats);
 });
 ```
 
 ### Cookies Support
+
 Currently, the use of cookies is deprecated due to the “Sign in to confirm you're not a bot” error. Please use `poToken` instead.
 
 ### PoToken Support
+
 `@ybd-project/ytdl-core` supports `poToken`.
 
 The `poToken` can be used to avoid bot errors and must be specified with `visitorData`. If you need to obtain `poToken` or `visitorData`, please use the following repository to generate them.
+
 1. https://github.com/iv-org/youtube-trusted-session-generator
 2. https://github.com/fsholehan/scrape-youtube
 
 ```js
-const ytdl = require("@ybd-project/ytdl-core");
+const ytdl = require('@ybd-project/ytdl-core');
 
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
+ytdl.getBasicInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
+ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
 ```
 
 ### Proxy Support
 
 ```js
-const ytdl = require("@ybd-project/ytdl-core");
+const ytdl = require('@ybd-project/ytdl-core');
 
-const agent = ytdl.createProxyAgent({ uri: "my.proxy.server" });
+const agent = ytdl.createProxyAgent({ uri: 'my.proxy.server' });
 
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent });
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent });
+ytdl.getBasicInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent });
+ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent });
 ```
 
 ### IP Rotation
@@ -72,20 +90,20 @@ To implement IP rotation, you need to assign the desired IP address to the `loca
 Therefore, you'll need to use a different `ytdl.Agent` for each IP address you want to use.
 
 ```js
-const ytdl = require("@ybd-project/ytdl-core");
-const { getRandomIPv6 } = require("@ybd-project/ytdl-core/lib/utils");
+const ytdl = require('@ybd-project/ytdl-core');
+const { getRandomIPv6 } = require('@ybd-project/ytdl-core/lib/utils');
 
 const agentForARandomIP = ytdl.createAgent(undefined, {
-  localAddress: getRandomIPv6("2001:2::/48"),
+    localAddress: getRandomIPv6('2001:2::/48'),
 });
 
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent: agentForARandomIP });
+ytdl.getBasicInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent: agentForARandomIP });
 
 const agentForAnotherRandomIP = ytdl.createAgent(undefined, {
-  localAddress: getRandomIPv6("2001:2::/48"),
+    localAddress: getRandomIPv6('2001:2::/48'),
 });
 
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent: agentForAnotherRandomIP });
+ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent: agentForAnotherRandomIP });
 ```
 
 ## API
@@ -94,8 +112,8 @@ You can find the API documentation in the [original repo](https://github.com/fen
 
 ### `ytdl.getInfoOptions`
 
-- `requestOptions` is now `undici`'s [`RequestOptions`](https://github.com/nodejs/undici#undicirequesturl-options-promise).
-- `agent`: [`ytdl.Agent`](https://github.com/ybd-projectjs/ytdl-core/blob/master/typings/index.d.ts#L10-L14)
+-   `requestOptions` is now `undici`'s [`RequestOptions`](https://github.com/nodejs/undici#undicirequesturl-options-promise).
+-   `agent`: [`ytdl.Agent`](https://github.com/ybd-projectjs/ytdl-core/blob/master/typings/index.d.ts#L10-L14)
 
 ### `ytdl.createAgent([cookies]): ytdl.Agent`
 
@@ -113,11 +131,11 @@ You can find the example [here](https://github.com/ybd-projectjs/ytdl-core/blob/
 
 ytdl cannot download videos that fall into the following
 
-- Regionally restricted (requires a [proxy](#proxy-support))
-- Private (if you have access, requires [cookies](#cookies-support))
-- Rentals (if you have access, requires [cookies](#cookies-support))
-- YouTube Premium content (if you have access, requires [cookies](#cookies-support))
-- Only [HLS Livestreams](https://en.wikipedia.org/wiki/HTTP_Live_Streaming) are currently supported. Other formats will get filtered out in ytdl.chooseFormats
+-   Regionally restricted (requires a [proxy](#proxy-support))
+-   Private (if you have access, requires [cookies](#cookies-support))
+-   Rentals (if you have access, requires [cookies](#cookies-support))
+-   YouTube Premium content (if you have access, requires [cookies](#cookies-support))
+-   Only [HLS Livestreams](https://en.wikipedia.org/wiki/HTTP_Live_Streaming) are currently supported. Other formats will get filtered out in ytdl.chooseFormats
 
 Generated download links are valid for 6 hours, and may only be downloadable from the same IP address.
 
@@ -125,13 +143,13 @@ Generated download links are valid for 6 hours, and may only be downloadable fro
 
 When doing too many requests YouTube might block. This will result in your requests getting denied with HTTP-StatusCode 429. The following steps might help you:
 
-- Update `@ybd-project/ytdl-core` to the latest version
-- Use proxies (you can find an example [here](#proxy-support))
-- Extend the Proxy Idea by rotating (IPv6-)Addresses
-  - read [this](https://github.com/fent/node-ytdl-core#how-does-using-an-ipv6-block-help) for more information about this
-- Use cookies (you can find an example [here](#cookies-support))
-  - for this to take effect you have to FIRST wait for the current rate limit to expire
-- Wait it out (it usually goes away within a few days)
+-   Update `@ybd-project/ytdl-core` to the latest version
+-   Use proxies (you can find an example [here](#proxy-support))
+-   Extend the Proxy Idea by rotating (IPv6-)Addresses
+    -   read [this](https://github.com/fent/node-ytdl-core#how-does-using-an-ipv6-block-help) for more information about this
+-   Use cookies (you can find an example [here](#cookies-support))
+    -   for this to take effect you have to FIRST wait for the current rate limit to expire
+-   Wait it out (it usually goes away within a few days)
 
 ## Update Checks
 

@@ -209,10 +209,9 @@ export type YT_CompactVideoRenderer = {
 
 export type YTDL_WatchPageInfo = {
     page: 'watch';
-    // player_response is broken
-    player_response: null; // YT_YTInitialPlayerResponse;
+    player_response: YT_YTInitialPlayerResponse | null;
     response: YT_YTInitialData;
-    html5player: string | null;
+    html5Player: string | null;
 };
 
 export type YTDL_Thumbnail = {
@@ -393,7 +392,6 @@ export interface YTDL_MoreVideoDetailsAdditions {
 export type YTDL_MoreVideoDetails = Omit<YTDL_VideoDetails, 'author' | 'thumbnail' | 'shortDescription'> & Omit<YTDL_MicroformatRenderer, 'title' | 'description'> & YTDL_MoreVideoDetailsAdditions;
 
 export type YTDL_VideoInfo = {
-    page: 'watch',
     watchPageInfo: YTDL_WatchPageInfo;
     html5Player: string;
     formats: Array<YTDL_VideoFormat>;

@@ -26,14 +26,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.version = exports.cache = exports.createProxyAgent = exports.createAgent = exports.getVideoID = exports.getURLVideoID = exports.validateURL = exports.validateID = exports.filterFormats = exports.chooseFormat = exports.getInfo = exports.getBasicInfo = void 0;
+exports.downloadFromInfo = downloadFromInfo;
 const stream_1 = require("stream");
 const miniget_1 = __importDefault(require("miniget"));
 const m3u8stream_1 = __importStar(require("m3u8stream"));
-const info_1 = __importDefault(require("./info"));
+const info_1 = require("./info");
+Object.defineProperty(exports, "getBasicInfo", { enumerable: true, get: function () { return info_1.getBasicInfo; } });
+Object.defineProperty(exports, "getInfo", { enumerable: true, get: function () { return info_1.getInfo; } });
 const utils_1 = __importDefault(require("./utils"));
-const format_utils_1 = __importDefault(require("./format-utils"));
-const url_utils_1 = __importDefault(require("./url-utils"));
-const agent_1 = __importDefault(require("./agent"));
+const format_utils_1 = require("./format-utils");
+Object.defineProperty(exports, "chooseFormat", { enumerable: true, get: function () { return format_utils_1.chooseFormat; } });
+Object.defineProperty(exports, "filterFormats", { enumerable: true, get: function () { return format_utils_1.filterFormats; } });
+const url_utils_1 = require("./url-utils");
+Object.defineProperty(exports, "validateID", { enumerable: true, get: function () { return url_utils_1.validateID; } });
+Object.defineProperty(exports, "validateURL", { enumerable: true, get: function () { return url_utils_1.validateURL; } });
+Object.defineProperty(exports, "getURLVideoID", { enumerable: true, get: function () { return url_utils_1.getURLVideoID; } });
+Object.defineProperty(exports, "getVideoID", { enumerable: true, get: function () { return url_utils_1.getVideoID; } });
+const agent_1 = require("./agent");
+Object.defineProperty(exports, "createAgent", { enumerable: true, get: function () { return agent_1.createAgent; } });
+Object.defineProperty(exports, "createProxyAgent", { enumerable: true, get: function () { return agent_1.createProxyAgent; } });
 const package_json_1 = __importDefault(require("../package.json"));
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
@@ -63,7 +75,7 @@ function downloadFromInfoCallback(stream, info, options) {
     }
     let format;
     try {
-        format = format_utils_1.default.chooseFormat(info.formats, options);
+        format = (0, format_utils_1.chooseFormat)(info.formats, options);
     }
     catch (e) {
         stream.emit('error', e);
@@ -177,10 +189,17 @@ function downloadFromInfoCallback(stream, info, options) {
         }
     };
 }
+/* Public Constants */
+const cache = {
+    info: info_1.CACHE,
+    watch: info_1.WATCH_PAGE_CACHE,
+}, version = package_json_1.default.version;
+exports.cache = cache;
+exports.version = version;
 /* Public Functions */
 const ytdl = (link, options = {}) => {
     const STREAM = createStream(options);
-    info_1.default.getInfo(link, options).then((info) => {
+    (0, info_1.getInfo)(link, options).then((info) => {
         downloadFromInfoCallback(STREAM, info, options);
     }, STREAM.emit.bind(STREAM, 'error'));
     return STREAM;
@@ -199,21 +218,18 @@ function downloadFromInfo(info, options = {}) {
     return STREAM;
 }
 ytdl.downloadFromInfo = downloadFromInfo;
-ytdl.getBasicInfo = info_1.default.getBasicInfo;
-ytdl.getInfo = info_1.default.getInfo;
-ytdl.chooseFormat = format_utils_1.default.chooseFormat;
-ytdl.filterFormats = format_utils_1.default.filterFormats;
-ytdl.validateID = url_utils_1.default.validateID;
-ytdl.validateURL = url_utils_1.default.validateURL;
-ytdl.getURLVideoID = url_utils_1.default.getURLVideoID;
-ytdl.getVideoID = url_utils_1.default.getVideoID;
-ytdl.createAgent = agent_1.default.createAgent;
-ytdl.createProxyAgent = agent_1.default.createProxyAgent;
-ytdl.cache = {
-    info: info_1.default.CACHE,
-    watch: info_1.default.WATCH_PAGE_CACHE,
-};
-ytdl.version = package_json_1.default.version;
+ytdl.getBasicInfo = info_1.getBasicInfo;
+ytdl.getInfo = info_1.getInfo;
+ytdl.chooseFormat = format_utils_1.chooseFormat;
+ytdl.filterFormats = format_utils_1.filterFormats;
+ytdl.validateID = url_utils_1.validateID;
+ytdl.validateURL = url_utils_1.validateURL;
+ytdl.getURLVideoID = url_utils_1.getURLVideoID;
+ytdl.getVideoID = url_utils_1.getVideoID;
+ytdl.createAgent = agent_1.createAgent;
+ytdl.createProxyAgent = agent_1.createProxyAgent;
+ytdl.cache = cache;
+ytdl.version = version;
 module.exports = ytdl;
 exports.default = ytdl;
 //# sourceMappingURL=index.js.map
