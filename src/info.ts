@@ -480,8 +480,6 @@ async function fetchAndroidJsonPlayer(videoId: string, options: YTDL_GetInfoOpti
 
 /* ----------- */
 
-/* ----------- */
-
 /* Public Constants */
 const CACHE = new Cache(),
     WATCH_PAGE_CACHE = new Cache();
@@ -516,7 +514,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions): Promise<
             relatedVideos: [],
             videoDetails: {},
             formats: [],
-            html5Player: HTML5_PLAYER,
+            html5Player: null,
         } as any;
 
     if (!HTML5_PLAYER) {
@@ -528,6 +526,8 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions): Promise<
         WEB_CREATOR_RESPONSE = PLAYER_API_RESPONSES[0].status === 'fulfilled' ? PLAYER_API_RESPONSES[0].value : null,
         IOS_PLAYER_RESPONSE = PLAYER_API_RESPONSES[1].status === 'fulfilled' ? PLAYER_API_RESPONSES[1].value : null,
         ANDROID_PLAYER_RESPONSE = PLAYER_API_RESPONSES[2].status === 'fulfilled' ? PLAYER_API_RESPONSES[2].value : null;
+
+    VIDEO_INFO.html5player = HTML5_PLAYER_URL;
 
     PLAYER_API_RESPONSES.forEach((response, i) => {
         if (response.status === 'rejected') {
@@ -577,6 +577,8 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
 
     const INFO: YTDL_VideoInfo = await getBasicInfo(id, options),
         FUNCTIONS = [];
+
+    console.log(INFO)
 
     try {
         const FORMATS = INFO.formats as any as Array<YT_YTInitialPlayerResponse>;
