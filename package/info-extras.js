@@ -76,58 +76,45 @@ function parseRelatedVideo(details, rvsParams) {
 /* Public Functions */
 /** Get video media. [Note]: Media cannot be obtained for several reasons. */
 function getMedia(info) {
-    /*     let media: YTDL_Media = {
-            category: '',
-            category_url: '',
-            thumbnails: [],
-        },
-        results = [];
-
+    let media = {
+        category: '',
+        category_url: '',
+        thumbnails: [],
+    }, results = [];
     try {
         results = info.response.contents.twoColumnWatchNextResults.results.results.contents;
-    } catch (err) {}
-
+    }
+    catch (err) { }
     let videoSecondaryInfoRenderer = results.find((v) => v.videoSecondaryInfoRenderer);
     if (!videoSecondaryInfoRenderer) {
         return null;
     }
-
     try {
         const METADATA_ROWS = (videoSecondaryInfoRenderer.metadataRowContainer || videoSecondaryInfoRenderer.videoSecondaryInfoRenderer.metadataRowContainer).metadataRowContainerRenderer.rows;
-
         for (const ROW of METADATA_ROWS) {
-            const ROW_RENDERER = ROW.metadataRowRenderer,
-                RICH_ROW_RENDERER = ROW.richMetadataRowRenderer;
-
+            const ROW_RENDERER = ROW.metadataRowRenderer, RICH_ROW_RENDERER = ROW.richMetadataRowRenderer;
             if (ROW_RENDERER) {
-                const TITLE = getText(ROW.metadataRowRenderer.title).toLowerCase(),
-                    CONTENTS = ROW_RENDERER.contents[0];
-
+                const TITLE = getText(ROW.metadataRowRenderer.title).toLowerCase(), CONTENTS = ROW_RENDERER.contents[0];
                 media[TITLE] = getText(CONTENTS);
-
                 const RUNS = CONTENTS.runs;
                 if (RUNS && RUNS[0].navigationEndpoint) {
                     media[`${TITLE}_url`] = new URL(RUNS[0].navigationEndpoint.commandMetadata.webCommandMetadata.url, BASE_URL).toString();
                 }
-
                 if (TITLE in TITLE_TO_CATEGORY) {
                     media.category = TITLE_TO_CATEGORY[TITLE].name;
                     media.category_url = TITLE_TO_CATEGORY[TITLE].url;
                 }
-            } else if (RICH_ROW_RENDERER) {
-                const CONTENTS = RICH_ROW_RENDERER.contents as Array<any>,
-                    BOX_ART = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_BOX_ART');
-
+            }
+            else if (RICH_ROW_RENDERER) {
+                const CONTENTS = RICH_ROW_RENDERER.contents, BOX_ART = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_BOX_ART');
                 for (const { richMetadataRenderer } of BOX_ART) {
                     const META = richMetadataRenderer;
                     media.year = getText(META.subtitle);
-
                     const TYPE = getText(META.callToAction).split(' ')[1];
                     media[TYPE] = getText(META.title);
                     media[`${TYPE}_url`] = new URL(META.endpoint.commandMetadata.webCommandMetadata.url, BASE_URL).toString();
                     media.thumbnails = META.thumbnail.thumbnails;
                 }
-
                 const TOPIC = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_TOPIC');
                 for (const { richMetadataRenderer } of TOPIC) {
                     const META = richMetadataRenderer;
@@ -136,37 +123,36 @@ function getMedia(info) {
                 }
             }
         }
-    } catch (err) {}
-
-    return media; */
-    return null;
+    }
+    catch (err) { }
+    return media;
 }
 function getAuthor(info) {
-    if (!info) {
-        return null;
-    }
-    let channelId = null, thumbnails = [], subscriberCount = null;
+    let channelName = null, channelId = null, user = null, thumbnails = [], subscriberCount = null, verified = false;
     try {
-        const ENDSCREEN_RENDERER = info.endscreen.endscreenRenderer.elements.filter(({ endscreenElementRenderer }) => endscreenElementRenderer.style === 'CHANNEL' && endscreenElementRenderer?.endpoint?.browseEndpoint?.browseId === info.videoDetails.channelId)[0].endscreenElementRenderer;
-        channelId = ENDSCREEN_RENDERER.endpoint.browseEndpoint.browseId || info.videoDetails.channelId;
-        thumbnails = ENDSCREEN_RENDERER.image.thumbnails || [];
-        subscriberCount = utils_1.default.parseAbbreviatedNumber(getText(ENDSCREEN_RENDERER.metadata));
+        const TWO_COLUMN_WATCH_NEXT_RESULTS = info.response.contents.twoColumnWatchNextResults.results.results.contents, SECONDARY_INFO_RENDERER = TWO_COLUMN_WATCH_NEXT_RESULTS.find((v) => v.videoSecondaryInfoRenderer && v.videoSecondaryInfoRenderer.owner && v.videoSecondaryInfoRenderer.owner.videoOwnerRenderer), VIDEO_OWNER_RENDERER = SECONDARY_INFO_RENDERER.videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
+        channelName = VIDEO_OWNER_RENDERER.title.runs[0].text || null;
+        channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId;
+        user = (VIDEO_OWNER_RENDERER?.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl || VIDEO_OWNER_RENDERER.navigationEndpoint.commandMetadata.webCommandMetadata.url).replace('/', '');
+        thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails.map((thumbnail) => {
+            thumbnail.url = new URL(thumbnail.url, BASE_URL).toString();
+            return thumbnail;
+        });
+        subscriberCount = utils_1.default.parseAbbreviatedNumber(getText(VIDEO_OWNER_RENDERER.subscriberCountText));
+        verified = isVerified(VIDEO_OWNER_RENDERER.badges);
     }
-    catch (err) {
-        console.log(err);
-        return null;
-    }
+    catch (err) { }
     try {
-        const VIDEO_DETAILS = info.videoDetails, AUTHOR = {
+        const AUTHOR = {
             id: channelId,
-            name: VIDEO_DETAILS.author || 'Unknown',
-            user: null,
-            channel_url: `https://www.youtube.com/channel/${channelId}`,
-            external_channel_url: null,
-            user_url: '',
+            name: channelName,
+            user,
+            channel_url: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+            external_channel_url: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+            user_url: 'https://www.youtube.com/' + user,
             thumbnails,
             subscriber_count: subscriberCount,
-            verified: false,
+            verified,
         };
         if (thumbnails?.length) {
             utils_1.default.deprecate(AUTHOR, 'avatar', AUTHOR.thumbnails[0]?.url, 'author.thumbnails', 'author.thumbnails[0].url');
@@ -213,7 +199,6 @@ function getRelatedVideos(info) {
     }
     return VIDEOS;
 }
-/* [Note]: Likes count cannot be obtained for several reasons. */
 function getLikes(info) {
     try {
         const CONTENTS = info.response.contents.twoColumnWatchNextResults.results.results.contents, VIDEO = CONTENTS.find((r) => r.videoPrimaryInfoRenderer), BUTTONS = VIDEO.videoPrimaryInfoRenderer.videoActions.menuRenderer.topLevelButtons, ACCESSIBILITY_TEXT = BUTTONS.find((b) => b.segmentedLikeDislikeButtonViewModel).segmentedLikeDislikeButtonViewModel.likeButtonViewModel.likeButtonViewModel.toggleButtonViewModel.toggleButtonViewModel.defaultButtonViewModel.buttonViewModel.accessibilityText;
@@ -223,16 +208,21 @@ function getLikes(info) {
         return null;
     }
 }
-function cleanVideoDetails(videoDetails, info) {
+function cleanVideoDetails(videoDetails /* info: YTDL_WatchPageInfo */) {
     const DETAILS = videoDetails;
-    DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
-    delete DETAILS.thumbnail;
-    utils_1.default.deprecate(DETAILS, 'thumbnail', { thumbnails: DETAILS.thumbnails }, 'DETAILS.thumbnail.thumbnails', 'DETAILS.thumbnails');
-    DETAILS.description = DETAILS.shortDescription || getText(DETAILS.description);
-    delete DETAILS.shortDescription;
-    utils_1.default.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
+    if (DETAILS.thumbnail) {
+        DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
+        delete DETAILS.thumbnail;
+        utils_1.default.deprecate(DETAILS, 'thumbnail', { thumbnails: DETAILS.thumbnails }, 'DETAILS.thumbnail.thumbnails', 'DETAILS.thumbnails');
+    }
+    const DESCRIPTION = DETAILS.shortDescription || getText(DETAILS.description);
+    if (DESCRIPTION) {
+        DETAILS.description = DESCRIPTION;
+        delete DETAILS.shortDescription;
+        utils_1.default.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
+    }
     // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
-    DETAILS.lengthSeconds = (info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer.lengthSeconds) || info.player_response.videoDetails.lengthSeconds;
+    /* DETAILS.lengthSeconds = (info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer.lengthSeconds) || info.player_response.videoDetails.lengthSeconds; */
     return DETAILS;
 }
 function getStoryboards(info) {

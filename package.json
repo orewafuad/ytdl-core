@@ -7,7 +7,7 @@
         "download",
         "ybd-project"
     ],
-    "version": "5.0.1",
+    "version": "5.0.3",
     "repository": {
         "type": "git",
         "url": "git://github.com/ybd-project/ytdl-core.git"
@@ -30,6 +30,7 @@
         "undici": "five"
     },
     "devDependencies": {
+        "@distube/ytdl-core": "^4.14.4",
         "@types/node": "^22.1.0",
         "@types/sax": "^1.2.7",
         "eslint": "^8.57.0",

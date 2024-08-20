@@ -83,7 +83,7 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, rvsParams: Array<qu
 
 /** Get video media. [Note]: Media cannot be obtained for several reasons. */
 function getMedia(info: YTDL_WatchPageInfo): YTDL_Media | null {
-    /*     let media: YTDL_Media = {
+    let media: YTDL_Media = {
             category: '',
             category_url: '',
             thumbnails: [],
@@ -145,44 +145,45 @@ function getMedia(info: YTDL_WatchPageInfo): YTDL_Media | null {
         }
     } catch (err) {}
 
-    return media; */
-
-    return null;
+    return media;
 }
 
-function getAuthor(info: YT_YTInitialPlayerResponse | null): YTDL_Author | null {
-    if (!info) {
-        return null;
-    }
-
-    let channelId: string | null = null,
+function getAuthor(info: YTDL_WatchPageInfo): YTDL_Author | null {
+    let channelName: string | null = null,
+        channelId: string | null = null,
+        user: string | null = null,
         thumbnails: YTDL_Author['thumbnails'] = [],
-        subscriberCount: number | null = null;
+        subscriberCount: number | null = null,
+        verified = false;
 
     try {
-        const ENDSCREEN_RENDERER = info.endscreen.endscreenRenderer.elements.filter(({ endscreenElementRenderer }) => endscreenElementRenderer.style === 'CHANNEL' && endscreenElementRenderer?.endpoint?.browseEndpoint?.browseId === info.videoDetails.channelId)[0].endscreenElementRenderer;
+        const TWO_COLUMN_WATCH_NEXT_RESULTS = info.response.contents.twoColumnWatchNextResults.results.results.contents,
+            SECONDARY_INFO_RENDERER = TWO_COLUMN_WATCH_NEXT_RESULTS.find((v) => v.videoSecondaryInfoRenderer && v.videoSecondaryInfoRenderer.owner && v.videoSecondaryInfoRenderer.owner.videoOwnerRenderer),
+            VIDEO_OWNER_RENDERER = SECONDARY_INFO_RENDERER.videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
 
-        channelId = ENDSCREEN_RENDERER.endpoint.browseEndpoint.browseId || info.videoDetails.channelId;
-        thumbnails = ENDSCREEN_RENDERER.image.thumbnails || [];
-        subscriberCount = utils.parseAbbreviatedNumber(getText(ENDSCREEN_RENDERER.metadata));
-    } catch (err) {
-        console.log(err);
-        return null;
-    }
+        channelName = VIDEO_OWNER_RENDERER.title.runs[0].text || null;
+        channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId;
+        user = (VIDEO_OWNER_RENDERER?.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl || VIDEO_OWNER_RENDERER.navigationEndpoint.commandMetadata.webCommandMetadata.url).replace('/', '');
+        thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails.map((thumbnail: YTDL_Thumbnail) => {
+            thumbnail.url = new URL(thumbnail.url, BASE_URL).toString();
+            return thumbnail;
+        });
+        subscriberCount = utils.parseAbbreviatedNumber(getText(VIDEO_OWNER_RENDERER.subscriberCountText));
+        verified = isVerified(VIDEO_OWNER_RENDERER.badges);
+    } catch (err) {}
 
     try {
-        const VIDEO_DETAILS = info.videoDetails,
-            AUTHOR: any = {
-                id: channelId,
-                name: VIDEO_DETAILS.author || 'Unknown',
-                user: null,
-                channel_url: `https://www.youtube.com/channel/${channelId}`,
-                external_channel_url: null,
-                user_url: '',
-                thumbnails,
-                subscriber_count: subscriberCount,
-                verified: false,
-            };
+        const AUTHOR: any = {
+            id: channelId,
+            name: channelName,
+            user,
+            channel_url: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+            external_channel_url: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+            user_url: 'https://www.youtube.com/' + user,
+            thumbnails,
+            subscriber_count: subscriberCount,
+            verified,
+        };
 
         if (thumbnails?.length) {
             utils.deprecate(AUTHOR, 'avatar', AUTHOR.thumbnails[0]?.url, 'author.thumbnails', 'author.thumbnails[0].url');
@@ -237,7 +238,6 @@ function getRelatedVideos(info: YTDL_WatchPageInfo): Array<YTDL_RelatedVideo> {
     return VIDEOS;
 }
 
-/* [Note]: Likes count cannot be obtained for several reasons. */
 function getLikes(info: YTDL_WatchPageInfo): number | null {
     try {
         const CONTENTS = info.response.contents.twoColumnWatchNextResults.results.results.contents,
@@ -251,19 +251,24 @@ function getLikes(info: YTDL_WatchPageInfo): number | null {
     }
 }
 
-function cleanVideoDetails(videoDetails: YTDL_VideoDetails, info: YTDL_WatchPageInfo): YTDL_MoreVideoDetails {
+function cleanVideoDetails(videoDetails: YTDL_VideoDetails /* info: YTDL_WatchPageInfo */): YTDL_MoreVideoDetails {
     const DETAILS = videoDetails as any;
 
-    DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
-    delete DETAILS.thumbnail;
-    utils.deprecate(DETAILS, 'thumbnail', { thumbnails: DETAILS.thumbnails }, 'DETAILS.thumbnail.thumbnails', 'DETAILS.thumbnails');
+    if (DETAILS.thumbnail) {
+        DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
+        delete DETAILS.thumbnail;
+        utils.deprecate(DETAILS, 'thumbnail', { thumbnails: DETAILS.thumbnails }, 'DETAILS.thumbnail.thumbnails', 'DETAILS.thumbnails');
+    }
 
-    DETAILS.description = DETAILS.shortDescription || getText(DETAILS.description);
-    delete DETAILS.shortDescription;
-    utils.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
+    const DESCRIPTION = DETAILS.shortDescription || getText(DETAILS.description);
+    if (DESCRIPTION) {
+        DETAILS.description = DESCRIPTION;
+        delete DETAILS.shortDescription;
+        utils.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
+    }
 
     // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
-    DETAILS.lengthSeconds = (info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer.lengthSeconds) || info.player_response.videoDetails.lengthSeconds;
+    /* DETAILS.lengthSeconds = (info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer.lengthSeconds) || info.player_response.videoDetails.lengthSeconds; */
 
     return DETAILS;
 }

@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a bug found in @distube/ytdl-core
+about: Report a bug found in @ybd-project/ytdl-core
 title: ""
 labels: bug
 assignees: ""
@@ -9,11 +9,12 @@ assignees: ""
 ## Describe the bug
 <!-- A clear and concise description of what the bug is. -->
 
-## Debug File
-<!-- Please upload your debug file by dragging and dropping it here (if any). -->
+## Error Details (Log)
+<!-- Provide details (logs) about the error. -->
 
 ## Environment
 
-- @distube/ytdl-core version:
+- Video URL:
+- @ybd-project/ytdl-core version:
 - Node.js version:
 - Operating system:

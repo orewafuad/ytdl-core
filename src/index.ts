@@ -41,12 +41,6 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
 
     options.requestOptions ??= {};
 
-    const PLAY_ERROR = utils.playError(info.player_response);
-    if (PLAY_ERROR) {
-        stream.emit('error', PLAY_ERROR);
-        return;
-    }
-
     if (!info.formats.length) {
         stream.emit('error', Error('This video is unavailable'));
         return;

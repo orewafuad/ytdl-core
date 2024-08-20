@@ -94,7 +94,7 @@ async function getWatchHTMLPage(id, options) {
     const BODY = await getWatchHTMLPageBody(id, options), INFO = { page: 'watch' };
     try {
         try {
-            INFO.player_response = utils_1.default.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', '}};', '', '}}') || utils_1.default.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';var') || utils_1.default.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';</script>') || findJSON('watch.html', 'player_response', BODY, /\bytInitialPlayerResponse\s*=\s*\{/i, '</script>', '{');
+            INFO.player_response = null; //utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', '}};', '', '}}') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';var') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';</script>') || findJSON<YT_YTInitialPlayerResponse>('watch.html', 'player_response', BODY, /\bytInitialPlayerResponse\s*=\s*\{/i, '</script>', '{');
         }
         catch (err) {
             const ARGS = findJSON('watch.html', 'player_response', BODY, /\bytplayer\.config\s*=\s*{/, '</script>', '{');
@@ -394,11 +394,17 @@ async function _getBasicInfo(id, options) {
     const { jar, dispatcher } = options.agent || {};
     utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
-    const VIDEO_INFO = {}, HTML5_PLAYER = getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
+    const RETRY_OPTIONS = Object.assign({}, options.requestOptions), RETRY_FUNC_PROMISE = retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options), EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE), VIDEO_INFO = {
+        page: 'watch',
+        watchPageInfo: WATCH_PAGE_INFO,
+        relatedVideos: [],
+        videoDetails: {},
+        formats: [],
+        html5Player: HTML5_PLAYER,
+    };
     if (!HTML5_PLAYER) {
         throw Error('Unable to find html5player file');
     }
-    VIDEO_INFO.html5player = HTML5_PLAYER;
     const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString(), PLAYER_API_RESPONSES = await Promise.allSettled([fetchWebCreatorPlayer(id, HTML5_PLAYER_URL, options), fetchIosJsonPlayer(id, options), fetchAndroidJsonPlayer(id, options)]), WEB_CREATOR_RESPONSE = PLAYER_API_RESPONSES[0].status === 'fulfilled' ? PLAYER_API_RESPONSES[0].value : null, IOS_PLAYER_RESPONSE = PLAYER_API_RESPONSES[1].status === 'fulfilled' ? PLAYER_API_RESPONSES[1].value : null, ANDROID_PLAYER_RESPONSE = PLAYER_API_RESPONSES[2].status === 'fulfilled' ? PLAYER_API_RESPONSES[2].value : null;
     PLAYER_API_RESPONSES.forEach((response, i) => {
         if (response.status === 'rejected') {
@@ -406,23 +412,19 @@ async function _getBasicInfo(id, options) {
             console.warn(`Request to ${NAMES[i]} Player failed.\nReason: ${response.reason}`);
         }
     });
-    // Media cannot be obtained for several reasons.
-    const MEDIA = null, //extras.getMedia(IOS_PLAYER_RESPONSE) || extras.getMedia(ANDROID_PLAYER_RESPONSE)
-    /*AGE_RESTRICTED = (() => {const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));return !!IS_AGE_RESTRICTED;})(),*/
-    ADDITIONAL_DATA = {
-        author: info_extras_1.default.getAuthor(IOS_PLAYER_RESPONSE) || info_extras_1.default.getAuthor(ANDROID_PLAYER_RESPONSE),
+    const MEDIA = info_extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = (() => {
+        const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));
+        return !!IS_AGE_RESTRICTED;
+    })(), ADDITIONAL_DATA = {
+        author: info_extras_1.default.getAuthor(WATCH_PAGE_INFO),
         media: MEDIA,
-        likes: null, // extras.getLikes(WATCH_PAGE_INFO),
-        age_restricted: false,
+        likes: info_extras_1.default.getLikes(WATCH_PAGE_INFO),
+        age_restricted: AGE_RESTRICTED,
         video_url: BASE_URL + id,
         storyboards: info_extras_1.default.getStoryboards(WEB_CREATOR_RESPONSE),
-        chapters: [], // extras.getChapters(WATCH_PAGE_INFO),
+        chapters: info_extras_1.default.getChapters(WATCH_PAGE_INFO),
     }, VIDEO_DETAILS = (WEB_CREATOR_RESPONSE || IOS_PLAYER_RESPONSE || ANDROID_PLAYER_RESPONSE || {}).videoDetails || {};
-    VIDEO_DETAILS.isLiveContent ??= false;
-    VIDEO_DETAILS.isLive = VIDEO_DETAILS.isLiveContent;
-    delete VIDEO_DETAILS.isLiveContent;
-    delete VIDEO_DETAILS.arrowRatings;
-    VIDEO_INFO.videoDetails = Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA);
+    VIDEO_INFO.videoDetails = info_extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA));
     VIDEO_INFO.formats = [...parseFormats(WEB_CREATOR_RESPONSE), ...parseFormats(IOS_PLAYER_RESPONSE), ...parseFormats(ANDROID_PLAYER_RESPONSE)].filter((res) => res);
     return VIDEO_INFO;
 }
@@ -432,22 +434,16 @@ async function getBasicInfo(link, options = {}) {
     return CACHE.getOrSet(CACHE_KEY, () => _getBasicInfo(ID, options));
 }
 // TODO: Clean up this function for readability and support more clients
-// TODO: Support poToken
 /** Gets info from a video additional formats and deciphered URLs. */
 async function _getInfo(id, options) {
     utils_1.default.applyIPv6Rotations(options);
     utils_1.default.applyDefaultHeaders(options);
     utils_1.default.applyDefaultAgent(options);
     utils_1.default.applyOldLocalAddress(options);
-    const INFO = await getBasicInfo(id, options), FUNCTIONS = [], HTML5_PLAYER = INFO.html5player || getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
-    if (!HTML5_PLAYER) {
-        throw Error('Unable to find html5player file');
-    }
-    INFO.html5player = HTML5_PLAYER;
-    const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString();
+    const INFO = await getBasicInfo(id, options), FUNCTIONS = [];
     try {
         const FORMATS = INFO.formats;
-        FUNCTIONS.push(sig_1.default.decipherFormats(FORMATS, HTML5_PLAYER_URL, options));
+        FUNCTIONS.push(sig_1.default.decipherFormats(FORMATS, INFO.html5player, options));
         for (const RESPONSE of FORMATS) {
             FUNCTIONS.push(...parseAdditionalManifests(RESPONSE, options));
         }
@@ -455,8 +451,8 @@ async function _getInfo(id, options) {
     catch (err) {
         console.warn('error in player API; falling back to web-scraping');
         // TODO: tv client
-        FUNCTIONS.push(sig_1.default.decipherFormats(parseFormats(INFO.player_response), HTML5_PLAYER_URL, options));
-        FUNCTIONS.push(...parseAdditionalManifests(INFO.player_response, options));
+        FUNCTIONS.push(sig_1.default.decipherFormats(parseFormats(INFO.watchPageInfo.player_response), INFO.html5player, options));
+        FUNCTIONS.push(...parseAdditionalManifests(INFO.watchPageInfo.player_response, options));
     }
     const RESULTS = await Promise.all(FUNCTIONS);
     INFO.formats = Object.values(Object.assign({}, ...RESULTS));

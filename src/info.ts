@@ -138,7 +138,7 @@ async function getWatchHTMLPage(id: string, options: YTDL_GetInfoOptions): Promi
 
     try {
         try {
-            INFO.player_response = utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', '}};', '', '}}') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';var') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';</script>') || findJSON<YT_YTInitialPlayerResponse>('watch.html', 'player_response', BODY, /\bytInitialPlayerResponse\s*=\s*\{/i, '</script>', '{');
+            INFO.player_response = null; //utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', '}};', '', '}}') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';var') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';</script>') || findJSON<YT_YTInitialPlayerResponse>('watch.html', 'player_response', BODY, /\bytInitialPlayerResponse\s*=\s*\{/i, '</script>', '{');
         } catch (err) {
             const ARGS = findJSON<Object>('watch.html', 'player_response', BODY, /\bytplayer\.config\s*=\s*{/, '</script>', '{');
             INFO.player_response = findPlayerResponse('watch.html', ARGS) as any;
@@ -251,7 +251,7 @@ function getDashManifest(url: string, options: YTDL_RequestOptions): Promise<Rec
     });
 }
 
-function parseAdditionalManifests(playerResponse: YT_YTInitialPlayerResponse, options: YTDL_RequestOptions): Array<Promise<Record<string, YTDL_M3U8Data | YTDL_DashManifestData>>> {
+function parseAdditionalManifests(playerResponse: YT_YTInitialPlayerResponse | null, options: YTDL_RequestOptions): Array<Promise<Record<string, YTDL_M3U8Data | YTDL_DashManifestData>>> {
     const STREAMING_DATA = playerResponse && playerResponse.streamingData,
         MANIFESTS: Array<Promise<Record<string, YTDL_M3U8Data | YTDL_DashManifestData>>> = [];
 
@@ -504,14 +504,24 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions): Promise<
     utils.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
 
-    const VIDEO_INFO: YTDL_VideoInfo = {} as any,
-        HTML5_PLAYER = getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
+    const RETRY_OPTIONS = Object.assign({}, options.requestOptions),
+        RETRY_FUNC_PROMISE = retryFunc<YTDL_WatchPageInfo>(getWatchHTMLPage, [id, options], RETRY_OPTIONS),
+        WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options),
+        EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options),
+        WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE,
+        HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE),
+        VIDEO_INFO: YTDL_VideoInfo = {
+            page: 'watch',
+            watchPageInfo: WATCH_PAGE_INFO,
+            relatedVideos: [],
+            videoDetails: {},
+            formats: [],
+            html5Player: HTML5_PLAYER,
+        } as any;
 
     if (!HTML5_PLAYER) {
         throw Error('Unable to find html5player file');
     }
-
-    VIDEO_INFO.html5player = HTML5_PLAYER;
 
     const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString(),
         PLAYER_API_RESPONSES = await Promise.allSettled([fetchWebCreatorPlayer(id, HTML5_PLAYER_URL, options), fetchIosJsonPlayer(id, options), fetchAndroidJsonPlayer(id, options)]),
@@ -527,26 +537,23 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions): Promise<
         }
     });
 
-    // Media cannot be obtained for several reasons.
-    const MEDIA = null, //extras.getMedia(IOS_PLAYER_RESPONSE) || extras.getMedia(ANDROID_PLAYER_RESPONSE)
-        /*AGE_RESTRICTED = (() => {const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));return !!IS_AGE_RESTRICTED;})(),*/
+    const MEDIA = extras.getMedia(WATCH_PAGE_INFO),
+        AGE_RESTRICTED = (() => {
+            const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));
+            return !!IS_AGE_RESTRICTED;
+        })(),
         ADDITIONAL_DATA: YTDL_MoreVideoDetailsAdditions = {
-            author: extras.getAuthor(IOS_PLAYER_RESPONSE) || extras.getAuthor(ANDROID_PLAYER_RESPONSE),
+            author: extras.getAuthor(WATCH_PAGE_INFO),
             media: MEDIA,
-            likes: null, // extras.getLikes(WATCH_PAGE_INFO),
-            age_restricted: false,
+            likes: extras.getLikes(WATCH_PAGE_INFO),
+            age_restricted: AGE_RESTRICTED,
             video_url: BASE_URL + id,
             storyboards: extras.getStoryboards(WEB_CREATOR_RESPONSE),
-            chapters: [], // extras.getChapters(WATCH_PAGE_INFO),
+            chapters: extras.getChapters(WATCH_PAGE_INFO),
         },
         VIDEO_DETAILS = ((WEB_CREATOR_RESPONSE || IOS_PLAYER_RESPONSE || ANDROID_PLAYER_RESPONSE || {}).videoDetails as any) || {};
 
-    VIDEO_DETAILS.isLiveContent ??= false;
-    VIDEO_DETAILS.isLive = VIDEO_DETAILS.isLiveContent;
-    delete VIDEO_DETAILS.isLiveContent;
-    delete VIDEO_DETAILS.arrowRatings;
-
-    VIDEO_INFO.videoDetails = Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA);
+    VIDEO_INFO.videoDetails = extras.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA));
     VIDEO_INFO.formats = [...parseFormats(WEB_CREATOR_RESPONSE), ...parseFormats(IOS_PLAYER_RESPONSE), ...parseFormats(ANDROID_PLAYER_RESPONSE)].filter((res) => res) as any;
 
     return VIDEO_INFO;
@@ -561,7 +568,6 @@ async function getBasicInfo(link: string, options: YTDL_GetInfoOptions = {}): Pr
 }
 
 // TODO: Clean up this function for readability and support more clients
-// TODO: Support poToken
 /** Gets info from a video additional formats and deciphered URLs. */
 async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_VideoInfo> {
     utils.applyIPv6Rotations(options);
@@ -570,21 +576,12 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
     utils.applyOldLocalAddress(options);
 
     const INFO: YTDL_VideoInfo = await getBasicInfo(id, options),
-        FUNCTIONS = [],
-        HTML5_PLAYER = INFO.html5player || getHTML5Player(await getWatchHTMLPageBody(id, options)) || getHTML5Player(await getEmbedPageBody(id, options));
-
-    if (!HTML5_PLAYER) {
-        throw Error('Unable to find html5player file');
-    }
-
-    INFO.html5player = HTML5_PLAYER;
-
-    const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString();
+        FUNCTIONS = [];
 
     try {
         const FORMATS = INFO.formats as any as Array<YT_YTInitialPlayerResponse>;
 
-        FUNCTIONS.push(sig.decipherFormats(FORMATS, HTML5_PLAYER_URL, options));
+        FUNCTIONS.push(sig.decipherFormats(FORMATS, INFO.html5player, options));
 
         for (const RESPONSE of FORMATS) {
             FUNCTIONS.push(...parseAdditionalManifests(RESPONSE, options));
@@ -593,8 +590,8 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
         console.warn('error in player API; falling back to web-scraping');
 
         // TODO: tv client
-        FUNCTIONS.push(sig.decipherFormats(parseFormats(INFO.player_response), HTML5_PLAYER_URL, options));
-        FUNCTIONS.push(...parseAdditionalManifests(INFO.player_response, options));
+        FUNCTIONS.push(sig.decipherFormats(parseFormats(INFO.watchPageInfo.player_response), INFO.html5player, options));
+        FUNCTIONS.push(...parseAdditionalManifests(INFO.watchPageInfo.player_response, options));
     }
 
     const RESULTS = await Promise.all(FUNCTIONS);

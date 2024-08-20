@@ -209,7 +209,7 @@ export type YT_CompactVideoRenderer = {
 };
 export type YTDL_WatchPageInfo = {
     page: 'watch';
-    player_response: YT_YTInitialPlayerResponse;
+    player_response: null;
     response: YT_YTInitialData;
     html5player: string | null;
 };
@@ -381,8 +381,15 @@ export interface YTDL_MoreVideoDetailsAdditions {
     description?: string | null;
     published?: number | null;
 }
-export type YTDL_MoreVideoDetails = YTDL_VideoDetails & YTDL_MoreVideoDetailsAdditions;
+export type YTDL_MoreVideoDetails = Omit<YTDL_VideoDetails, 'author' | 'thumbnail' | 'shortDescription'> & Omit<YTDL_MicroformatRenderer, 'title' | 'description'> & YTDL_MoreVideoDetailsAdditions;
 export type YTDL_VideoInfo = {
+    page: 'watch';
+    watchPageInfo: YTDL_WatchPageInfo;
+    html5player: string;
+    formats: Array<YTDL_VideoFormat>;
+    related_videos: Array<YTDL_RelatedVideo>;
+    videoDetails: YTDL_MoreVideoDetails;
+    full: boolean;
     iv_load_policy?: string;
     iv_allow_in_place_switch?: string;
     iv_endscreen_url?: string;
@@ -493,14 +500,6 @@ export type YTDL_VideoInfo = {
     watermark: string[];
     dbp: string;
     ad_flags: string;
-    html5player: string;
-    formats: Array<YTDL_VideoFormat>;
-    related_videos: Array<YTDL_RelatedVideo>;
     no_embed_allowed?: boolean;
-    player_response: YT_YTInitialPlayerResponse & {
-        videoDetails: YTDL_VideoDetails;
-    };
-    videoDetails: YTDL_MoreVideoDetails;
-    full: boolean;
 };
 export {};

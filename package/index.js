@@ -57,11 +57,6 @@ function pipeAndSetEvents(req, stream, end) {
 function downloadFromInfoCallback(stream, info, options) {
     options ??= {};
     options.requestOptions ??= {};
-    const PLAY_ERROR = utils_1.default.playError(info.player_response);
-    if (PLAY_ERROR) {
-        stream.emit('error', PLAY_ERROR);
-        return;
-    }
     if (!info.formats.length) {
         stream.emit('error', Error('This video is unavailable'));
         return;
