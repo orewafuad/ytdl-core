@@ -263,7 +263,7 @@ function cleanVideoDetails(videoDetails: YTDL_VideoDetails, info: YTDL_WatchPage
     // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
     DETAILS.lengthSeconds = (info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer.lengthSeconds) || info.player_response.videoDetails.lengthSeconds;
 
-    return videoDetails;
+    return DETAILS;
 }
 
 function getStoryboards(info: YTDL_WatchPageInfo): Array<YTDL_Storyboard> {

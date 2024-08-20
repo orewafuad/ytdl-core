@@ -3,8 +3,8 @@ import { writeFileSync } from 'node:fs';
 
 import { YT_YTInitialPlayerResponse } from '@/types/youtube';
 import { YTDL_DownloadOptions, YTDL_RequestOptions } from '@/types/options';
-import pkg from '../../package.json';
 import AGENT from './agent';
+import pkg from '../package.json';
 
 /* Private Constants */
 
@@ -254,7 +254,7 @@ function checkForUpdates() {
                     PKG_FILE = JSON.parse(BUFFER.toString('ascii'));
 
                 if (PKG_FILE.version !== pkg.version && updateWarnTimes++ < 5) {
-                    console.warn('\x1b[33mWARNING:\x1B[0m @distube/ytdl-core is out of date! Update with "npm install @distube/ytdl-core@latest".');
+                    console.warn('\x1b[33mWARNING:\x1B[0m @ybd-project/ytdl-core is out of date! Update with "npm install @ybd-project/ytdl-core@latest".');
                 }
             },
             (err) => {

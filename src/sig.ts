@@ -49,8 +49,8 @@ const N_TRANSFORM_REGEXP = 'function\\(\\s*(\\w+)\\s*\\)\\s*\\{' + 'var\\s*(\\w+
 const DECIPHER_ARGUMENT = 'sig';
 const N_ARGUMENT = 'ncode';
 
-const DECIPHER_FUNC_NAME = 'DisTubeDecipherFunc';
-const N_TRANSFORM_FUNC_NAME = 'DisTubeNTransformFunc';
+const DECIPHER_FUNC_NAME = 'YBDProjectDecipherFunc';
+const N_TRANSFORM_FUNC_NAME = 'YBDProjectNTransformFunc';
 
 /* ----------- */
 
@@ -161,7 +161,7 @@ function extractNTransformWithName(body: string) {
         const N_FUNCTION_NAME = getFunctionName(body, N_TRANSFORM_NAME_REGEXPS),
             FUNCTION_PATTERN = `(${N_FUNCTION_NAME.replace(/\$/g, '\\$')}=\\s*function([\\S\\s]*?\\}\\s*return (([\\w$]+?\\.join\\(""\\))|(Array\\.prototype\\.join\\.call\\([\\w$]+?,[\\n\\s]*(("")|(\\("",""\\)))\\)))\\s*\\}))`,
             N_TRANSFORM_FUNCTION = `var ${matchGroup1(FUNCTION_PATTERN, body)};`,
-            CALLER_FUNCTION = `${N_TRANSFORM_FUNC_NAME}(${N_ARGUMENT});`;
+            CALLER_FUNCTION = `${N_FUNCTION_NAME}(${N_ARGUMENT});`;
 
         return N_TRANSFORM_FUNCTION + CALLER_FUNCTION;
     } catch (e) {
@@ -237,10 +237,10 @@ function setDownloadURL(format: any, decipherScript: vm.Script, nTransformScript
 
             return COMPONENTS.toString();
         },
-        CIPHER = !format.url,
-        URL = format.url || format.signatureCipher || format.cipher;
+        CIPHER = !format?.url,
+        VIDEO_URL = format?.url || format.signatureCipher || format.cipher;
 
-    format.url = nTransform(CIPHER ? decipher(URL) : URL);
+    format.url = nTransform(CIPHER ? decipher(VIDEO_URL) : VIDEO_URL);
     delete format.signatureCipher;
     delete format.cipher;
 }
@@ -250,6 +250,10 @@ async function decipherFormats(formats: any, html5PlayerFile: string, options: Y
         [decipherScript, nTransformScript] = (await getFunctions<Promise<Array<vm.Script>>>(html5PlayerFile, options)) || [];
 
     formats.forEach((format: any) => {
+        if (!format) {
+            return;
+        }
+
         setDownloadURL(format, decipherScript, nTransformScript);
 
         DECIPHERED_FORMATS[format.url] = format;

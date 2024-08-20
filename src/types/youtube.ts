@@ -185,8 +185,8 @@ export type YT_CompactVideoRenderer = {
 
 export type YTDL_WatchPageInfo = {
     page: 'watch';
-    player_response: YT_YTInitialPlayerResponse | null;
-    response: YT_YTInitialData | null;
+    player_response: YT_YTInitialPlayerResponse;
+    response: YT_YTInitialData;
     html5player: string | null;
 };
 
@@ -386,6 +386,7 @@ export type YTDL_VideoInfo = {
     videostats_playback_base_url?: string;
     innertube_context_client_version?: string;
     t?: string;
+    live_chunk_readahead?: number;
     fade_in_start_milliseconds: string;
     timestamp: string;
     ad3_module: string;
@@ -483,4 +484,5 @@ export type YTDL_VideoInfo = {
     no_embed_allowed?: boolean;
     player_response: YT_YTInitialPlayerResponse & { videoDetails: YTDL_VideoDetails };
     videoDetails: YTDL_MoreVideoDetails;
+    full: boolean;
 };

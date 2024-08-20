@@ -27,7 +27,7 @@ export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFo
         start?: number;
         end?: number;
     };
-    begin?: string | number | Date;
+    begin?: string | number;
     liveBuffer?: number;
     highWaterMark?: number;
     IPv6Block?: string;

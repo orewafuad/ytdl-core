@@ -142,14 +142,14 @@ function getHTML5Player(body: string): string | null {
 
 async function getWatchHTMLPage(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_WatchPageInfo> {
     const BODY = await getWatchHTMLPageBody(id, options),
-        INFO: YTDL_WatchPageInfo = { page: 'watch', player_response: null, response: null, html5player: null };
+        INFO: YTDL_WatchPageInfo = { page: 'watch' } as any;
 
     try {
         try {
             INFO.player_response = utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', '}};', '', '}}') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';var') || utils.tryParseBetween(BODY, 'var ytInitialPlayerResponse = ', ';</script>') || findJSON<YT_YTInitialPlayerResponse>('watch.html', 'player_response', BODY, /\bytInitialPlayerResponse\s*=\s*\{/i, '</script>', '{');
         } catch (err) {
             const ARGS = findJSON<Object>('watch.html', 'player_response', BODY, /\bytplayer\.config\s*=\s*{/, '</script>', '{');
-            INFO.player_response = findPlayerResponse('watch.html', ARGS);
+            INFO.player_response = findPlayerResponse('watch.html', ARGS) as any;
         }
 
         INFO.response = utils.tryParseBetween(BODY, 'var ytInitialData = ', '}};', '', '}}') || utils.tryParseBetween(BODY, 'var ytInitialData = ', ';</script>') || utils.tryParseBetween(BODY, 'window["ytInitialData"] = ', '}};', '', '}}') || utils.tryParseBetween(BODY, 'window["ytInitialData"] = ', ';</script>') || findJSON('watch.html', 'response', BODY, /\bytInitialData("\])?\s*=\s*\{/i, '</script>', '{');
@@ -473,12 +473,12 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions): Promise<
     return VIDEO_INFO;
 }
 
-async function getBasicInfo(link: string, options: YTDL_GetInfoOptions) {
+async function getBasicInfo(link: string, options: YTDL_GetInfoOptions = {}): Promise<YTDL_VideoInfo> {
     utils.checkForUpdates();
     const ID = urlUtils.getVideoID(link),
         CACHE_KEY = ['getBasicInfo', ID, options.lang].join('-');
 
-    return exports.cache.getOrSet(CACHE_KEY, () => _getBasicInfo(ID, options));
+    return CACHE.getOrSet(CACHE_KEY, () => _getBasicInfo(ID, options)) as Promise<YTDL_VideoInfo>;
 }
 
 // TODO: Clean up this function for readability and support more clients
@@ -533,15 +533,16 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
     INFO.formats = INFO.formats.map(formatUtils.addFormatMeta);
     INFO.formats.sort(formatUtils.sortFormats);
 
+    INFO.full = true;
     return INFO;
 }
 
-async function getInfo(link: string, options: YTDL_GetInfoOptions) {
+async function getInfo(link: string, options: YTDL_GetInfoOptions = {}): Promise<YTDL_VideoInfo> {
     utils.checkForUpdates();
     const ID = urlUtils.getVideoID(link),
         CACHE_KEY = ['getInfo', ID, options.lang].join('-');
 
-    return exports.cache.getOrSet(CACHE_KEY, () => _getInfo(ID, options));
+    return CACHE.getOrSet(CACHE_KEY, () => _getInfo(ID, options)) as Promise<YTDL_VideoInfo>;
 }
 
 const validateID = urlUtils.validateID,
