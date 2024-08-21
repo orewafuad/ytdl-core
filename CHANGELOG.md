@@ -1,5 +1,10 @@
 # Changelog
 
+## v5.0.9 (2024/08/21)
+
+### Bug Fixes
+* **Client:** Fixed a problem that prevented clients from being set up properly
+
 ## v5.0.8 (2024/08/21)
 
 ### Features
