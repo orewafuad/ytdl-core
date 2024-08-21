@@ -2,5 +2,5 @@ node_modules
 reference
 test
 .TODO
-.npmrc
+._npmrc
 publish.txt

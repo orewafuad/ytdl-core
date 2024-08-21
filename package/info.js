@@ -254,6 +254,7 @@ async function fetchSpecifiedPlayer(playerType, videoId, options, other = {}) {
             user: {
                 lockedSafetyMode: false,
             },
+            thirdParty: { embedUrl: 'https://www.youtube.com' },
         },
     }, USER_AGENT = CLIENT.INNERTUBE_CONTEXT.client.userAgent || `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36`, HEADERS = {
         'X-Goog-Api-Format-Version': '2',
@@ -314,7 +315,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         options.clients = ['tv_embedded'];
     }
     /* Player Promises and Video Info */
-    const PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) }))), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, VIDEO_INFO = {
+    const PLAYER_FETCH_PROMISE = Promise.allSettled([...options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) }))]), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, VIDEO_INFO = {
         _watchPageInfo: WATCH_PAGE_INFO,
         related_videos: [],
         videoDetails: {},
@@ -322,8 +323,15 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         html5Player: null,
         clients: options.clients,
     };
+    options.clients.push('web_creator');
     const PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE, PLAYER_RESPONSES = {}, PLAYER_RESPONSE_ARRAY = [];
     options.clients.forEach((client, i) => {
+        if (client === 'web_creator' && WEB_CREATOR_RESPONSE.status === 'fulfilled') {
+            PLAYER_RESPONSES[client] = WEB_CREATOR_RESPONSE.value;
+            PLAYER_RESPONSE_ARRAY.push(WEB_CREATOR_RESPONSE.value);
+            Log_1.Logger.debug(`[ ${client} ]: Success`);
+            return;
+        }
         if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
             PLAYER_RESPONSES[client] = PLAYER_API_RESPONSES[i].value;
             PLAYER_RESPONSE_ARRAY.push(PLAYER_API_RESPONSES[i].value);
