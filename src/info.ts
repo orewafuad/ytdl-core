@@ -307,7 +307,7 @@ async function getSignatureTimestamp(html5player: string, options: YTDL_GetInfoO
     return MO ? MO[1] : undefined;
 }
 
-type YTDL_OtherPlayerPayload = { signatureTimestamp?: number };
+type YTDL_OtherPlayerPayload = { signatureTimestamp?: number; params?: string };
 async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: string, options: YTDL_GetInfoOptions, other: YTDL_OtherPlayerPayload = {}): Promise<YT_YTInitialPlayerResponse> {
     const CLIENT = INNERTUBE_CLIENTS[playerType],
         SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined,
@@ -316,13 +316,14 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
             cpn: utils.generateClientPlaybackNonce(16),
             contentCheckOk: true,
             racyCheckOk: true,
+            params: 'QAA%3D' || other.params,
             serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
             playbackContext: {
                 contentPlaybackContext: {
                     vis: 0,
                     splay: false,
                     referer: BASE_URL + videoId,
-                    currentUrl: BASE_URL + videoId,
+                    currentUrl: BASE_URL + videoId + '&pp=QAA%3D',
                     autonavState: 'STATE_ON',
                     autoCaptionsDefaultOn: false,
                     html5Preference: 'HTML5_PREF_WANTS',
@@ -353,6 +354,7 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
         };
 
     PAYLOAD.context.client.visitorData = options.visitorData;
+    PAYLOAD.context.client.originalUrl = `https://www.youtube.com/watch?v=${videoId}&pp=QAA%3D`;
 
     return await playerAPI(videoId, PAYLOAD, HEADERS, options);
 }
@@ -413,16 +415,17 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         options.clients = options.clients.filter((client) => client !== 'web_creator');
     }
 
-    /* Base Promises */
+    /* Promises */
     const RETRY_FUNC_PROMISE = retryFunc<YTDL_WatchPageInfo>(getWatchHTMLPage, [id, options], RETRY_OPTIONS),
         WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options),
-        EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options);
+        EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options),
+        WEB_CREATOR_PROMISE = Promise.allSettled([fetchSpecifiedPlayer('web_creator', id, options)]);
 
     /* HTML5 Player and Signature Timestamp */
     const HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE),
         HTML5_PLAYER_URL = HTML5_PLAYER ? new URL(HTML5_PLAYER, BASE_URL).toString() : '',
         SIGNATURE_TIMESTAMP = (await getSignatureTimestamp(HTML5_PLAYER_URL, options)) || '',
-        WEB_CREATOR_RESPONSE = (await Promise.allSettled([fetchSpecifiedPlayer('web_creator', id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) })]))[0];
+        WEB_CREATOR_RESPONSE = (await WEB_CREATOR_PROMISE)[0];
 
     if (!HTML5_PLAYER) {
         throw new Error('Unable to find html5player file');
@@ -434,7 +437,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
     }
 
     /* Player Promises and Video Info */
-    const PLAYER_FETCH_PROMISE = Promise.allSettled([...options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) }))]),
+    const PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) }))),
         WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE,
         VIDEO_INFO: YTDL_VideoInfo = {
             _watchPageInfo: WATCH_PAGE_INFO,
@@ -445,18 +448,12 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             clients: options.clients,
         } as any;
 
-    options.clients.push('web_creator');
-
     const PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE,
         PLAYER_RESPONSES: YTDL_PlayerResponses = {},
         PLAYER_RESPONSE_ARRAY: Array<YT_YTInitialPlayerResponse> = [];
 
     options.clients.forEach((client, i) => {
-        if (client === 'web_creator' && WEB_CREATOR_RESPONSE.status === 'fulfilled') {
-            PLAYER_RESPONSES[client] = WEB_CREATOR_RESPONSE.value;
-            PLAYER_RESPONSE_ARRAY.push(WEB_CREATOR_RESPONSE.value);
-            Logger.debug(`[ ${client} ]: Success`);
-        } else if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
+        if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
             PLAYER_RESPONSES[client] = PLAYER_API_RESPONSES[i].value;
             PLAYER_RESPONSE_ARRAY.push(PLAYER_API_RESPONSES[i].value);
 

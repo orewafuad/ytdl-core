@@ -3,4 +3,5 @@ reference
 test
 .TODO
 ._npmrc
+.npmrc
 publish.txt

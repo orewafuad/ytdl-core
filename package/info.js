@@ -227,13 +227,14 @@ async function fetchSpecifiedPlayer(playerType, videoId, options, other = {}) {
         cpn: utils_1.default.generateClientPlaybackNonce(16),
         contentCheckOk: true,
         racyCheckOk: true,
+        params: 'QAA%3D' || other.params,
         serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
         playbackContext: {
             contentPlaybackContext: {
                 vis: 0,
                 splay: false,
                 referer: BASE_URL + videoId,
-                currentUrl: BASE_URL + videoId,
+                currentUrl: BASE_URL + videoId + '&pp=QAA%3D',
                 autonavState: 'STATE_ON',
                 autoCaptionsDefaultOn: false,
                 html5Preference: 'HTML5_PREF_WANTS',
@@ -261,6 +262,7 @@ async function fetchSpecifiedPlayer(playerType, videoId, options, other = {}) {
         'User-Agent': USER_AGENT,
     };
     PAYLOAD.context.client.visitorData = options.visitorData;
+    PAYLOAD.context.client.originalUrl = `https://www.youtube.com/watch?v=${videoId}&pp=QAA%3D`;
     return await playerAPI(videoId, PAYLOAD, HEADERS, options);
 }
 /* ----------- */
@@ -300,10 +302,10 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     if (options.clients.some((client) => client.includes('creator'))) {
         options.clients = options.clients.filter((client) => client !== 'web_creator');
     }
-    /* Base Promises */
-    const RETRY_FUNC_PROMISE = retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options), EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options);
+    /* Promises */
+    const RETRY_FUNC_PROMISE = retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options), EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options), WEB_CREATOR_PROMISE = Promise.allSettled([fetchSpecifiedPlayer('web_creator', id, options)]);
     /* HTML5 Player and Signature Timestamp */
-    const HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE), HTML5_PLAYER_URL = HTML5_PLAYER ? new URL(HTML5_PLAYER, BASE_URL).toString() : '', SIGNATURE_TIMESTAMP = (await getSignatureTimestamp(HTML5_PLAYER_URL, options)) || '', WEB_CREATOR_RESPONSE = (await Promise.allSettled([fetchSpecifiedPlayer('web_creator', id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) })]))[0];
+    const HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE), HTML5_PLAYER_URL = HTML5_PLAYER ? new URL(HTML5_PLAYER, BASE_URL).toString() : '', SIGNATURE_TIMESTAMP = (await getSignatureTimestamp(HTML5_PLAYER_URL, options)) || '', WEB_CREATOR_RESPONSE = (await WEB_CREATOR_PROMISE)[0];
     if (!HTML5_PLAYER) {
         throw new Error('Unable to find html5player file');
     }
@@ -312,7 +314,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         options.clients = ['tv_embedded'];
     }
     /* Player Promises and Video Info */
-    const PLAYER_FETCH_PROMISE = Promise.allSettled([...options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) }))]), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, VIDEO_INFO = {
+    const PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) }))), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, VIDEO_INFO = {
         _watchPageInfo: WATCH_PAGE_INFO,
         related_videos: [],
         videoDetails: {},
@@ -320,15 +322,9 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         html5Player: null,
         clients: options.clients,
     };
-    options.clients.push('web_creator');
     const PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE, PLAYER_RESPONSES = {}, PLAYER_RESPONSE_ARRAY = [];
     options.clients.forEach((client, i) => {
-        if (client === 'web_creator' && WEB_CREATOR_RESPONSE.status === 'fulfilled') {
-            PLAYER_RESPONSES[client] = WEB_CREATOR_RESPONSE.value;
-            PLAYER_RESPONSE_ARRAY.push(WEB_CREATOR_RESPONSE.value);
-            Log_1.Logger.debug(`[ ${client} ]: Success`);
-        }
-        else if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
+        if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
             PLAYER_RESPONSES[client] = PLAYER_API_RESPONSES[i].value;
             PLAYER_RESPONSE_ARRAY.push(PLAYER_API_RESPONSES[i].value);
             Log_1.Logger.debug(`[ ${client} ]: Success`);
