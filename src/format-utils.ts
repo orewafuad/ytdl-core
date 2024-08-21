@@ -1,7 +1,7 @@
 import { YTDL_VideoFormat } from '@/types/youtube';
 import { YTDL_ChooseFormatOptions } from '@/types/options';
 import utils from './utils';
-import FORMATS from './formats';
+import FORMATS from './meta/formats';
 
 /* Private Constants */
 // Use these to help sort formats, higher index is better.

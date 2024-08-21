@@ -206,7 +206,7 @@ function getLikes(info) {
         return null;
     }
 }
-function cleanVideoDetails(videoDetails /* info: YTDL_WatchPageInfo */) {
+function cleanVideoDetails(videoDetails, microformat) {
     const DETAILS = videoDetails;
     if (DETAILS.thumbnail) {
         DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
@@ -219,8 +219,10 @@ function cleanVideoDetails(videoDetails /* info: YTDL_WatchPageInfo */) {
         delete DETAILS.shortDescription;
         utils_1.default.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
     }
-    // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
-    /* DETAILS.lengthSeconds = (info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer.lengthSeconds) || info.player_response.videoDetails.lengthSeconds; */
+    if (microformat) {
+        // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
+        DETAILS.lengthSeconds = microformat.playerMicroformatRenderer.lengthSeconds || videoDetails.lengthSeconds;
+    }
     return DETAILS;
 }
 function getStoryboards(info) {

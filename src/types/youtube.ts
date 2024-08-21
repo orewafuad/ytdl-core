@@ -1,3 +1,5 @@
+import { YTDL_ClientTypes } from '@/meta/clients';
+
 export type YT_StreamingFormat = {
     itag: number;
     url: string;
@@ -392,12 +394,25 @@ export interface YTDL_MoreVideoDetailsAdditions {
 export type YTDL_MoreVideoDetails = Omit<YTDL_VideoDetails, 'author' | 'thumbnail' | 'shortDescription'> & Omit<YTDL_MicroformatRenderer, 'title' | 'description'> & YTDL_MoreVideoDetailsAdditions;
 
 export type YTDL_VideoInfo = {
-    watchPageInfo: YTDL_WatchPageInfo;
     html5Player: string;
     formats: Array<YTDL_VideoFormat>;
     related_videos: Array<YTDL_RelatedVideo>;
     videoDetails: YTDL_MoreVideoDetails;
     full: boolean;
+    clients: Array<YTDL_ClientTypes>;
+    _watchPageInfo: YTDL_WatchPageInfo;
+    _playerResponses: {
+        webCreator?: YT_YTInitialPlayerResponse | null;
+        ios?: YT_YTInitialPlayerResponse | null;
+        android?: YT_YTInitialPlayerResponse | null;
+        iosCreator?: YT_YTInitialPlayerResponse | null;
+        androidCreator?: YT_YTInitialPlayerResponse | null;
+        web?: YT_YTInitialPlayerResponse | null;
+        mweb?: YT_YTInitialPlayerResponse | null;
+        tv?: YT_YTInitialPlayerResponse | null;
+        webSafari?: YT_YTInitialPlayerResponse | null;
+        mediaconnect?: YT_YTInitialPlayerResponse | null;
+    };
 
     /* The following are rarely included. */
     iv_load_policy?: string;

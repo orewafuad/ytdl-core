@@ -1,4 +1,4 @@
-import sax, { SAXParser } from 'sax';
+import sax from 'sax';
 import { setTimeout } from 'timers';
 import utils from './utils';
 import formatUtils from './format-utils';
@@ -6,25 +6,17 @@ import urlUtils from './url-utils';
 import extras from './info-extras';
 import { Cache } from './cache';
 import sig from './sig';
+import { INNERTUBE_CLIENTS, YTDL_ClientTypes } from './meta/clients';
 
 import { YTDL_GetInfoOptions, YTDL_RequestOptions } from '@/types/options';
-import { YT_StreamingFormat, YT_YTInitialPlayerResponse, YTDL_MoreVideoDetails, YTDL_MoreVideoDetailsAdditions, YTDL_VideoFormat, YTDL_VideoInfo, YTDL_WatchPageInfo } from '@/types/youtube';
-import { parse } from 'path';
+import { YT_StreamingFormat, YT_YTInitialPlayerResponse, YTDL_MoreVideoDetailsAdditions, YTDL_VideoFormat, YTDL_VideoInfo, YTDL_WatchPageInfo } from '@/types/youtube';
 
 /* Private Constants */
 const BASE_URL = 'https://www.youtube.com/watch?v=',
     BASE_EMBED_URL = 'https://www.youtube.com/embed/',
     AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'],
-    JSON_CLOSING_CHARS = /^[)\]}'\s]+/;
-
-/* Get Info */
-const IOS_CLIENT_VERSION = '19.28.1',
-    IOS_DEVICE_MODEL = 'iPhone16,2',
-    IOS_USER_AGENT_VERSION = '17_5_1',
-    IOS_OS_VERSION = '17.5.1.21F90',
-    ANDROID_CLIENT_VERSION = '19.30.36',
-    ANDROID_OS_VERSION = '14',
-    ANDROID_SDK_VERSION = '34';
+    JSON_CLOSING_CHARS = /^[)\]}'\s]+/,
+    BASE_CLIENTS: Array<YTDL_ClientTypes> = ['web_creator', 'ios', 'android'];
 
 /* ----------- */
 
@@ -268,29 +260,14 @@ function parseAdditionalManifests(playerResponse: YT_YTInitialPlayerResponse | n
     return MANIFESTS;
 }
 
-// HACK: iOS Player APIとAndroid Player APIはvisitorDataを返却します。
-async function playerAPI(videoId: string, payload: any, userAgent: string | undefined, options: YTDL_GetInfoOptions & { visitorId?: string }, apiUrl?: string): Promise<YT_YTInitialPlayerResponse> {
+async function playerAPI(videoId: string, payload: any, headers: Record<string, any>, options: YTDL_GetInfoOptions & { visitorId?: string }, apiUrl?: string): Promise<YT_YTInitialPlayerResponse> {
     const { jar, dispatcher } = options.agent || {},
-        HEADER = (() => {
-            if (apiUrl) {
-                return {
-                    'Content-Type': 'application/json',
-                    cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                    'User-Agent': userAgent,
-                    'X-Goog-Api-Format-Version': '2',
-                };
-            } else {
-                return {
-                    'Content-Type': 'application/json',
-                    cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                    Origin: 'https://www.youtube.com',
-                    'User-Agent': userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-                    'X-Youtube-Client-Name': '56',
-                    'X-Youtube-Client-Version': '1.20240814.01.00',
-                    'X-Goog-Visitor-Id': options.visitorData,
-                };
-            }
-        })(),
+        HEADERS = {
+            'Content-Type': 'application/json',
+            cookie: jar?.getCookieStringSync('https://www.youtube.com'),
+            'X-Goog-Visitor-Id': options.visitorData,
+            ...headers,
+        },
         OPTS: YTDL_GetInfoOptions = {
             requestOptions: {
                 method: 'POST',
@@ -300,7 +277,7 @@ async function playerAPI(videoId: string, payload: any, userAgent: string | unde
                     t: apiUrl ? utils.generateClientPlaybackNonce(12) : undefined,
                     id: videoId,
                 },
-                headers: HEADER,
+                headers: HEADERS,
                 body: JSON.stringify(payload),
             },
         },
@@ -328,31 +305,15 @@ async function getSignatureTimestamp(html5player: string, options: YTDL_GetInfoO
     return MO ? MO[1] : undefined;
 }
 
-async function fetchWebCreatorPlayer(videoId: string, html5player: string, options: YTDL_GetInfoOptions): Promise<YT_YTInitialPlayerResponse> {
-    const SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined,
+async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: string, options: YTDL_GetInfoOptions, signatureTimestamp?: number): Promise<YT_YTInitialPlayerResponse> {
+    const CLIENT = INNERTUBE_CLIENTS[playerType],
+        SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined,
         PAYLOAD = {
-            cpn: utils.generateClientPlaybackNonce(16),
             videoId,
+            cpn: utils.generateClientPlaybackNonce(16),
+            contentCheckOk: true,
+            racyCheckOk: true,
             serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
-            context: {
-                client: {
-                    clientName: 'WEB_CREATOR',
-                    clientVersion: '1.20240723.03.00',
-                    osName: 'Windows',
-                    osVersion: '10.0',
-                    platform: 'DESKTOP',
-                    utcOffsetMinutes: -240,
-                    visitorData: options.visitorData,
-                },
-                request: {
-                    useSsl: true,
-                    internalExperimentFlags: [],
-                    consistencyTokenJars: [],
-                },
-                user: {
-                    lockedSafetyMode: false,
-                },
-            },
             playbackContext: {
                 contentPlaybackContext: {
                     vis: 0,
@@ -363,118 +324,34 @@ async function fetchWebCreatorPlayer(videoId: string, html5player: string, optio
                     autoCaptionsDefaultOn: false,
                     html5Preference: 'HTML5_PREF_WANTS',
                     lactMilliseconds: '-1',
-                    signatureTimestamp: (await getSignatureTimestamp(html5player, options)) || 19950,
+                    signatureTimestamp,
                 },
             },
             attestationRequest: {
                 omitBotguardData: true,
             },
+            context: {
+                client: CLIENT.INNERTUBE_CONTEXT.client,
+                request: {
+                    internalExperimentFlags: [],
+                    useSsl: true,
+                },
+                user: {
+                    lockedSafetyMode: false,
+                },
+            },
+        },
+        USER_AGENT = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36`,
+        HEADERS = {
+            'X-Goog-Api-Format-Version': '2',
+            'X-YouTube-Client-Name': CLIENT.INNERTUBE_CONTEXT_CLIENT_NAME,
+            'X-Youtube-Client-Version': CLIENT.INNERTUBE_CONTEXT.client.clientVersion,
+            'User-Agent': USER_AGENT,
         };
 
-    return await playerAPI(videoId, PAYLOAD, undefined, options);
-}
+    PAYLOAD.context.client.visitorData = options.visitorData;
 
-async function fetchIosJsonPlayer(videoId: string, options: YTDL_GetInfoOptions): Promise<YT_YTInitialPlayerResponse> {
-    const SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined,
-        PAYLOAD = {
-            videoId,
-            cpn: utils.generateClientPlaybackNonce(16),
-            contentCheckOk: true,
-            racyCheckOk: true,
-            serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
-            playbackContext: {
-                contentPlaybackContext: {
-                    vis: 0,
-                    splay: false,
-                    referer: BASE_URL + videoId,
-                    currentUrl: BASE_URL + videoId,
-                    autonavState: 'STATE_ON',
-                    autoCaptionsDefaultOn: false,
-                    html5Preference: 'HTML5_PREF_WANTS',
-                    lactMilliseconds: '-1',
-                    signatureTimestamp: 19950,
-                },
-            },
-            attestationRequest: {
-                omitBotguardData: true,
-            },
-            context: {
-                client: {
-                    clientName: 'IOS',
-                    clientVersion: IOS_CLIENT_VERSION,
-                    deviceMake: 'Apple',
-                    deviceModel: IOS_DEVICE_MODEL,
-                    platform: 'MOBILE',
-                    osName: 'iOS',
-                    osVersion: IOS_OS_VERSION,
-                    hl: 'en',
-                    gl: 'US',
-                    utcOffsetMinutes: -240,
-                    visitorData: options.visitorData,
-                },
-                request: {
-                    internalExperimentFlags: [],
-                    useSsl: true,
-                },
-                user: {
-                    lockedSafetyMode: false,
-                },
-            },
-        },
-        IOS_USER_AGENT = `com.google.ios.youtube/${IOS_CLIENT_VERSION}(${IOS_DEVICE_MODEL}; U; CPU iOS ${IOS_USER_AGENT_VERSION} like Mac OS X; en_US)`;
-
-    return await playerAPI(videoId, PAYLOAD, IOS_USER_AGENT, options, 'https://youtubei.googleapis.com/youtubei/v1/player');
-}
-
-async function fetchAndroidJsonPlayer(videoId: string, options: YTDL_GetInfoOptions): Promise<YT_YTInitialPlayerResponse> {
-    const SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined,
-        PAYLOAD = {
-            videoId,
-            cpn: utils.generateClientPlaybackNonce(16),
-            contentCheckOk: true,
-            racyCheckOk: true,
-            serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
-            playbackContext: {
-                contentPlaybackContext: {
-                    vis: 0,
-                    splay: false,
-                    referer: BASE_URL + videoId,
-                    currentUrl: BASE_URL + videoId,
-                    autonavState: 'STATE_ON',
-                    autoCaptionsDefaultOn: false,
-                    html5Preference: 'HTML5_PREF_WANTS',
-                    lactMilliseconds: '-1',
-                    signatureTimestamp: 19950,
-                },
-            },
-            attestationRequest: {
-                omitBotguardData: true,
-            },
-            context: {
-                client: {
-                    clientName: 'ANDROID',
-                    clientVersion: ANDROID_CLIENT_VERSION,
-                    platform: 'MOBILE',
-                    osName: 'Android',
-                    osVersion: ANDROID_OS_VERSION,
-                    androidSdkVersion: ANDROID_SDK_VERSION,
-                    hl: 'en',
-                    gl: 'US',
-                    utcOffsetMinutes: -240,
-                    visitorData: options.visitorData,
-                },
-                request: {
-                    internalExperimentFlags: [],
-                    useSsl: true,
-                },
-                user: {
-                    lockedSafetyMode: false,
-                },
-            },
-        },
-        IOS_USER_AGENT = `com.google.android.youtube/${ANDROID_CLIENT_VERSION} (Linux; U; Android ${ANDROID_OS_VERSION}; en_US) gzip`;
-
-    return await playerAPI(videoId, PAYLOAD, IOS_USER_AGENT, options, 'https://youtubei.googleapis.com/youtubei/v1/player');
+    return await playerAPI(videoId, PAYLOAD, HEADERS, options);
 }
 
 /* ----------- */
@@ -488,7 +365,10 @@ const CACHE = new Cache(),
 /* Public Functions */
 
 /** Gets info from a video without getting additional formats. */
-async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_VideoInfo> {
+type YTDL_PlayerResponses = {
+    [key in YTDL_ClientTypes]?: YT_YTInitialPlayerResponse | null;
+};
+async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGetInfo?: boolean): Promise<YTDL_VideoInfo> {
     utils.applyIPv6Rotations(options);
     utils.applyDefaultHeaders(options);
     utils.applyDefaultAgent(options);
@@ -501,59 +381,87 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions): Promise<
     utils.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
 
+    if (!options.poToken) {
+        console.warn('\x1b[33mWARNING:\x1B[0m Please specify a poToken to stabilize the operation. Details can be found in the README.');
+    }
+
     if (options.poToken && !options.visitorData) {
         console.warn('\x1b[33mWARNING:\x1B[0m If you specify a poToken, you must also specify the visitorData.');
+    }
+
+    options.clients ??= BASE_CLIENTS;
+
+    if (options.clients && options.clients.length === 0) {
+        console.warn('\x1b[33mWARNING:\x1B[0m At least one client must be specified.');
+        options.clients = BASE_CLIENTS;
     }
 
     const RETRY_OPTIONS = Object.assign({}, options.requestOptions),
         RETRY_FUNC_PROMISE = retryFunc<YTDL_WatchPageInfo>(getWatchHTMLPage, [id, options], RETRY_OPTIONS),
         WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options),
         EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options),
-        WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE,
         HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE),
+        HTML5_PLAYER_URL = HTML5_PLAYER ? new URL(HTML5_PLAYER, BASE_URL).toString() : '',
+        SIGNATURE_TIMESTAMP = await getSignatureTimestamp(HTML5_PLAYER_URL, options) || '',
+        PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, parseInt(SIGNATURE_TIMESTAMP)))),
+        WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE,
         VIDEO_INFO: YTDL_VideoInfo = {
-            watchPageInfo: WATCH_PAGE_INFO,
+            _watchPageInfo: WATCH_PAGE_INFO,
             related_videos: [],
             videoDetails: {},
             formats: [],
             html5Player: null,
+            clients: options.clients,
         } as any;
 
     if (!HTML5_PLAYER) {
         throw new Error('Unable to find html5player file');
     }
 
-    const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString(),
-        PLAYER_API_RESPONSES = await Promise.allSettled([fetchWebCreatorPlayer(id, HTML5_PLAYER_URL, options), fetchIosJsonPlayer(id, options), fetchAndroidJsonPlayer(id, options)]),
-        WEB_CREATOR_RESPONSE = PLAYER_API_RESPONSES[0].status === 'fulfilled' ? PLAYER_API_RESPONSES[0].value : null,
-        IOS_PLAYER_RESPONSE = PLAYER_API_RESPONSES[1].status === 'fulfilled' ? PLAYER_API_RESPONSES[1].value : null,
-        ANDROID_PLAYER_RESPONSE = PLAYER_API_RESPONSES[2].status === 'fulfilled' ? PLAYER_API_RESPONSES[2].value : null;
+    const PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE,
+        PLAYER_RESPONSES: YTDL_PlayerResponses = {},
+        PLAYER_RESPONSE_ARRAY: Array<YT_YTInitialPlayerResponse> = [];
 
-    if (WEB_CREATOR_RESPONSE === null && IOS_PLAYER_RESPONSE === null && ANDROID_PLAYER_RESPONSE === null) {
-        throw new Error('Web Creator, iOS, and Android player APIs all returned errors.');
+    options.clients.forEach((client, i) => {
+        if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
+            PLAYER_RESPONSES[client] = PLAYER_API_RESPONSES[i].value;
+            PLAYER_RESPONSE_ARRAY.push(PLAYER_API_RESPONSES[i].value);
+        }
+    });
+
+    if (PLAYER_API_RESPONSES.every((r) => r.status === 'rejected')) {
+        throw new Error(`All player APIs responded with an error. (Clients: ${options.clients.join(', ')})`);
     }
 
     VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
 
-    const MEDIA = extras.getMedia(WATCH_PAGE_INFO),
-        AGE_RESTRICTED = (() => {
-            const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));
-            return !!IS_AGE_RESTRICTED;
-        })(),
+    if (isFromGetInfo) {
+        VIDEO_INFO._playerResponses = PLAYER_RESPONSES;
+    }
+
+    /* Filtered */
+    const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_ARRAY.filter((p) => p.storyboards)[0],
+        VIDEO_DETAILS = (PLAYER_RESPONSE_ARRAY.filter((p) => p.videoDetails)[0]?.videoDetails as any) || {},
+        MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p.microformat)[0]?.microformat || null;
+
+    const STORYBOARDS = extras.getStoryboards(INCLUDE_STORYBOARDS),
+        MEDIA = extras.getMedia(WATCH_PAGE_INFO),
+        AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))),
         ADDITIONAL_DATA: YTDL_MoreVideoDetailsAdditions = {
+            video_url: BASE_URL + id,
             author: extras.getAuthor(WATCH_PAGE_INFO),
             media: MEDIA,
             likes: extras.getLikes(WATCH_PAGE_INFO),
             age_restricted: AGE_RESTRICTED,
-            video_url: BASE_URL + id,
-            storyboards: extras.getStoryboards(WEB_CREATOR_RESPONSE),
+            storyboards: STORYBOARDS,
             chapters: extras.getChapters(WATCH_PAGE_INFO),
-        },
-        VIDEO_DETAILS = ((WEB_CREATOR_RESPONSE || IOS_PLAYER_RESPONSE || ANDROID_PLAYER_RESPONSE || {}).videoDetails as any) || {};
+        };
 
     VIDEO_INFO.related_videos = extras.getRelatedVideos(WATCH_PAGE_INFO);
-    VIDEO_INFO.videoDetails = extras.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA));
-    VIDEO_INFO.formats = [...parseFormats(WEB_CREATOR_RESPONSE), ...parseFormats(IOS_PLAYER_RESPONSE), ...parseFormats(ANDROID_PLAYER_RESPONSE)].filter((res) => res) as any;
+    VIDEO_INFO.videoDetails = extras.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT);
+    VIDEO_INFO.formats = PLAYER_RESPONSE_ARRAY.reduce((items: Array<YT_StreamingFormat>, playerResponse) => {
+        return [...items, ...parseFormats(playerResponse)];
+    }, []) as any;
 
     return VIDEO_INFO;
 }
@@ -574,7 +482,7 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
     utils.applyDefaultAgent(options);
     utils.applyOldLocalAddress(options);
 
-    const INFO: YTDL_VideoInfo = await getBasicInfo(id, options),
+    const INFO: YTDL_VideoInfo = await _getBasicInfo(id, options, true),
         FUNCTIONS = [];
 
     try {
@@ -588,9 +496,8 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
     } catch (err) {
         console.warn('error in player API; falling back to web-scraping');
 
-        // TODO: tv client
-        FUNCTIONS.push(sig.decipherFormats(parseFormats(INFO.watchPageInfo.player_response), INFO.html5Player, options));
-        FUNCTIONS.push(...parseAdditionalManifests(INFO.watchPageInfo.player_response, options));
+        FUNCTIONS.push(sig.decipherFormats(parseFormats(INFO._watchPageInfo.player_response), INFO.html5Player, options));
+        FUNCTIONS.push(...parseAdditionalManifests(INFO._watchPageInfo.player_response, options));
     }
 
     const RESULTS = await Promise.all(FUNCTIONS);
@@ -600,6 +507,15 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
     INFO.formats.sort(formatUtils.sortFormats);
 
     INFO.full = true;
+
+    if (!options.includesWatchPageInfo) {
+        delete (INFO as any)._watchPageInfo;
+    }
+
+    if (!options.includesPlayerAPIResponse) {
+        delete (INFO as any)._playerResponses;
+    }
+
     return INFO;
 }
 

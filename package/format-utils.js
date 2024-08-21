@@ -8,7 +8,7 @@ exports.filterFormats = filterFormats;
 exports.chooseFormat = chooseFormat;
 exports.addFormatMeta = addFormatMeta;
 const utils_1 = __importDefault(require("./utils"));
-const formats_1 = __importDefault(require("./formats"));
+const formats_1 = __importDefault(require("./meta/formats"));
 /* Private Constants */
 // Use these to help sort formats, higher index is better.
 const AUDIO_ENCODING_RANKS = ['mp4a', 'mp3', 'vorbis', 'aac', 'opus', 'flac'], VIDEO_ENCODING_RANKS = ['mp4v', 'avc1', 'Sorenson H.283', 'MPEG-4 Visual', 'VP8', 'VP9', 'H.264'];

@@ -3,6 +3,7 @@ import { parseTimestamp } from 'm3u8stream';
 
 import utils from './utils';
 import { YTDL_Media, YTDL_Author, YTDL_WatchPageInfo, YTDL_Thumbnail, YTDL_RelatedVideo, YT_CompactVideoRenderer, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_MoreVideoDetails, YT_YTInitialPlayerResponse } from '@/types/youtube';
+import { getInfo } from './info';
 
 /* Private Constants */
 const BASE_URL = 'https://www.youtube.com/watch?v=',
@@ -249,7 +250,7 @@ function getLikes(info: YTDL_WatchPageInfo): number | null {
     }
 }
 
-function cleanVideoDetails(videoDetails: YTDL_VideoDetails /* info: YTDL_WatchPageInfo */): YTDL_MoreVideoDetails {
+function cleanVideoDetails(videoDetails: YTDL_VideoDetails, microformat: YT_YTInitialPlayerResponse['microformat'] | null): YTDL_MoreVideoDetails {
     const DETAILS = videoDetails as any;
 
     if (DETAILS.thumbnail) {
@@ -265,8 +266,10 @@ function cleanVideoDetails(videoDetails: YTDL_VideoDetails /* info: YTDL_WatchPa
         utils.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
     }
 
-    // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
-    /* DETAILS.lengthSeconds = (info.player_response.microformat && info.player_response.microformat.playerMicroformatRenderer.lengthSeconds) || info.player_response.videoDetails.lengthSeconds; */
+    if (microformat) {
+        // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
+        DETAILS.lengthSeconds = microformat.playerMicroformatRenderer.lengthSeconds || videoDetails.lengthSeconds;
+    }
 
     return DETAILS;
 }

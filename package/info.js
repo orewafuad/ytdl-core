@@ -14,10 +14,9 @@ const url_utils_1 = __importDefault(require("./url-utils"));
 const info_extras_1 = __importDefault(require("./info-extras"));
 const cache_1 = require("./cache");
 const sig_1 = __importDefault(require("./sig"));
+const clients_1 = require("./meta/clients");
 /* Private Constants */
-const BASE_URL = 'https://www.youtube.com/watch?v=', BASE_EMBED_URL = 'https://www.youtube.com/embed/', AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], JSON_CLOSING_CHARS = /^[)\]}'\s]+/;
-/* Get Info */
-const IOS_CLIENT_VERSION = '19.28.1', IOS_DEVICE_MODEL = 'iPhone16,2', IOS_USER_AGENT_VERSION = '17_5_1', IOS_OS_VERSION = '17.5.1.21F90', ANDROID_CLIENT_VERSION = '19.30.36', ANDROID_OS_VERSION = '14', ANDROID_SDK_VERSION = '34';
+const BASE_URL = 'https://www.youtube.com/watch?v=', BASE_EMBED_URL = 'https://www.youtube.com/embed/', AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], JSON_CLOSING_CHARS = /^[)\]}'\s]+/, BASE_CLIENTS = ['web_creator', 'ios', 'android'];
 /* ----------- */
 /* Private Classes */
 class PlayerRequestError extends Error {
@@ -187,29 +186,13 @@ function parseAdditionalManifests(playerResponse, options) {
     }
     return MANIFESTS;
 }
-// HACK: iOS Player APIとAndroid Player APIはvisitorDataを返却します。
-async function playerAPI(videoId, payload, userAgent, options, apiUrl) {
-    const { jar, dispatcher } = options.agent || {}, HEADER = (() => {
-        if (apiUrl) {
-            return {
-                'Content-Type': 'application/json',
-                cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                'User-Agent': userAgent,
-                'X-Goog-Api-Format-Version': '2',
-            };
-        }
-        else {
-            return {
-                'Content-Type': 'application/json',
-                cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                Origin: 'https://www.youtube.com',
-                'User-Agent': userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-                'X-Youtube-Client-Name': '56',
-                'X-Youtube-Client-Version': '1.20240814.01.00',
-                'X-Goog-Visitor-Id': options.visitorData,
-            };
-        }
-    })(), OPTS = {
+async function playerAPI(videoId, payload, headers, options, apiUrl) {
+    const { jar, dispatcher } = options.agent || {}, HEADERS = {
+        'Content-Type': 'application/json',
+        cookie: jar?.getCookieStringSync('https://www.youtube.com'),
+        'X-Goog-Visitor-Id': options.visitorData,
+        ...headers,
+    }, OPTS = {
         requestOptions: {
             method: 'POST',
             dispatcher,
@@ -218,7 +201,7 @@ async function playerAPI(videoId, payload, userAgent, options, apiUrl) {
                 t: apiUrl ? utils_1.default.generateClientPlaybackNonce(12) : undefined,
                 id: videoId,
             },
-            headers: HEADER,
+            headers: HEADERS,
             body: JSON.stringify(payload),
         },
     }, RESPONSE = await utils_1.default.request(apiUrl || 'https://www.youtube.com/youtubei/v1/player', OPTS), PLAY_ERROR = utils_1.default.playError(RESPONSE);
@@ -236,30 +219,13 @@ async function getSignatureTimestamp(html5player, options) {
     const BODY = await utils_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
     return MO ? MO[1] : undefined;
 }
-async function fetchWebCreatorPlayer(videoId, html5player, options) {
-    const SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined, PAYLOAD = {
-        cpn: utils_1.default.generateClientPlaybackNonce(16),
+async function fetchSpecifiedPlayer(playerType, videoId, options, signatureTimestamp) {
+    const CLIENT = clients_1.INNERTUBE_CLIENTS[playerType], SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined, PAYLOAD = {
         videoId,
+        cpn: utils_1.default.generateClientPlaybackNonce(16),
+        contentCheckOk: true,
+        racyCheckOk: true,
         serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
-        context: {
-            client: {
-                clientName: 'WEB_CREATOR',
-                clientVersion: '1.20240723.03.00',
-                osName: 'Windows',
-                osVersion: '10.0',
-                platform: 'DESKTOP',
-                utcOffsetMinutes: -240,
-                visitorData: options.visitorData,
-            },
-            request: {
-                useSsl: true,
-                internalExperimentFlags: [],
-                consistencyTokenJars: [],
-            },
-            user: {
-                lockedSafetyMode: false,
-            },
-        },
         playbackContext: {
             contentPlaybackContext: {
                 vis: 0,
@@ -270,119 +236,37 @@ async function fetchWebCreatorPlayer(videoId, html5player, options) {
                 autoCaptionsDefaultOn: false,
                 html5Preference: 'HTML5_PREF_WANTS',
                 lactMilliseconds: '-1',
-                signatureTimestamp: (await getSignatureTimestamp(html5player, options)) || 19950,
+                signatureTimestamp,
             },
         },
         attestationRequest: {
             omitBotguardData: true,
         },
+        context: {
+            client: CLIENT.INNERTUBE_CONTEXT.client,
+            request: {
+                internalExperimentFlags: [],
+                useSsl: true,
+            },
+            user: {
+                lockedSafetyMode: false,
+            },
+        },
+    }, USER_AGENT = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36`, HEADERS = {
+        'X-Goog-Api-Format-Version': '2',
+        'X-YouTube-Client-Name': CLIENT.INNERTUBE_CONTEXT_CLIENT_NAME,
+        'X-Youtube-Client-Version': CLIENT.INNERTUBE_CONTEXT.client.clientVersion,
+        'User-Agent': USER_AGENT,
     };
-    return await playerAPI(videoId, PAYLOAD, undefined, options);
-}
-async function fetchIosJsonPlayer(videoId, options) {
-    const SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined, PAYLOAD = {
-        videoId,
-        cpn: utils_1.default.generateClientPlaybackNonce(16),
-        contentCheckOk: true,
-        racyCheckOk: true,
-        serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
-        playbackContext: {
-            contentPlaybackContext: {
-                vis: 0,
-                splay: false,
-                referer: BASE_URL + videoId,
-                currentUrl: BASE_URL + videoId,
-                autonavState: 'STATE_ON',
-                autoCaptionsDefaultOn: false,
-                html5Preference: 'HTML5_PREF_WANTS',
-                lactMilliseconds: '-1',
-                signatureTimestamp: 19950,
-            },
-        },
-        attestationRequest: {
-            omitBotguardData: true,
-        },
-        context: {
-            client: {
-                clientName: 'IOS',
-                clientVersion: IOS_CLIENT_VERSION,
-                deviceMake: 'Apple',
-                deviceModel: IOS_DEVICE_MODEL,
-                platform: 'MOBILE',
-                osName: 'iOS',
-                osVersion: IOS_OS_VERSION,
-                hl: 'en',
-                gl: 'US',
-                utcOffsetMinutes: -240,
-                visitorData: options.visitorData,
-            },
-            request: {
-                internalExperimentFlags: [],
-                useSsl: true,
-            },
-            user: {
-                lockedSafetyMode: false,
-            },
-        },
-    }, IOS_USER_AGENT = `com.google.ios.youtube/${IOS_CLIENT_VERSION}(${IOS_DEVICE_MODEL}; U; CPU iOS ${IOS_USER_AGENT_VERSION} like Mac OS X; en_US)`;
-    return await playerAPI(videoId, PAYLOAD, IOS_USER_AGENT, options, 'https://youtubei.googleapis.com/youtubei/v1/player');
-}
-async function fetchAndroidJsonPlayer(videoId, options) {
-    const SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined, PAYLOAD = {
-        videoId,
-        cpn: utils_1.default.generateClientPlaybackNonce(16),
-        contentCheckOk: true,
-        racyCheckOk: true,
-        serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
-        playbackContext: {
-            contentPlaybackContext: {
-                vis: 0,
-                splay: false,
-                referer: BASE_URL + videoId,
-                currentUrl: BASE_URL + videoId,
-                autonavState: 'STATE_ON',
-                autoCaptionsDefaultOn: false,
-                html5Preference: 'HTML5_PREF_WANTS',
-                lactMilliseconds: '-1',
-                signatureTimestamp: 19950,
-            },
-        },
-        attestationRequest: {
-            omitBotguardData: true,
-        },
-        context: {
-            client: {
-                clientName: 'ANDROID',
-                clientVersion: ANDROID_CLIENT_VERSION,
-                platform: 'MOBILE',
-                osName: 'Android',
-                osVersion: ANDROID_OS_VERSION,
-                androidSdkVersion: ANDROID_SDK_VERSION,
-                hl: 'en',
-                gl: 'US',
-                utcOffsetMinutes: -240,
-                visitorData: options.visitorData,
-            },
-            request: {
-                internalExperimentFlags: [],
-                useSsl: true,
-            },
-            user: {
-                lockedSafetyMode: false,
-            },
-        },
-    }, IOS_USER_AGENT = `com.google.android.youtube/${ANDROID_CLIENT_VERSION} (Linux; U; Android ${ANDROID_OS_VERSION}; en_US) gzip`;
-    return await playerAPI(videoId, PAYLOAD, IOS_USER_AGENT, options, 'https://youtubei.googleapis.com/youtubei/v1/player');
+    PAYLOAD.context.client.visitorData = options.visitorData;
+    return await playerAPI(videoId, PAYLOAD, HEADERS, options);
 }
 /* ----------- */
 /* Public Constants */
 const CACHE = new cache_1.Cache(), WATCH_PAGE_CACHE = new cache_1.Cache();
 exports.CACHE = CACHE;
 exports.WATCH_PAGE_CACHE = WATCH_PAGE_CACHE;
-/* ----------- */
-/* Public Functions */
-/** Gets info from a video without getting additional formats. */
-async function _getBasicInfo(id, options) {
+async function _getBasicInfo(id, options, isFromGetInfo) {
     utils_1.default.applyIPv6Rotations(options);
     utils_1.default.applyDefaultHeaders(options);
     utils_1.default.applyDefaultAgent(options);
@@ -394,36 +278,52 @@ async function _getBasicInfo(id, options) {
     if (options.poToken && !options.visitorData) {
         console.warn('\x1b[33mWARNING:\x1B[0m If you specify a poToken, you must also specify the visitorData.');
     }
-    const RETRY_OPTIONS = Object.assign({}, options.requestOptions), RETRY_FUNC_PROMISE = retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options), EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE), VIDEO_INFO = {
-        watchPageInfo: WATCH_PAGE_INFO,
+    options.clients ??= BASE_CLIENTS;
+    if (options.clients && options.clients.length === 0) {
+        console.warn('\x1b[33mWARNING:\x1B[0m At least one client must be specified.');
+        options.clients = BASE_CLIENTS;
+    }
+    const RETRY_OPTIONS = Object.assign({}, options.requestOptions), RETRY_FUNC_PROMISE = retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options), EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options), HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE), HTML5_PLAYER_URL = HTML5_PLAYER ? new URL(HTML5_PLAYER, BASE_URL).toString() : '', SIGNATURE_TIMESTAMP = await getSignatureTimestamp(HTML5_PLAYER_URL, options) || '', PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, parseInt(SIGNATURE_TIMESTAMP)))), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, VIDEO_INFO = {
+        _watchPageInfo: WATCH_PAGE_INFO,
         related_videos: [],
         videoDetails: {},
         formats: [],
         html5Player: null,
+        clients: options.clients,
     };
     if (!HTML5_PLAYER) {
         throw new Error('Unable to find html5player file');
     }
-    const HTML5_PLAYER_URL = new URL(HTML5_PLAYER, BASE_URL).toString(), PLAYER_API_RESPONSES = await Promise.allSettled([fetchWebCreatorPlayer(id, HTML5_PLAYER_URL, options), fetchIosJsonPlayer(id, options), fetchAndroidJsonPlayer(id, options)]), WEB_CREATOR_RESPONSE = PLAYER_API_RESPONSES[0].status === 'fulfilled' ? PLAYER_API_RESPONSES[0].value : null, IOS_PLAYER_RESPONSE = PLAYER_API_RESPONSES[1].status === 'fulfilled' ? PLAYER_API_RESPONSES[1].value : null, ANDROID_PLAYER_RESPONSE = PLAYER_API_RESPONSES[2].status === 'fulfilled' ? PLAYER_API_RESPONSES[2].value : null;
-    if (WEB_CREATOR_RESPONSE === null && IOS_PLAYER_RESPONSE === null && ANDROID_PLAYER_RESPONSE === null) {
-        throw new Error('Web Creator, iOS, and Android player APIs all returned errors.');
+    const PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE, PLAYER_RESPONSES = {}, PLAYER_RESPONSE_ARRAY = [];
+    options.clients.forEach((client, i) => {
+        if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
+            PLAYER_RESPONSES[client] = PLAYER_API_RESPONSES[i].value;
+            PLAYER_RESPONSE_ARRAY.push(PLAYER_API_RESPONSES[i].value);
+        }
+    });
+    if (PLAYER_API_RESPONSES.every((r) => r.status === 'rejected')) {
+        throw new Error(`All player APIs responded with an error. (Clients: ${options.clients.join(', ')})`);
     }
     VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
-    const MEDIA = info_extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = (() => {
-        const IS_AGE_RESTRICTED = MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url)));
-        return !!IS_AGE_RESTRICTED;
-    })(), ADDITIONAL_DATA = {
+    if (isFromGetInfo) {
+        VIDEO_INFO._playerResponses = PLAYER_RESPONSES;
+    }
+    /* Filtered */
+    const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_ARRAY.filter((p) => p.storyboards)[0], VIDEO_DETAILS = PLAYER_RESPONSE_ARRAY.filter((p) => p.videoDetails)[0]?.videoDetails || {}, MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p.microformat)[0]?.microformat || null;
+    const STORYBOARDS = info_extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = info_extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
+        video_url: BASE_URL + id,
         author: info_extras_1.default.getAuthor(WATCH_PAGE_INFO),
         media: MEDIA,
         likes: info_extras_1.default.getLikes(WATCH_PAGE_INFO),
         age_restricted: AGE_RESTRICTED,
-        video_url: BASE_URL + id,
-        storyboards: info_extras_1.default.getStoryboards(WEB_CREATOR_RESPONSE),
+        storyboards: STORYBOARDS,
         chapters: info_extras_1.default.getChapters(WATCH_PAGE_INFO),
-    }, VIDEO_DETAILS = (WEB_CREATOR_RESPONSE || IOS_PLAYER_RESPONSE || ANDROID_PLAYER_RESPONSE || {}).videoDetails || {};
+    };
     VIDEO_INFO.related_videos = info_extras_1.default.getRelatedVideos(WATCH_PAGE_INFO);
-    VIDEO_INFO.videoDetails = info_extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA));
-    VIDEO_INFO.formats = [...parseFormats(WEB_CREATOR_RESPONSE), ...parseFormats(IOS_PLAYER_RESPONSE), ...parseFormats(ANDROID_PLAYER_RESPONSE)].filter((res) => res);
+    VIDEO_INFO.videoDetails = info_extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT);
+    VIDEO_INFO.formats = PLAYER_RESPONSE_ARRAY.reduce((items, playerResponse) => {
+        return [...items, ...parseFormats(playerResponse)];
+    }, []);
     return VIDEO_INFO;
 }
 async function getBasicInfo(link, options = {}) {
@@ -438,7 +338,7 @@ async function _getInfo(id, options) {
     utils_1.default.applyDefaultHeaders(options);
     utils_1.default.applyDefaultAgent(options);
     utils_1.default.applyOldLocalAddress(options);
-    const INFO = await getBasicInfo(id, options), FUNCTIONS = [];
+    const INFO = await _getBasicInfo(id, options, true), FUNCTIONS = [];
     try {
         const FORMATS = INFO.formats;
         FUNCTIONS.push(sig_1.default.decipherFormats(FORMATS, INFO.html5Player, options));
@@ -448,15 +348,20 @@ async function _getInfo(id, options) {
     }
     catch (err) {
         console.warn('error in player API; falling back to web-scraping');
-        // TODO: tv client
-        FUNCTIONS.push(sig_1.default.decipherFormats(parseFormats(INFO.watchPageInfo.player_response), INFO.html5Player, options));
-        FUNCTIONS.push(...parseAdditionalManifests(INFO.watchPageInfo.player_response, options));
+        FUNCTIONS.push(sig_1.default.decipherFormats(parseFormats(INFO._watchPageInfo.player_response), INFO.html5Player, options));
+        FUNCTIONS.push(...parseAdditionalManifests(INFO._watchPageInfo.player_response, options));
     }
     const RESULTS = await Promise.all(FUNCTIONS);
     INFO.formats = Object.values(Object.assign({}, ...RESULTS));
     INFO.formats = INFO.formats.map(format_utils_1.default.addFormatMeta);
     INFO.formats.sort(format_utils_1.default.sortFormats);
     INFO.full = true;
+    if (!options.includesWatchPageInfo) {
+        delete INFO._watchPageInfo;
+    }
+    if (!options.includesPlayerAPIResponse) {
+        delete INFO._playerResponses;
+    }
     return INFO;
 }
 async function getInfo(link, options = {}) {

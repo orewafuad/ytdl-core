@@ -1,4 +1,5 @@
 import { Dispatcher, request } from 'undici';
+import { YTDL_ClientTypes } from '../meta/clients';
 import { YTDL_Agent } from './agent';
 import { YTDL_VideoFormat } from './youtube';
 export type YTDL_Filter = 'audioandvideo' | 'videoandaudio' | 'video' | 'videoonly' | 'audio' | 'audioonly' | ((format: YTDL_VideoFormat) => boolean);
@@ -14,6 +15,18 @@ export type YTDL_GetInfoOptions = {
     agent?: YTDL_Agent;
     poToken?: string;
     visitorData?: string;
+    /** You can specify whether to include Player API responses.
+     * @default false
+     */
+    includesPlayerAPIResponse?: boolean;
+    /** You can specify whether to include data obtained from Watch pages.
+     * @default false
+     */
+    includesWatchPageInfo?: boolean;
+    /** You can specify the client from which you want to retrieve video information. (Changing it is not recommended.)
+     * @default ["web_creator", "ios", "android"]
+     */
+    clients?: Array<YTDL_ClientTypes>;
 };
 export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFormatOptions {
     range?: {
