@@ -275,6 +275,9 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     const { jar, dispatcher } = options.agent || {};
     utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
+    if (!options.poToken) {
+        console.warn('\x1b[33mWARNING:\x1B[0m Please specify a poToken to stabilize the operation. Details can be found in the README.');
+    }
     if (options.poToken && !options.visitorData) {
         console.warn('\x1b[33mWARNING:\x1B[0m If you specify a poToken, you must also specify the visitorData.');
     }
