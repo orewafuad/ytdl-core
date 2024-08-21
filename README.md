@@ -4,10 +4,10 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 
 ## ℹ️Announcements at this timeℹ️
 
-[!NOTE]
+> [!NOTE]
 > For age-restricted videos, we can work around this by using the tv_embedded client, but we are working on a fix for this, as specifying a poToken for tv_embedded still results in a bot error.
 
-[!NOTE]
+> [!NOTE]
 > I am currently implementing a way to authenticate using OAuth2 in order to avoid cases such as bot errors (and others) when a poToken is specified.
 
 <!-- There are no announcements at this time. -->
