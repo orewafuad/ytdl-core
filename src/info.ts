@@ -307,8 +307,7 @@ async function getSignatureTimestamp(html5player: string, options: YTDL_GetInfoO
     return MO ? MO[1] : undefined;
 }
 
-type YTDL_OtherPlayerPayload = { signatureTimestamp?: number; params?: string };
-async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: string, options: YTDL_GetInfoOptions, other: YTDL_OtherPlayerPayload = {}): Promise<YT_YTInitialPlayerResponse> {
+async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: string, options: YTDL_GetInfoOptions, signatureTimestamp?: number): Promise<YT_YTInitialPlayerResponse> {
     const CLIENT = INNERTUBE_CLIENTS[playerType],
         SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined,
         PAYLOAD = {
@@ -316,19 +315,18 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
             cpn: utils.generateClientPlaybackNonce(16),
             contentCheckOk: true,
             racyCheckOk: true,
-            params: 'QAA%3D' || other.params,
             serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
             playbackContext: {
                 contentPlaybackContext: {
                     vis: 0,
                     splay: false,
                     referer: BASE_URL + videoId,
-                    currentUrl: BASE_URL + videoId + '&pp=QAA%3D',
+                    currentUrl: BASE_URL + videoId,
                     autonavState: 'STATE_ON',
                     autoCaptionsDefaultOn: false,
                     html5Preference: 'HTML5_PREF_WANTS',
                     lactMilliseconds: '-1',
-                    signatureTimestamp: other.signatureTimestamp,
+                    signatureTimestamp,
                 },
             },
             attestationRequest: {
@@ -354,7 +352,6 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
         };
 
     PAYLOAD.context.client.visitorData = options.visitorData;
-    PAYLOAD.context.client.originalUrl = `https://www.youtube.com/watch?v=${videoId}&pp=QAA%3D`;
 
     return await playerAPI(videoId, PAYLOAD, HEADERS, options);
 }
@@ -381,8 +378,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
 
     options.requestOptions ??= {};
 
-    const { jar, dispatcher } = options.agent || {},
-        RETRY_OPTIONS = Object.assign({}, options.requestOptions);
+    const { jar, dispatcher } = options.agent || {};
 
     utils.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
@@ -411,33 +407,18 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         options.clients = BASE_CLIENTS;
     }
 
-    if (options.clients.some((client) => client.includes('creator'))) {
-        options.clients = options.clients.filter((client) => client !== 'web_creator');
+    if (!options.clients.some((client) => client.includes('creator'))) {
+        options.clients.push('web_creator');
     }
 
-    /* Promises */
-    const RETRY_FUNC_PROMISE = retryFunc<YTDL_WatchPageInfo>(getWatchHTMLPage, [id, options], RETRY_OPTIONS),
+    const RETRY_OPTIONS = Object.assign({}, options.requestOptions),
+        RETRY_FUNC_PROMISE = retryFunc<YTDL_WatchPageInfo>(getWatchHTMLPage, [id, options], RETRY_OPTIONS),
         WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options),
         EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options),
-        WEB_CREATOR_PROMISE = Promise.allSettled([fetchSpecifiedPlayer('web_creator', id, options)]);
-
-    /* HTML5 Player and Signature Timestamp */
-    const HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE),
+        HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE),
         HTML5_PLAYER_URL = HTML5_PLAYER ? new URL(HTML5_PLAYER, BASE_URL).toString() : '',
-        SIGNATURE_TIMESTAMP = (await getSignatureTimestamp(HTML5_PLAYER_URL, options)) || '',
-        WEB_CREATOR_RESPONSE = (await WEB_CREATOR_PROMISE)[0];
-
-    if (!HTML5_PLAYER) {
-        throw new Error('Unable to find html5player file');
-    }
-
-    if (WEB_CREATOR_RESPONSE.status === 'rejected' && WEB_CREATOR_RESPONSE.reason.message.includes('Sign in to confirm your age')) {
-        Logger.info('Due to age restrictions on this video, the available clients are limited to “tv_embedded”.');
-        options.clients = ['tv_embedded'];
-    }
-
-    /* Player Promises and Video Info */
-    const PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) }))),
+        SIGNATURE_TIMESTAMP = await getSignatureTimestamp(HTML5_PLAYER_URL, options) || '',
+        PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, parseInt(SIGNATURE_TIMESTAMP)))),
         WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE,
         VIDEO_INFO: YTDL_VideoInfo = {
             _watchPageInfo: WATCH_PAGE_INFO,
@@ -447,6 +428,10 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             html5Player: null,
             clients: options.clients,
         } as any;
+
+    if (!HTML5_PLAYER) {
+        throw new Error('Unable to find html5player file');
+    }
 
     const PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE,
         PLAYER_RESPONSES: YTDL_PlayerResponses = {},
@@ -521,6 +506,7 @@ async function _getInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_
 
     try {
         const FORMATS = INFO.formats as any as Array<YT_YTInitialPlayerResponse>;
+
         FUNCTIONS.push(sig.decipherFormats(FORMATS, INFO.html5Player, options));
 
         for (const RESPONSE of FORMATS) {
