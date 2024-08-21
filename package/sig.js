@@ -12,6 +12,7 @@ const querystring_1 = __importDefault(require("querystring"));
 const node_vm_1 = __importDefault(require("node:vm"));
 const cache_1 = require("./cache");
 const utils_1 = __importDefault(require("./utils"));
+const Log_1 = require("./utils/Log");
 /* Private Constants */
 const DECIPHER_NAME_REGEXPS = [
     '\\bm=([a-zA-Z0-9$]{2,})\\(decodeURIComponent\\(h\\.s\\)\\)',
@@ -122,7 +123,7 @@ let decipherWarning = false;
 function extractDecipher(body) {
     const DECIPHER_FUNCTION = getExtractFunctions([extractDecipherWithName, extractDecipherFunc], body);
     if (!DECIPHER_FUNCTION && !decipherWarning) {
-        console.warn('\x1b[33mWARNING:\x1B[0m Could not parse decipher function.\n' + `Please report this issue with the "${utils_1.default.saveDebugFile('base.js', body)}" file on https://github.com/ybd-project/ytdl-core/issues.\nStream URL will be missing.`);
+        Log_1.Logger.warning(`Could not parse decipher function.\nPlease report this issue with the "${utils_1.default.saveDebugFile('base.js', body)}" file on https://github.com/ybd-project/ytdl-core/issues.\nStream URL will be missing.`);
         decipherWarning = true;
     }
     return DECIPHER_FUNCTION;
@@ -151,7 +152,7 @@ function extractNTransform(body) {
     const N_TRANSFORM_FUNCTION = getExtractFunctions([extractNTransformFunc, extractNTransformWithName], body);
     if (!N_TRANSFORM_FUNCTION && !nTransformWarning) {
         // This is optional, so we can continue if it's not found, but it will bottleneck the download.
-        console.warn('\x1b[33mWARNING:\x1B[0m Could not parse n transform function.\n' + `Please report this issue with the "${utils_1.default.saveDebugFile('base.js', body)}" file on https://github.com/distubejs/ytdl-core/issues.`);
+        Log_1.Logger.warning(`Could not parse n transform function.\nPlease report this issue with the "${utils_1.default.saveDebugFile('base.js', body)}" file on https://github.com/distubejs/ytdl-core/issues.`);
         nTransformWarning = true;
     }
     return N_TRANSFORM_FUNCTION;

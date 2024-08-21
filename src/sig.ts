@@ -2,6 +2,7 @@ import querystring from 'querystring';
 import vm from 'node:vm';
 import { Cache } from './cache';
 import utils from './utils';
+import { Logger } from './utils/Log';
 
 import { YTDL_RequestOptions } from '@/types/options';
 
@@ -136,7 +137,7 @@ function extractDecipher(body: string) {
     const DECIPHER_FUNCTION = getExtractFunctions([extractDecipherWithName, extractDecipherFunc], body);
 
     if (!DECIPHER_FUNCTION && !decipherWarning) {
-        console.warn('\x1b[33mWARNING:\x1B[0m Could not parse decipher function.\n' + `Please report this issue with the "${utils.saveDebugFile('base.js', body)}" file on https://github.com/ybd-project/ytdl-core/issues.\nStream URL will be missing.`);
+        Logger.warning(`Could not parse decipher function.\nPlease report this issue with the "${utils.saveDebugFile('base.js', body)}" file on https://github.com/ybd-project/ytdl-core/issues.\nStream URL will be missing.`);
         decipherWarning = true;
     }
 
@@ -174,7 +175,7 @@ function extractNTransform(body: string) {
     const N_TRANSFORM_FUNCTION = getExtractFunctions([extractNTransformFunc, extractNTransformWithName], body);
     if (!N_TRANSFORM_FUNCTION && !nTransformWarning) {
         // This is optional, so we can continue if it's not found, but it will bottleneck the download.
-        console.warn('\x1b[33mWARNING:\x1B[0m Could not parse n transform function.\n' + `Please report this issue with the "${utils.saveDebugFile('base.js', body)}" file on https://github.com/distubejs/ytdl-core/issues.`);
+        Logger.warning(`Could not parse n transform function.\nPlease report this issue with the "${utils.saveDebugFile('base.js', body)}" file on https://github.com/distubejs/ytdl-core/issues.`);
         nTransformWarning = true;
     }
     return N_TRANSFORM_FUNCTION;

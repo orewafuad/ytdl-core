@@ -1,6 +1,6 @@
 # @ybd-project/ytdl-core
 
-YBD Project fork of `ytdl-core`. This fork is dedicated to improving the @DisTube fork.
+YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube downloader that is fast, stable, and takes into account various use cases, with reference to LuanRT/YouTube.js and yt-dlp.
 
 ## ℹ️Announcements at this timeℹ️
 

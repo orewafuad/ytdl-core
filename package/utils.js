@@ -25,8 +25,9 @@ exports.applyDefaultHeaders = applyDefaultHeaders;
 exports.generateClientPlaybackNonce = generateClientPlaybackNonce;
 const undici_1 = require("undici");
 const node_fs_1 = require("node:fs");
+const Constants_1 = require("./utils/Constants");
+const Log_1 = require("./utils/Log");
 const agent_1 = __importDefault(require("./agent"));
-const package_json_1 = __importDefault(require("../package.json"));
 const ESCAPING_SEQUENCE = [
     { start: '"', end: '"' },
     { start: "'", end: "'" },
@@ -197,7 +198,7 @@ async function request(url, options = {}) {
 function deprecate(obj, prop, value, oldPath, newPath) {
     Object.defineProperty(obj, prop, {
         get: () => {
-            console.warn(`\`${oldPath}\` will be removed in a near future release, ` + `use \`${newPath}\` instead.`);
+            Log_1.Logger.warning(`\`${oldPath}\` will be removed in a near future release, ` + `use \`${newPath}\` instead.`);
             return value;
         },
     });
@@ -207,20 +208,20 @@ let updateWarnTimes = 0;
 let lastUpdateCheck = 0;
 exports.lastUpdateCheck = lastUpdateCheck;
 function checkForUpdates() {
-    const YTDL_NO_UPDATE = process.env.YTDL_NO_UPDATE, IS_VERSION_DEV = package_json_1.default.version.startsWith('0.0.0-');
-    if (!YTDL_NO_UPDATE && !IS_VERSION_DEV && Date.now() - lastUpdateCheck >= UPDATE_INTERVAL) {
+    const YTDL_NO_UPDATE = process.env.YTDL_NO_UPDATE;
+    if (!YTDL_NO_UPDATE && Date.now() - lastUpdateCheck >= UPDATE_INTERVAL) {
         exports.lastUpdateCheck = lastUpdateCheck = Date.now();
         const GITHUB_URL = 'https://api.github.com/repos/ybd-project/ytdl-core/contents/package.json';
         return request(GITHUB_URL, {
             requestOptions: { headers: { 'User-Agent': 'Chromium";v="112", "Microsoft Edge";v="112", "Not:A-Brand";v="99' } },
         }).then((response) => {
             const BUFFER = Buffer.from(response.content, response.encoding), PKG_FILE = JSON.parse(BUFFER.toString('ascii'));
-            if (PKG_FILE.version !== package_json_1.default.version && updateWarnTimes++ < 5) {
-                console.warn('\x1b[33mWARNING:\x1B[0m @ybd-project/ytdl-core is out of date! Update with "npm install @ybd-project/ytdl-core@latest".');
+            if (PKG_FILE.version !== Constants_1.VERSION && updateWarnTimes++ < 5) {
+                Log_1.Logger.warning('@ybd-project/ytdl-core is out of date! Update with "npm install @ybd-project/ytdl-core@latest".');
             }
         }, (err) => {
-            console.warn('Error checking for updates:', err.message);
-            console.warn('You can disable this check by setting the `YTDL_NO_UPDATE` env variable.');
+            Log_1.Logger.warning('Error checking for updates:', err.message);
+            Log_1.Logger.warning('You can disable this check by setting the `YTDL_NO_UPDATE` env variable.');
         });
     }
     return null;
@@ -284,12 +285,12 @@ function applyDefaultAgent(options) {
             agent_1.default.addCookiesFromString(jar, COOKIE);
             if (oldCookieWarning) {
                 oldCookieWarning = false;
-                console.warn('\x1b[33mWARNING:\x1B[0m Using old cookie format, ' + 'please use the new one instead. (https://github.com/ybd-project/ytdl-core#cookies-support)');
+                Log_1.Logger.warning('Using old cookie format, please use the new one instead. (https://github.com/ybd-project/ytdl-core#cookies-support)');
             }
         }
         if (options.requestOptions?.dispatcher && oldDispatcherWarning) {
             oldDispatcherWarning = false;
-            console.warn('\x1b[33mWARNING:\x1B[0m Your dispatcher is overridden by `ytdl.Agent`. ' + 'To implement your own, check out the documentation. ' + '(https://github.com/ybd-project/ytdl-core#how-to-implement-ytdlagent-with-your-own-dispatcher)');
+            Log_1.Logger.warning('Your dispatcher is overridden by `ytdl.Agent`. To implement your own, check out the documentation. (https://github.com/ybd-project/ytdl-core#how-to-implement-ytdlagent-with-your-own-dispatcher)');
         }
         options.agent = agent_1.default.defaultAgent;
     }
@@ -305,7 +306,7 @@ function applyOldLocalAddress(options) {
     });
     if (oldLocalAddressWarning) {
         oldLocalAddressWarning = false;
-        console.warn('\x1b[33mWARNING:\x1B[0m Using old localAddress option, ' + 'please add it to the agent options instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
+        Log_1.Logger.warning('Using old localAddress option, please add it to the agent options instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
     }
 }
 let oldIpRotationsWarning = true;
@@ -317,7 +318,7 @@ function applyIPv6Rotations(options) {
         if (oldIpRotationsWarning) {
             oldIpRotationsWarning = false;
             oldLocalAddressWarning = false;
-            console.warn('\x1b[33mWARNING:\x1B[0m IPv6Block option is deprecated, ' + 'please create your own ip rotation instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
+            Log_1.Logger.warning('IPv6Block option is deprecated, ' + 'please create your own ip rotation instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
         }
     }
 }

@@ -227,6 +227,5 @@ ytdl.cache = cache;
 ytdl.version = version;
 
 module.exports = ytdl;
-
 export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, validateID, validateURL, getURLVideoID, getVideoID, createAgent, createProxyAgent, cache, version };
 export default ytdl;

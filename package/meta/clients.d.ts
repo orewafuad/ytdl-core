@@ -1,4 +1,4 @@
-type YTDL_ClientTypes = 'web' | 'web_safari' | 'web_creator' | 'android' | 'android_creator' | 'ios' | 'ios_creator' | 'mweb' | 'tv' | 'mediaconnect';
+type YTDL_ClientTypes = 'web' | 'web_safari' | 'web_creator' | 'android' | 'android_creator' | 'ios' | 'ios_creator' | 'mweb' | 'tv' | 'tv_embedded' | 'mediaconnect';
 type YTDL_ClientData = {
     INNERTUBE_CONTEXT: {
         client: {
@@ -10,6 +10,7 @@ type YTDL_ClientData = {
             osVersion?: string;
             deviceMake?: string;
             deviceModel?: string;
+            originalUrl?: string;
             androidSdkVersion?: number;
         };
     };

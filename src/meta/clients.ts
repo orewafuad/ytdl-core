@@ -1,4 +1,4 @@
-type YTDL_ClientTypes = 'web' | 'web_safari' | 'web_creator' | 'android' | 'android_creator' | 'ios' | 'ios_creator' | 'mweb' | 'tv' | 'mediaconnect';
+type YTDL_ClientTypes = 'web' | 'web_safari' | 'web_creator' | 'android' | 'android_creator' | 'ios' | 'ios_creator' | 'mweb' | 'tv' | 'tv_embedded' | 'mediaconnect';
 type YTDL_ClientData = {
     INNERTUBE_CONTEXT: {
         client: {
@@ -10,6 +10,7 @@ type YTDL_ClientData = {
             osVersion?: string;
             deviceMake?: string;
             deviceModel?: string;
+            originalUrl?: string;
 
             androidSdkVersion?: number;
         };
@@ -122,6 +123,15 @@ const INNERTUBE_CLIENTS: Record<YTDL_ClientTypes, YTDL_ClientData> = {
             },
         },
         INNERTUBE_CONTEXT_CLIENT_NAME: 7,
+    },
+    tv_embedded: {
+        INNERTUBE_CONTEXT: {
+            client: {
+                clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
+                clientVersion: '2.0',
+            },
+        },
+        INNERTUBE_CONTEXT_CLIENT_NAME: 85,
     },
     mediaconnect: {
         INNERTUBE_CONTEXT: {

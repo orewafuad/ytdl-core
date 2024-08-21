@@ -8,6 +8,7 @@ exports.getBasicInfo = getBasicInfo;
 exports.getInfo = getInfo;
 const sax_1 = __importDefault(require("sax"));
 const timers_1 = require("timers");
+const youtube_po_token_generator_1 = require("youtube-po-token-generator");
 const utils_1 = __importDefault(require("./utils"));
 const format_utils_1 = __importDefault(require("./format-utils"));
 const url_utils_1 = __importDefault(require("./url-utils"));
@@ -15,6 +16,7 @@ const info_extras_1 = __importDefault(require("./info-extras"));
 const cache_1 = require("./cache");
 const sig_1 = __importDefault(require("./sig"));
 const clients_1 = require("./meta/clients");
+const Log_1 = require("./utils/Log");
 /* Private Constants */
 const BASE_URL = 'https://www.youtube.com/watch?v=', BASE_EMBED_URL = 'https://www.youtube.com/embed/', AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], JSON_CLOSING_CHARS = /^[)\]}'\s]+/, BASE_CLIENTS = ['web_creator', 'ios', 'android'];
 /* ----------- */
@@ -219,24 +221,25 @@ async function getSignatureTimestamp(html5player, options) {
     const BODY = await utils_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
     return MO ? MO[1] : undefined;
 }
-async function fetchSpecifiedPlayer(playerType, videoId, options, signatureTimestamp) {
+async function fetchSpecifiedPlayer(playerType, videoId, options, other = {}) {
     const CLIENT = clients_1.INNERTUBE_CLIENTS[playerType], SERVICE_INTEGRITY_DIMENSIONS = options.poToken ? { poToken: options.poToken } : undefined, PAYLOAD = {
         videoId,
         cpn: utils_1.default.generateClientPlaybackNonce(16),
         contentCheckOk: true,
         racyCheckOk: true,
+        params: 'QAA%3D' || other.params,
         serviceIntegrityDimensions: SERVICE_INTEGRITY_DIMENSIONS,
         playbackContext: {
             contentPlaybackContext: {
                 vis: 0,
                 splay: false,
                 referer: BASE_URL + videoId,
-                currentUrl: BASE_URL + videoId,
+                currentUrl: BASE_URL + videoId + '&pp=QAA%3D',
                 autonavState: 'STATE_ON',
                 autoCaptionsDefaultOn: false,
                 html5Preference: 'HTML5_PREF_WANTS',
                 lactMilliseconds: '-1',
-                signatureTimestamp,
+                signatureTimestamp: other.signatureTimestamp,
             },
         },
         attestationRequest: {
@@ -252,13 +255,14 @@ async function fetchSpecifiedPlayer(playerType, videoId, options, signatureTimes
                 lockedSafetyMode: false,
             },
         },
-    }, USER_AGENT = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36`, HEADERS = {
+    }, USER_AGENT = CLIENT.INNERTUBE_CONTEXT.client.userAgent || `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36`, HEADERS = {
         'X-Goog-Api-Format-Version': '2',
         'X-YouTube-Client-Name': CLIENT.INNERTUBE_CONTEXT_CLIENT_NAME,
         'X-Youtube-Client-Version': CLIENT.INNERTUBE_CONTEXT.client.clientVersion,
         'User-Agent': USER_AGENT,
     };
     PAYLOAD.context.client.visitorData = options.visitorData;
+    PAYLOAD.context.client.originalUrl = `https://www.youtube.com/watch?v=${videoId}&pp=QAA%3D`;
     return await playerAPI(videoId, PAYLOAD, HEADERS, options);
 }
 /* ----------- */
@@ -272,21 +276,45 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     utils_1.default.applyDefaultAgent(options);
     utils_1.default.applyOldLocalAddress(options);
     options.requestOptions ??= {};
-    const { jar, dispatcher } = options.agent || {};
+    const { jar, dispatcher } = options.agent || {}, RETRY_OPTIONS = Object.assign({}, options.requestOptions);
     utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
     if (!options.poToken) {
-        console.warn('\x1b[33mWARNING:\x1B[0m Please specify a poToken to stabilize the operation. Details can be found in the README.');
+        Log_1.Logger.warning('Specify poToken for stable and fast operation. See README for details.');
+        Log_1.Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.');
+        try {
+            const { poToken, visitorData } = await (0, youtube_po_token_generator_1.generate)();
+            options.poToken = poToken;
+            options.visitorData = visitorData;
+        }
+        catch (err) {
+            Log_1.Logger.error('Failed to generate a poToken.');
+        }
     }
     if (options.poToken && !options.visitorData) {
-        console.warn('\x1b[33mWARNING:\x1B[0m If you specify a poToken, you must also specify the visitorData.');
+        Log_1.Logger.warning('If you specify a poToken, you must also specify the visitorData.');
     }
     options.clients ??= BASE_CLIENTS;
     if (options.clients && options.clients.length === 0) {
-        console.warn('\x1b[33mWARNING:\x1B[0m At least one client must be specified.');
+        Log_1.Logger.warning('At least one client must be specified.');
         options.clients = BASE_CLIENTS;
     }
-    const RETRY_OPTIONS = Object.assign({}, options.requestOptions), RETRY_FUNC_PROMISE = retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options), EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options), HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE), HTML5_PLAYER_URL = HTML5_PLAYER ? new URL(HTML5_PLAYER, BASE_URL).toString() : '', SIGNATURE_TIMESTAMP = await getSignatureTimestamp(HTML5_PLAYER_URL, options) || '', PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, parseInt(SIGNATURE_TIMESTAMP)))), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, VIDEO_INFO = {
+    if (options.clients.some((client) => client.includes('creator'))) {
+        options.clients = options.clients.filter((client) => client !== 'web_creator');
+    }
+    /* Promises */
+    const RETRY_FUNC_PROMISE = retryFunc(getWatchHTMLPage, [id, options], RETRY_OPTIONS), WATCH_PAGE_BODY_PROMISE = getWatchHTMLPageBody(id, options), EMBED_PAGE_BODY_PROMISE = getEmbedPageBody(id, options), WEB_CREATOR_PROMISE = Promise.allSettled([fetchSpecifiedPlayer('web_creator', id, options)]);
+    /* HTML5 Player and Signature Timestamp */
+    const HTML5_PLAYER = getHTML5Player(await WATCH_PAGE_BODY_PROMISE) || getHTML5Player(await EMBED_PAGE_BODY_PROMISE), HTML5_PLAYER_URL = HTML5_PLAYER ? new URL(HTML5_PLAYER, BASE_URL).toString() : '', SIGNATURE_TIMESTAMP = (await getSignatureTimestamp(HTML5_PLAYER_URL, options)) || '', WEB_CREATOR_RESPONSE = (await WEB_CREATOR_PROMISE)[0];
+    if (!HTML5_PLAYER) {
+        throw new Error('Unable to find html5player file');
+    }
+    if (WEB_CREATOR_RESPONSE.status === 'rejected' && WEB_CREATOR_RESPONSE.reason.message.includes('Sign in to confirm your age')) {
+        Log_1.Logger.info('Due to age restrictions on this video, the available clients are limited to “tv_embedded”.');
+        options.clients = ['tv_embedded'];
+    }
+    /* Player Promises and Video Info */
+    const PLAYER_FETCH_PROMISE = Promise.allSettled(options.clients.map((client) => fetchSpecifiedPlayer(client, id, options, { signatureTimestamp: parseInt(SIGNATURE_TIMESTAMP) }))), WATCH_PAGE_INFO = await RETRY_FUNC_PROMISE, VIDEO_INFO = {
         _watchPageInfo: WATCH_PAGE_INFO,
         related_videos: [],
         videoDetails: {},
@@ -294,14 +322,15 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         html5Player: null,
         clients: options.clients,
     };
-    if (!HTML5_PLAYER) {
-        throw new Error('Unable to find html5player file');
-    }
     const PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE, PLAYER_RESPONSES = {}, PLAYER_RESPONSE_ARRAY = [];
     options.clients.forEach((client, i) => {
         if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
             PLAYER_RESPONSES[client] = PLAYER_API_RESPONSES[i].value;
             PLAYER_RESPONSE_ARRAY.push(PLAYER_API_RESPONSES[i].value);
+            Log_1.Logger.debug(`[ ${client} ]: Success`);
+        }
+        else {
+            Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${PLAYER_API_RESPONSES[i].reason}`);
         }
     });
     if (PLAYER_API_RESPONSES.every((r) => r.status === 'rejected')) {
@@ -350,7 +379,7 @@ async function _getInfo(id, options) {
         }
     }
     catch (err) {
-        console.warn('error in player API; falling back to web-scraping');
+        Log_1.Logger.warning('Error in player API; falling back to web-scraping');
         FUNCTIONS.push(sig_1.default.decipherFormats(parseFormats(INFO._watchPageInfo.player_response), INFO.html5Player, options));
         FUNCTIONS.push(...parseAdditionalManifests(INFO._watchPageInfo.player_response, options));
     }

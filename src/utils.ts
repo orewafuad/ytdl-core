@@ -3,8 +3,9 @@ import { writeFileSync } from 'node:fs';
 
 import { YT_YTInitialPlayerResponse } from '@/types/youtube';
 import { YTDL_DownloadOptions, YTDL_RequestOptions } from '@/types/options';
+import { VERSION } from './utils/Constants';
+import { Logger } from './utils/Log';
 import AGENT from './agent';
-import pkg from '../package.json';
 
 /* Private Constants */
 
@@ -228,7 +229,7 @@ async function request<T = unknown>(url: string, options: YTDL_RequestOptions = 
 function deprecate(obj: Object, prop: string, value: Object, oldPath: string, newPath: string) {
     Object.defineProperty(obj, prop, {
         get: () => {
-            console.warn(`\`${oldPath}\` will be removed in a near future release, ` + `use \`${newPath}\` instead.`);
+            Logger.warning(`\`${oldPath}\` will be removed in a near future release, ` + `use \`${newPath}\` instead.`);
             return value;
         },
     });
@@ -239,10 +240,9 @@ let updateWarnTimes = 0;
 let lastUpdateCheck = 0;
 type GitHubPkgResponse = { content: string; encoding: BufferEncoding };
 function checkForUpdates() {
-    const YTDL_NO_UPDATE = process.env.YTDL_NO_UPDATE,
-        IS_VERSION_DEV = pkg.version.startsWith('0.0.0-');
+    const YTDL_NO_UPDATE = process.env.YTDL_NO_UPDATE;
 
-    if (!YTDL_NO_UPDATE && !IS_VERSION_DEV && Date.now() - lastUpdateCheck >= UPDATE_INTERVAL) {
+    if (!YTDL_NO_UPDATE && Date.now() - lastUpdateCheck >= UPDATE_INTERVAL) {
         lastUpdateCheck = Date.now();
 
         const GITHUB_URL = 'https://api.github.com/repos/ybd-project/ytdl-core/contents/package.json';
@@ -253,13 +253,13 @@ function checkForUpdates() {
                 const BUFFER = Buffer.from(response.content, response.encoding),
                     PKG_FILE = JSON.parse(BUFFER.toString('ascii'));
 
-                if (PKG_FILE.version !== pkg.version && updateWarnTimes++ < 5) {
-                    console.warn('\x1b[33mWARNING:\x1B[0m @ybd-project/ytdl-core is out of date! Update with "npm install @ybd-project/ytdl-core@latest".');
+                if (PKG_FILE.version !== VERSION && updateWarnTimes++ < 5) {
+                    Logger.warning('@ybd-project/ytdl-core is out of date! Update with "npm install @ybd-project/ytdl-core@latest".');
                 }
             },
             (err) => {
-                console.warn('Error checking for updates:', err.message);
-                console.warn('You can disable this check by setting the `YTDL_NO_UPDATE` env variable.');
+                Logger.warning('Error checking for updates:', err.message);
+                Logger.warning('You can disable this check by setting the `YTDL_NO_UPDATE` env variable.');
             },
         );
     }
@@ -351,13 +351,13 @@ function applyDefaultAgent(options: YTDL_DownloadOptions) {
 
             if (oldCookieWarning) {
                 oldCookieWarning = false;
-                console.warn('\x1b[33mWARNING:\x1B[0m Using old cookie format, ' + 'please use the new one instead. (https://github.com/ybd-project/ytdl-core#cookies-support)');
+                Logger.warning('Using old cookie format, please use the new one instead. (https://github.com/ybd-project/ytdl-core#cookies-support)');
             }
         }
 
         if (options.requestOptions?.dispatcher && oldDispatcherWarning) {
             oldDispatcherWarning = false;
-            console.warn('\x1b[33mWARNING:\x1B[0m Your dispatcher is overridden by `ytdl.Agent`. ' + 'To implement your own, check out the documentation. ' + '(https://github.com/ybd-project/ytdl-core#how-to-implement-ytdlagent-with-your-own-dispatcher)');
+            Logger.warning('Your dispatcher is overridden by `ytdl.Agent`. To implement your own, check out the documentation. (https://github.com/ybd-project/ytdl-core#how-to-implement-ytdlagent-with-your-own-dispatcher)');
         }
 
         options.agent = AGENT.defaultAgent;
@@ -378,7 +378,7 @@ function applyOldLocalAddress(options: YTDL_DownloadOptions) {
 
     if (oldLocalAddressWarning) {
         oldLocalAddressWarning = false;
-        console.warn('\x1b[33mWARNING:\x1B[0m Using old localAddress option, ' + 'please add it to the agent options instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
+        Logger.warning('Using old localAddress option, please add it to the agent options instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
     }
 }
 
@@ -392,7 +392,7 @@ function applyIPv6Rotations(options: YTDL_DownloadOptions) {
         if (oldIpRotationsWarning) {
             oldIpRotationsWarning = false;
             oldLocalAddressWarning = false;
-            console.warn('\x1b[33mWARNING:\x1B[0m IPv6Block option is deprecated, ' + 'please create your own ip rotation instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
+            Logger.warning('IPv6Block option is deprecated, ' + 'please create your own ip rotation instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
         }
     }
 }

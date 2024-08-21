@@ -106,6 +106,15 @@ const INNERTUBE_CLIENTS = {
         },
         INNERTUBE_CONTEXT_CLIENT_NAME: 7,
     },
+    tv_embedded: {
+        INNERTUBE_CONTEXT: {
+            client: {
+                clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
+                clientVersion: '2.0',
+            },
+        },
+        INNERTUBE_CONTEXT_CLIENT_NAME: 85,
+    },
     mediaconnect: {
         INNERTUBE_CONTEXT: {
             client: {

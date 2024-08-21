@@ -232,4 +232,4 @@ ytdl.cache = cache;
 ytdl.version = version;
 module.exports = ytdl;
 exports.default = ytdl;
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=YtdlCore.js.map

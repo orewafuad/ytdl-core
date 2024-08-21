@@ -1,25 +1,26 @@
 {
     "name": "@ybd-project/ytdl-core",
-    "description": "YBD Project fork of ytdl-core. YouTube video downloader in pure javascript.",
-    "keywords": [
-        "youtube",
-        "video",
-        "download",
-        "ybd-project"
-    ],
-    "version": "5.0.7",
+    "version": "5.0.8",
+    "description": "YBD Project fork of ytdl-core.",
+    "author": "YBD Project",
     "repository": {
         "type": "git",
         "url": "git://github.com/ybd-project/ytdl-core.git"
     },
-    "author": "YBD Project",
-    "main": "./package/index.js",
-    "types": "./package/index.d.ts",
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com"
+    },
+    "engines": {
+        "node": ">=14.0"
+    },
+    "main": "./package/YtdlCore.js",
+    "types": "./package/YtdlCore.d.ts",
     "files": [
         "package"
     ],
     "scripts": {
-        "build": "rmdir /s /q package && tsc && tsc-alias"
+        "build": "rmdir /s /q package && tsc && tsc-alias",
+        "update": "ncu && ncu -u && npm i"
     },
     "dependencies": {
         "http-cookie-agent": "^6.0.5",
@@ -27,18 +28,23 @@
         "miniget": "^4.2.3",
         "sax": "^1.4.1",
         "tough-cookie": "^4.1.4",
-        "undici": "five"
+        "undici": "five",
+        "youtube-po-token-generator": "^0.2.0"
     },
     "devDependencies": {
-        "@distube/ytdl-core": "^4.14.4",
-        "@types/node": "^22.1.0",
+        "@types/node": "^22.4.2",
         "@types/sax": "^1.2.7",
-        "eslint": "^8.57.0",
+        "eslint": "^9.9.0",
+        "npm-check-updates": "^17.0.6",
         "tsc-alias": "^1.8.10",
         "typescript": "^5.5.4"
     },
-    "engines": {
-        "node": ">=14.0"
-    },
+    "keywords": [
+        "youtube",
+        "video",
+        "download",
+        "ybd-project",
+        "ytdl"
+    ],
     "license": "MIT"
 }
