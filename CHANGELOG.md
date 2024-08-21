@@ -5,11 +5,14 @@
 ### Bug Fixes
 * **Client:** Fixed a problem that prevented clients from being set up properly
 
+### Temporary Deletion
+* **Client:** The tv_embedded support for age restrictions has been temporarily removed for various reasons. (Automatic switching)
+
 ## v5.0.8 (2024/08/21)
 
 ### Features
 
-* **HTTPClient:** Support for tv_embedded player to make age-restricted videos available
+* **Client:** Support for tv_embedded player to make age-restricted videos available
 * **Player:** Change to use [youtube-po-token-generator](https://github.com/YunzheZJU/youtube-po-token-generator) to get poToken automatically when poToken is not specified. (For stable operation, generate manually.)
 * **Log:** Improved log output
 
@@ -17,7 +20,7 @@
 
 ### Features
 
-* **HTTPClient:** Support for a variety of clients (Can be specified by `clients` argument)
+* **Client:** Support for a variety of clients (Can be specified by `clients` argument)
 ```typescript
 ytdl.getInfo('VIDEO_URL', {
     clients: ['C1', 'C2'],
