@@ -4,7 +4,7 @@
 
 ### Features
 
-* **Log:** Changed to be able to check the status of the player API. (Specify `YTDL_LOG_DEBUG` in the environment variable)
+* **Log:** Changed to be able to check the status of the player API. (Specify `YTDL_DEBUG` in the environment variable)
 
 ### Bug Fixes
 * **Player:** Fixed an issue where player API URLs for Android and iOS players were not set correctly
