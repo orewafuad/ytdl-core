@@ -1,5 +1,14 @@
 # Changelog
 
+## v5.0.13 (2024/09/05)
+
+### Features
+
+* **Log:** Changed to be able to check the status of the player API. (Specify `YTDL_LOG_DEBUG` in the environment variable)
+
+### Bug Fixes
+* **Player:** Fixed an issue where player API URLs for Android and iOS players were not set correctly
+
 ## v5.0.9, v5.0.9-2, v5.0.10, v5.0.11, v5.0.12 (2024/08/21)
 
 ### Bug Fixes
