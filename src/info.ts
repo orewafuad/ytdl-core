@@ -353,7 +353,13 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
 
     PAYLOAD.context.client.visitorData = options.visitorData;
 
-    return await playerAPI(videoId, PAYLOAD, HEADERS, options);
+    let apiUrl = undefined;
+
+    if (['android', 'ios'].includes(playerType)) {
+        apiUrl = 'https://youtubei.googleapis.com/youtubei/v1/player';
+    }
+
+    return await playerAPI(videoId, PAYLOAD, HEADERS, options, apiUrl);
 }
 
 /* ----------- */
@@ -449,6 +455,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
     });
 
     if (PLAYER_API_RESPONSES.every((r) => r.status === 'rejected')) {
+        console.log(PLAYER_API_RESPONSES[0].reason);
         throw new Error(`All player APIs responded with an error. (Clients: ${options.clients.join(', ')})`);
     }
 
