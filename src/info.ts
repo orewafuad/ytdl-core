@@ -349,6 +349,7 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
             'X-YouTube-Client-Name': CLIENT.INNERTUBE_CONTEXT_CLIENT_NAME,
             'X-Youtube-Client-Version': CLIENT.INNERTUBE_CONTEXT.client.clientVersion,
             'User-Agent': USER_AGENT,
+            Authorization: 'Bearer ' + options.accessToken,
         };
 
     PAYLOAD.context.client.visitorData = options.visitorData;

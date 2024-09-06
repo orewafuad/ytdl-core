@@ -43,9 +43,9 @@ Object.defineProperty(exports, "validateID", { enumerable: true, get: function (
 Object.defineProperty(exports, "validateURL", { enumerable: true, get: function () { return url_utils_1.validateURL; } });
 Object.defineProperty(exports, "getURLVideoID", { enumerable: true, get: function () { return url_utils_1.getURLVideoID; } });
 Object.defineProperty(exports, "getVideoID", { enumerable: true, get: function () { return url_utils_1.getVideoID; } });
-const agent_1 = require("./agent");
-Object.defineProperty(exports, "createAgent", { enumerable: true, get: function () { return agent_1.createAgent; } });
-Object.defineProperty(exports, "createProxyAgent", { enumerable: true, get: function () { return agent_1.createProxyAgent; } });
+const Agent_1 = require("./core/Agent");
+Object.defineProperty(exports, "createAgent", { enumerable: true, get: function () { return Agent_1.createAgent; } });
+Object.defineProperty(exports, "createProxyAgent", { enumerable: true, get: function () { return Agent_1.createProxyAgent; } });
 const package_json_1 = __importDefault(require("../package.json"));
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
@@ -226,8 +226,8 @@ ytdl.validateID = url_utils_1.validateID;
 ytdl.validateURL = url_utils_1.validateURL;
 ytdl.getURLVideoID = url_utils_1.getURLVideoID;
 ytdl.getVideoID = url_utils_1.getVideoID;
-ytdl.createAgent = agent_1.createAgent;
-ytdl.createProxyAgent = agent_1.createProxyAgent;
+ytdl.createAgent = Agent_1.createAgent;
+ytdl.createProxyAgent = Agent_1.createProxyAgent;
 ytdl.cache = cache;
 ytdl.version = version;
 module.exports = ytdl;

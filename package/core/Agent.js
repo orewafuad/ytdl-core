@@ -117,4 +117,4 @@ function createProxyAgent(options, cookies = []) {
 const defaultAgent = createAgent();
 exports.defaultAgent = defaultAgent;
 exports.default = { defaultAgent, createAgent, createProxyAgent, addCookies, addCookiesFromString };
-//# sourceMappingURL=agent.js.map
+//# sourceMappingURL=Agent.js.map

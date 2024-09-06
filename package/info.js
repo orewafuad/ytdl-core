@@ -259,6 +259,7 @@ async function fetchSpecifiedPlayer(playerType, videoId, options, signatureTimes
         'X-YouTube-Client-Name': CLIENT.INNERTUBE_CONTEXT_CLIENT_NAME,
         'X-Youtube-Client-Version': CLIENT.INNERTUBE_CONTEXT.client.clientVersion,
         'User-Agent': USER_AGENT,
+        Authorization: 'Bearer ' + options.accessToken,
     };
     PAYLOAD.context.client.visitorData = options.visitorData;
     let apiUrl = undefined;
@@ -311,6 +312,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         formats: [],
         html5Player: null,
         clients: options.clients,
+        full: false,
     };
     if (!HTML5_PLAYER) {
         throw new Error('Unable to find html5player file');

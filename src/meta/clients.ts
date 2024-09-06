@@ -19,7 +19,7 @@ type YTDL_ClientData = {
     REQUIRE_JS_PLAYER?: boolean;
 };
 
-const INNERTUBE_CLIENTS: Record<YTDL_ClientTypes, YTDL_ClientData> = {
+const INNERTUBE_CLIENTS: Record<YTDL_ClientTypes, YTDL_ClientData> = Object.freeze({
     web: {
         INNERTUBE_CONTEXT: {
             client: {
@@ -143,6 +143,6 @@ const INNERTUBE_CLIENTS: Record<YTDL_ClientTypes, YTDL_ClientData> = {
         INNERTUBE_CONTEXT_CLIENT_NAME: 95,
         REQUIRE_JS_PLAYER: false,
     },
-};
+});
 
 export { INNERTUBE_CLIENTS, YTDL_ClientTypes };

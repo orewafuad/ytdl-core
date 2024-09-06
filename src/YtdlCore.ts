@@ -5,7 +5,7 @@ import { CACHE as INFO_CACHE, WATCH_PAGE_CACHE, getBasicInfo, getInfo } from './
 import utils from './utils';
 import { chooseFormat, filterFormats } from './format-utils';
 import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
-import { createAgent, createProxyAgent } from './agent';
+import { createAgent, createProxyAgent } from './core/Agent';
 import pkg from '../package.json';
 
 import { YTDL_DownloadOptions } from '@/types/options';

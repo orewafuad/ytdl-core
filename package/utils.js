@@ -27,7 +27,7 @@ const undici_1 = require("undici");
 const node_fs_1 = require("node:fs");
 const Constants_1 = require("./utils/Constants");
 const Log_1 = require("./utils/Log");
-const agent_1 = __importDefault(require("./agent"));
+const Agent_1 = __importDefault(require("./core/Agent"));
 const ESCAPING_SEQUENCE = [
     { start: '"', end: '"' },
     { start: "'", end: "'" },
@@ -279,10 +279,10 @@ let oldCookieWarning = true;
 let oldDispatcherWarning = true;
 function applyDefaultAgent(options) {
     if (!options.agent) {
-        const { jar } = agent_1.default.defaultAgent, COOKIE = getPropInsensitive(options?.requestOptions?.headers, 'cookie');
+        const { jar } = Agent_1.default.defaultAgent, COOKIE = getPropInsensitive(options?.requestOptions?.headers, 'cookie');
         if (COOKIE) {
             jar.removeAllCookiesSync();
-            agent_1.default.addCookiesFromString(jar, COOKIE);
+            Agent_1.default.addCookiesFromString(jar, COOKIE);
             if (oldCookieWarning) {
                 oldCookieWarning = false;
                 Log_1.Logger.warning('Using old cookie format, please use the new one instead. (https://github.com/ybd-project/ytdl-core#cookies-support)');
@@ -292,7 +292,7 @@ function applyDefaultAgent(options) {
             oldDispatcherWarning = false;
             Log_1.Logger.warning('Your dispatcher is overridden by `ytdl.Agent`. To implement your own, check out the documentation. (https://github.com/ybd-project/ytdl-core#how-to-implement-ytdlagent-with-your-own-dispatcher)');
         }
-        options.agent = agent_1.default.defaultAgent;
+        options.agent = Agent_1.default.defaultAgent;
     }
 }
 let oldLocalAddressWarning = true;
@@ -301,7 +301,7 @@ function applyOldLocalAddress(options) {
     if (!options.requestOptions || !REQUEST_OPTION_LOCAL_ADDRESS || REQUEST_OPTION_LOCAL_ADDRESS === options.agent?.localAddress) {
         return;
     }
-    options.agent = agent_1.default.createAgent(undefined, {
+    options.agent = Agent_1.default.createAgent(undefined, {
         localAddress: REQUEST_OPTION_LOCAL_ADDRESS,
     });
     if (oldLocalAddressWarning) {

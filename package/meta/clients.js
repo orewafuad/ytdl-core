@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.INNERTUBE_CLIENTS = void 0;
-const INNERTUBE_CLIENTS = {
+const INNERTUBE_CLIENTS = Object.freeze({
     web: {
         INNERTUBE_CONTEXT: {
             client: {
@@ -125,6 +125,6 @@ const INNERTUBE_CLIENTS = {
         INNERTUBE_CONTEXT_CLIENT_NAME: 95,
         REQUIRE_JS_PLAYER: false,
     },
-};
+});
 exports.INNERTUBE_CLIENTS = INNERTUBE_CLIENTS;
 //# sourceMappingURL=clients.js.map

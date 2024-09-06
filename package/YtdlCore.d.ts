@@ -2,7 +2,7 @@ import { PassThrough } from 'stream';
 import { getBasicInfo, getInfo } from './info';
 import { chooseFormat, filterFormats } from './format-utils';
 import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
-import { createAgent, createProxyAgent } from './agent';
+import { createAgent, createProxyAgent } from './core/Agent';
 import { YTDL_DownloadOptions } from './types/options';
 import { YTDL_VideoInfo } from './types/youtube';
 declare const cache: {

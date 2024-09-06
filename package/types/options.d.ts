@@ -27,6 +27,7 @@ export type YTDL_GetInfoOptions = {
      * @default ["web_creator", "ios", "android"]
      */
     clients?: Array<YTDL_ClientTypes>;
+    accessToken?: string;
 };
 export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFormatOptions {
     range?: {
