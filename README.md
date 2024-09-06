@@ -109,6 +109,16 @@ There are two recommended methods for generating OAuth2 tokens.
 > [!IMPORTANT]
 > If you generate it yourself, specify the client ID and secret in `clientData`. This is required to refresh the token.
 
+To generate tokens using Cobalt, execute the following command.
+```bash
+$ git clone https://github.com/imputnet/cobalt
+$ cd cobalt
+$ npm install
+$ npm run token:youtube
+```
+
+If you wish to generate your own, please refer to the example folder for an example. (Currently under construction.)
+
 ### PoToken Support
 
 `@ybd-project/ytdl-core` supports `poToken`.
