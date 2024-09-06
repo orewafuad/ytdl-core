@@ -9,9 +9,9 @@ for /f "tokens=*" %%j in ('powershell -command "Invoke-RestMethod https://api.gi
 
 :first
 
-echo [36m1[0m：Clone only LuanRT/YouTube.js from GitHub.
-echo [36m2[0m：Clone only yt-dlp/yt-dlp from GitHub.
-echo [36m3[0m：Clone both of the above from GitHub.
+echo [36m1[0m : Clone only LuanRT/YouTube.js from GitHub.
+echo [36m2[0m : Clone only yt-dlp/yt-dlp from GitHub.
+echo [36m3[0m : Clone both of the above from GitHub.
 echo Enter the number of the process you want to execute from the above three:
 set /p process=
 
@@ -27,7 +27,7 @@ if "%process%" == "3" (
     goto all
 )
 
-echo [33m【Warning】[0m Values that can be entered are "1", "2", or "3".
+echo [33m[Warning][0m Values that can be entered are "1", "2", or "3".
 echo.
 goto first
 
@@ -54,7 +54,7 @@ goto ytdlp-postprocess
 
 :end
 echo.
-echo [32m【Success】[0m Cloning process completed successfully.
+echo [32m[Success][0m Cloning process completed successfully.
 
 pause
 exit
@@ -77,7 +77,7 @@ goto end
 for /d %%D in (YouTube.js*) do (
     if exist %%D (
         rmdir /s /q %%D
-        echo [32m【Success】[0m (YouTube.js) Existing folder successfully deleted.
+        echo [32m[Success][0m ^(YouTube.js^) Existing folder successfully deleted.
     )
 )
 
@@ -85,6 +85,6 @@ for /d %%D in (YouTube.js*) do (
 for /d %%D in (yt-dlp*) do (
     if exist %%D (
         rmdir /s /q %%D
-        echo [32m【Success】[0m (yt-dlp) Existing folder successfully deleted.
+        echo [32m[Success][0m ^(yt-dlp^) Existing folder successfully deleted.
     )
 )
