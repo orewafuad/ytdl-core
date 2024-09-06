@@ -64,9 +64,6 @@ Currently, the use of cookies is deprecated due to the “Sign in to confirm you
 
 These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
 
-> [!NOTE]
-> The following methods will be deprecated and eventually removed in the next version (v5.1.x)
-
 ```js
 const ytdl = require('@ybd-project/ytdl-core');
 
