@@ -287,7 +287,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     if (options.oauth2 && options.oauth2.shouldRefreshToken()) {
         await options.oauth2.refreshAccessToken();
     }
-    if (!options.poToken) {
+    if (!options.poToken && !options.oauth2) {
         Log_1.Logger.warning('Specify poToken for stable and fast operation. See README for details.');
         Log_1.Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.');
         try {
