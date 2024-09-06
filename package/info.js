@@ -259,12 +259,14 @@ async function fetchSpecifiedPlayer(playerType, videoId, options, signatureTimes
         'X-YouTube-Client-Name': CLIENT.INNERTUBE_CONTEXT_CLIENT_NAME,
         'X-Youtube-Client-Version': CLIENT.INNERTUBE_CONTEXT.client.clientVersion,
         'User-Agent': USER_AGENT,
-        Authorization: 'Bearer ' + options.accessToken,
     };
     PAYLOAD.context.client.visitorData = options.visitorData;
     let apiUrl = undefined;
     if (['android', 'ios'].includes(playerType)) {
         apiUrl = 'https://youtubei.googleapis.com/youtubei/v1/player';
+    }
+    if (playerType !== 'web_creator' && options.oauth2) {
+        HEADERS.Authorization = 'Bearer ' + options.oauth2.getAccessToken();
     }
     return await playerAPI(videoId, PAYLOAD, HEADERS, options, apiUrl);
 }
@@ -282,6 +284,9 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     const { jar, dispatcher } = options.agent || {};
     utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
+    if (options.oauth2 && options.oauth2.shouldRefreshToken()) {
+        await options.oauth2.refreshAccessToken();
+    }
     if (!options.poToken) {
         Log_1.Logger.warning('Specify poToken for stable and fast operation. See README for details.');
         Log_1.Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.');

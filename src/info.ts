@@ -12,6 +12,7 @@ import { Logger } from './utils/Log';
 
 import { YTDL_GetInfoOptions, YTDL_RequestOptions } from '@/types/options';
 import { YT_StreamingFormat, YT_YTInitialPlayerResponse, YTDL_MoreVideoDetailsAdditions, YTDL_VideoInfo, YTDL_WatchPageInfo } from '@/types/youtube';
+import { OAuth2 } from './core/OAuth2';
 
 /* Private Constants */
 const BASE_URL = 'https://www.youtube.com/watch?v=',
@@ -359,8 +360,8 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
         apiUrl = 'https://youtubei.googleapis.com/youtubei/v1/player';
     }
 
-    if (playerType !== 'web_creator' && options.accessToken) {
-        HEADERS.Authorization = 'Bearer ' + options.accessToken;
+    if (playerType !== 'web_creator' && options.oauth2) {
+        HEADERS.Authorization = 'Bearer ' + options.oauth2.getAccessToken();
     }
 
     return await playerAPI(videoId, PAYLOAD, HEADERS, options, apiUrl);
@@ -392,6 +393,10 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
 
     utils.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
+
+    if (options.oauth2 && options.oauth2.shouldRefreshToken()) {
+        await options.oauth2.refreshAccessToken();
+    }
 
     if (!options.poToken) {
         Logger.warning('Specify poToken for stable and fast operation. See README for details.');

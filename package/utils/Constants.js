@@ -6,4 +6,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VERSION = void 0;
 const package_json_1 = __importDefault(require("../../package.json"));
 exports.VERSION = package_json_1.default.version;
-//# sourceMappingURL=Constants.js.map
+//# sourceMappingURL=constants.js.map

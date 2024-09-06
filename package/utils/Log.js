@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Logger = void 0;
-const Constants_1 = require("./Constants");
+const constants_1 = require("./constants");
 class Logger {
     static debug(...messages) {
-        if (Constants_1.VERSION.includes('dev') || Constants_1.VERSION.includes('beta') || Constants_1.VERSION.includes('test') || process.env.YTDL_DEBUG) {
+        if (constants_1.VERSION.includes('dev') || constants_1.VERSION.includes('beta') || constants_1.VERSION.includes('test') || process.env.YTDL_DEBUG) {
             console.log('\x1b[35m[  DEBUG  ]:\x1B[0m', ...messages);
         }
     }

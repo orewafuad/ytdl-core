@@ -3,6 +3,7 @@ import { Dispatcher, request } from 'undici';
 import { YTDL_ClientTypes } from '@/meta/clients';
 import { YTDL_Agent } from './agent';
 import { YTDL_VideoFormat } from './youtube';
+import type { OAuth2 } from '@/core/OAuth2';
 
 export type YTDL_Filter = 'audioandvideo' | 'videoandaudio' | 'video' | 'videoonly' | 'audio' | 'audioonly' | ((format: YTDL_VideoFormat) => boolean);
 
@@ -11,6 +12,18 @@ export type YTDL_ChooseFormatOptions = {
     filter?: YTDL_Filter;
     format?: YTDL_VideoFormat;
 };
+
+export interface YTDL_OAuth2ClientData {
+    clientId: string;
+    clientSecret: string;
+}
+
+export type YTDL_OAuth2Credentials = {
+    accessToken: string;
+    refreshToken: string;
+    expiryDate: string;
+    clientData?: YTDL_OAuth2ClientData;
+}
 
 export type YTDL_GetInfoOptions = {
     lang?: string;
@@ -32,12 +45,15 @@ export type YTDL_GetInfoOptions = {
      */
     includesWatchPageInfo?: boolean;
 
-    /** You can specify the client from which you want to retrieve video information. (Changing it is not recommended.)
+    /** You can specify the client from which you want to retrieve video information.
      * @default ["web_creator", "ios", "android"]
      */
     clients?: Array<YTDL_ClientTypes>;
 
-    accessToken?: string;
+    /** You can specify OAuth2 tokens to avoid age restrictions and bot errors.
+     * @default null
+     */
+    oauth2?: OAuth2 | null;
 };
 
 export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFormatOptions {

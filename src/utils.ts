@@ -3,7 +3,7 @@ import { writeFileSync } from 'node:fs';
 
 import { YT_YTInitialPlayerResponse } from '@/types/youtube';
 import { YTDL_DownloadOptions, YTDL_RequestOptions } from '@/types/options';
-import { VERSION } from './utils/Constants';
+import { VERSION } from './utils/constants';
 import { Logger } from './utils/Log';
 import AGENT from './core/Agent';
 

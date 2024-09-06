@@ -25,7 +25,7 @@ exports.applyDefaultHeaders = applyDefaultHeaders;
 exports.generateClientPlaybackNonce = generateClientPlaybackNonce;
 const undici_1 = require("undici");
 const node_fs_1 = require("node:fs");
-const Constants_1 = require("./utils/Constants");
+const constants_1 = require("./utils/constants");
 const Log_1 = require("./utils/Log");
 const Agent_1 = __importDefault(require("./core/Agent"));
 const ESCAPING_SEQUENCE = [
@@ -216,7 +216,7 @@ function checkForUpdates() {
             requestOptions: { headers: { 'User-Agent': 'Chromium";v="112", "Microsoft Edge";v="112", "Not:A-Brand";v="99' } },
         }).then((response) => {
             const BUFFER = Buffer.from(response.content, response.encoding), PKG_FILE = JSON.parse(BUFFER.toString('ascii'));
-            if (PKG_FILE.version !== Constants_1.VERSION && updateWarnTimes++ < 5) {
+            if (PKG_FILE.version !== constants_1.VERSION && updateWarnTimes++ < 5) {
                 Log_1.Logger.warning('@ybd-project/ytdl-core is out of date! Update with "npm install @ybd-project/ytdl-core@latest".');
             }
         }, (err) => {

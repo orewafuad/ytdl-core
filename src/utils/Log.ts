@@ -1,4 +1,4 @@
-import { VERSION } from './Constants';
+import { VERSION } from './constants';
 
 export class Logger {
     public static debug(...messages: Array<any>) {

@@ -61,6 +61,54 @@ ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ').then((info) => {
 
 Currently, the use of cookies is deprecated due to the “Sign in to confirm you're not a bot” error. Please use `poToken` instead.
 
+### OAuth2 Support
+
+`@ybd-project/ytdl-core` supports OAuth2 Token.
+
+These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
+
+> [!NOTE]
+> The following methods will be deprecated and eventually removed in the next version (v5.1.x)
+
+```js
+const ytdl = require('@ybd-project/ytdl-core');
+
+/* Normal usage */
+ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", {
+    oauth2: new ytdl.OAuth2({
+        accessToken: "...",
+        refreshToken: "...",
+        expiryDate: "yyyy-MM-ddThh-mm-ssZ",
+    }),
+});
+
+/* If you need to specify a client ID and secret */
+ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", {
+    oauth2: new ytdl.OAuth2({
+        accessToken: "...",
+        refreshToken: "...",
+        expiryDate: "yyyy-MM-ddThh-mm-ssZ",
+        clientData: {
+            clientId: '...',
+            clientSecret: '...',
+        }
+    }),
+});
+```
+
+#### Oauth2 Access Token generation
+
+There are two recommended methods for generating OAuth2 tokens.
+
+1. Generate using [imputnet/cobalt](https://github.com/imputnet/cobalt)
+2. Generate using your own client ID and secret
+
+> [!TIP]
+> The method of production with cobalt is very stable and is recommended. Tokens generated using cobalt can be used in the normal way.
+
+> [!IMPORTANT]
+> If you generate it yourself, specify the client ID and secret in `clientData`. This is required to refresh the token.
+
 ### PoToken Support
 
 `@ybd-project/ytdl-core` supports `poToken`.

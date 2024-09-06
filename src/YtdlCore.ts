@@ -6,6 +6,7 @@ import utils from './utils';
 import { chooseFormat, filterFormats } from './format-utils';
 import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
 import { createAgent, createProxyAgent } from './core/Agent';
+import { OAuth2 } from './core/OAuth2';
 import pkg from '../package.json';
 
 import { YTDL_DownloadOptions } from '@/types/options';
@@ -223,9 +224,10 @@ ytdl.getURLVideoID = getURLVideoID;
 ytdl.getVideoID = getVideoID;
 ytdl.createAgent = createAgent;
 ytdl.createProxyAgent = createProxyAgent;
+ytdl.OAuth2 = OAuth2;
 ytdl.cache = cache;
 ytdl.version = version;
 
 module.exports = ytdl;
-export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, validateID, validateURL, getURLVideoID, getVideoID, createAgent, createProxyAgent, cache, version };
+export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, validateID, validateURL, getURLVideoID, getVideoID, createAgent, createProxyAgent, OAuth2, cache, version };
 export default ytdl;

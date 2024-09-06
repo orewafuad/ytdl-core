@@ -3,6 +3,7 @@ import { getBasicInfo, getInfo } from './info';
 import { chooseFormat, filterFormats } from './format-utils';
 import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
 import { createAgent, createProxyAgent } from './core/Agent';
+import { OAuth2 } from './core/OAuth2';
 import { YTDL_DownloadOptions } from './types/options';
 import { YTDL_VideoInfo } from './types/youtube';
 declare const cache: {
@@ -22,6 +23,7 @@ declare const ytdl: {
     getVideoID: typeof getVideoID;
     createAgent: typeof createAgent;
     createProxyAgent: typeof createProxyAgent;
+    OAuth2: typeof OAuth2;
     cache: {
         info: import("./cache").Cache;
         watch: import("./cache").Cache;
@@ -32,5 +34,5 @@ declare const ytdl: {
  * `ytdl.getInfo()`. In case the user might want to look at the
  * `info` object before deciding to download. */
 declare function downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;
-export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, validateID, validateURL, getURLVideoID, getVideoID, createAgent, createProxyAgent, cache, version };
+export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, validateID, validateURL, getURLVideoID, getVideoID, createAgent, createProxyAgent, OAuth2, cache, version };
 export default ytdl;
