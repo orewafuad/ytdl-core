@@ -1,5 +1,5 @@
 node_modules
-reference
+reference/!download.bat
 test
 .TODO
 ._npmrc

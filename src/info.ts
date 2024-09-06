@@ -433,6 +433,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             formats: [],
             html5Player: null,
             clients: options.clients,
+            full: false,
         } as any;
 
     if (!HTML5_PLAYER) {
