@@ -344,12 +344,11 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
             },
         },
         USER_AGENT = CLIENT.INNERTUBE_CONTEXT.client.userAgent || `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36`,
-        HEADERS = {
+        HEADERS: Record<string, any> = {
             'X-Goog-Api-Format-Version': '2',
             'X-YouTube-Client-Name': CLIENT.INNERTUBE_CONTEXT_CLIENT_NAME,
             'X-Youtube-Client-Version': CLIENT.INNERTUBE_CONTEXT.client.clientVersion,
             'User-Agent': USER_AGENT,
-            Authorization: 'Bearer ' + options.accessToken,
         };
 
     PAYLOAD.context.client.visitorData = options.visitorData;
@@ -358,6 +357,10 @@ async function fetchSpecifiedPlayer(playerType: YTDL_ClientTypes, videoId: strin
 
     if (['android', 'ios'].includes(playerType)) {
         apiUrl = 'https://youtubei.googleapis.com/youtubei/v1/player';
+    }
+
+    if (playerType !== 'web_creator' && options.accessToken) {
+        HEADERS.Authorization = 'Bearer ' + options.accessToken;
     }
 
     return await playerAPI(videoId, PAYLOAD, HEADERS, options, apiUrl);
