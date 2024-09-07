@@ -101,6 +101,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         }
         else {
             const REASON = PLAYER_API_RESPONSES[i].reason;
+            console.log(REASON.error);
             Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error.toString()}`);
             PLAYER_RESPONSES[client] = REASON.contents;
             if (client === 'ios') {

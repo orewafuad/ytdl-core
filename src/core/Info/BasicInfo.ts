@@ -149,6 +149,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             Logger.debug(`[ ${client} ]: Success`);
         } else {
             const REASON = PLAYER_API_RESPONSES[i].reason;
+            console.log(REASON.error)
             Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error.toString()}`);
             PLAYER_RESPONSES[client] = REASON.contents;
 
