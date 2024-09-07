@@ -152,6 +152,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
 async function getBasicInfo(link, options = {}) {
     utils_1.default.checkForUpdates();
     const ID = Url_1.default.getVideoID(link), CACHE_KEY = ['getBasicInfo', ID, options.lang].join('-');
+    console.log(BASIC_INFO_CACHE.get(CACHE_KEY));
     return BASIC_INFO_CACHE.getOrSet(CACHE_KEY, () => _getBasicInfo(ID, options));
 }
 exports.default = getBasicInfo;

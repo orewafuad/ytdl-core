@@ -1,3 +1,5 @@
+import { YTDL_GetInfoOptions } from '@/types/options';
+import { YT_YTInitialPlayerResponse, YTDL_VideoInfo } from '@/types/youtube';
 import utils from '@/utils';
 import formatUtils from '@/format-utils';
 import Url from '@/utils/Url';
@@ -6,9 +8,6 @@ import sig from '@/sig';
 import { Logger } from '@/utils/Log';
 import { _getBasicInfo } from './BasicInfo';
 import Formats from './parser/Formats';
-
-import { YTDL_GetInfoOptions } from '@/types/options';
-import { YT_YTInitialPlayerResponse, YTDL_VideoInfo } from '@/types/youtube';
 
 const CACHE = new Cache();
 
