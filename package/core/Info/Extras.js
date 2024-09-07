@@ -7,9 +7,6 @@ const querystring_1 = __importDefault(require("querystring"));
 const m3u8stream_1 = require("m3u8stream");
 const utils_1 = __importDefault(require("../../utils"));
 const Url_1 = __importDefault(require("../../utils/Url"));
-const TITLE_TO_CATEGORY = {
-    song: { name: 'Music', url: 'https://music.youtube.com/' },
-};
 function getText(obj) {
     if (obj && obj.runs) {
         return obj.runs[0].text;
@@ -71,66 +68,38 @@ class InfoExtras {
             category: '',
             category_url: '',
             thumbnails: [],
-        }, results = [];
+        }, microformat = null;
         try {
-            results = info.response.contents.twoColumnWatchNextResults.results.results.contents;
+            microformat = info.microformat.playerMicroformatRenderer || null;
         }
         catch (err) { }
-        let videoSecondaryInfoRenderer = results.find((v) => v.videoSecondaryInfoRenderer);
-        if (!videoSecondaryInfoRenderer) {
+        if (!microformat) {
             return null;
         }
         try {
-            const METADATA_ROWS = (videoSecondaryInfoRenderer.metadataRowContainer || videoSecondaryInfoRenderer.videoSecondaryInfoRenderer.metadataRowContainer).metadataRowContainerRenderer.rows;
-            for (const ROW of METADATA_ROWS) {
-                const ROW_RENDERER = ROW.metadataRowRenderer, RICH_ROW_RENDERER = ROW.richMetadataRowRenderer;
-                if (ROW_RENDERER) {
-                    const TITLE = getText(ROW.metadataRowRenderer.title).toLowerCase(), CONTENTS = ROW_RENDERER.contents[0];
-                    media[TITLE] = getText(CONTENTS);
-                    const RUNS = CONTENTS.runs;
-                    if (RUNS && RUNS[0].navigationEndpoint) {
-                        media[`${TITLE}_url`] = new URL(RUNS[0].navigationEndpoint.commandMetadata.webCommandMetadata.url, Url_1.default.getBaseUrl()).toString();
-                    }
-                    if (TITLE in TITLE_TO_CATEGORY) {
-                        media.category = TITLE_TO_CATEGORY[TITLE].name;
-                        media.category_url = TITLE_TO_CATEGORY[TITLE].url;
-                    }
-                }
-                else if (RICH_ROW_RENDERER) {
-                    const CONTENTS = RICH_ROW_RENDERER.contents, BOX_ART = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_BOX_ART');
-                    for (const { richMetadataRenderer } of BOX_ART) {
-                        const META = richMetadataRenderer;
-                        media.year = getText(META.subtitle);
-                        const TYPE = getText(META.callToAction).split(' ')[1];
-                        media[TYPE] = getText(META.title);
-                        media[`${TYPE}_url`] = new URL(META.endpoint.commandMetadata.webCommandMetadata.url, Url_1.default.getBaseUrl()).toString();
-                        media.thumbnails = META.thumbnail.thumbnails;
-                    }
-                    const TOPIC = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_TOPIC');
-                    for (const { richMetadataRenderer } of TOPIC) {
-                        const META = richMetadataRenderer;
-                        media.category = getText(META.title);
-                        media.category_url = new URL(META.endpoint.commandMetadata.webCommandMetadata.url, Url_1.default.getBaseUrl()).toString();
-                    }
-                }
-            }
+            media.category = microformat.category;
+            media.thumbnails = microformat.thumbnail.thumbnails || [];
         }
         catch (err) { }
         return media;
     }
     static getAuthor(info) {
-        let channelName = null, channelId = null, user = null, thumbnails = [], subscriberCount = null, verified = false;
+        let channelName = null, channelId = null, user = null, thumbnails = [], subscriberCount = null, verified = false, microformat = null, endscreen = null;
         try {
-            const TWO_COLUMN_WATCH_NEXT_RESULTS = info.response.contents.twoColumnWatchNextResults.results.results.contents, SECONDARY_INFO_RENDERER = TWO_COLUMN_WATCH_NEXT_RESULTS.find((v) => v.videoSecondaryInfoRenderer && v.videoSecondaryInfoRenderer.owner && v.videoSecondaryInfoRenderer.owner.videoOwnerRenderer), VIDEO_OWNER_RENDERER = SECONDARY_INFO_RENDERER.videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
-            channelName = VIDEO_OWNER_RENDERER.title.runs[0].text || null;
-            channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId;
-            user = (VIDEO_OWNER_RENDERER?.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl || VIDEO_OWNER_RENDERER.navigationEndpoint.commandMetadata.webCommandMetadata.url).replace('/', '');
-            thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails.map((thumbnail) => {
-                thumbnail.url = new URL(thumbnail.url, Url_1.default.getBaseUrl()).toString();
-                return thumbnail;
-            });
-            subscriberCount = utils_1.default.parseAbbreviatedNumber(getText(VIDEO_OWNER_RENDERER.subscriberCountText));
-            verified = isVerified(VIDEO_OWNER_RENDERER.badges);
+            microformat = info.microformat.playerMicroformatRenderer || null;
+            endscreen = info.endscreen.endscreenRenderer.elements.find((e) => e.endscreenElementRenderer.style === 'CHANNEL')?.endscreenElementRenderer;
+        }
+        catch (err) { }
+        if (!microformat) {
+            return null;
+        }
+        try {
+            channelName = microformat.ownerChannelName || null;
+            channelId = microformat.externalChannelId;
+            user = '@' + (microformat.ownerProfileUrl || '').split('@')[1];
+            thumbnails = endscreen.image.thumbnails || [];
+            subscriberCount = null;
+            verified = false;
         }
         catch (err) { }
         try {

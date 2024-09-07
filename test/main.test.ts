@@ -5,7 +5,7 @@ import { NORMAL_ACCESS_TOKEN, CLIENT_DATA_REQUIRED_ACCESS_TOKEN, PUBLISHERS_ACCE
 jest.useRealTimers();
 jest.setTimeout(30000);
 
-const ALL_CLIENTS: any = ['web', 'mweb', 'web_creator', 'android', 'ios', 'tv', 'tv_embedded'];
+const CLIENTS: any = ['web', 'mweb', 'web_creator', 'android', 'ios', 'tv', 'tv_embedded'];
 
 describe('【@ybd-project/ytdl-core】機能テスト', () => {
     describe('GetInfo 関数テスト', () => {
@@ -18,7 +18,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
             });
@@ -29,7 +29,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(NORMAL_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -41,7 +41,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(CLIENT_DATA_REQUIRED_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -57,7 +57,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
             });
@@ -68,7 +68,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(NORMAL_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -80,7 +80,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(CLIENT_DATA_REQUIRED_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -92,7 +92,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(PUBLISHERS_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -108,7 +108,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
             });
@@ -123,7 +123,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
             });
@@ -134,7 +134,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(NORMAL_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -146,7 +146,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(CLIENT_DATA_REQUIRED_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -162,7 +162,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
             });
@@ -173,7 +173,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(NORMAL_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -185,7 +185,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(CLIENT_DATA_REQUIRED_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -201,7 +201,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
             });
@@ -212,7 +212,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(NORMAL_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -224,7 +224,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                     oauth2: new ytdl.OAuth2(CLIENT_DATA_REQUIRED_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
@@ -240,9 +240,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                 });
-                expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
+                expect(RESULTS).toThrow('All player APIs responded with an error. (Clients: web_creator, tv_embedded, ios, android, web, mweb, tv)\nFor more information, specify YTDL_DEBUG as an environment variable.\nNote: This error cannot continue processing. (Details: "This video is unavailable")');
             });
         });
 
@@ -255,9 +255,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
-                    clients: ALL_CLIENTS,
+                    clients: CLIENTS,
                 });
-                expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
+                expect(RESULTS).toThrow('TypeError: Video id (invalid) does not match expected format (/^[a-zA-Z0-9-_]{11}$/)');
             });
         });
     });

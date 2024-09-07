@@ -47,7 +47,13 @@ async function getSignatureTimestamp(html5player: string, options: YTDL_GetInfoO
 
 /** Gets info from a video without getting additional formats. */
 type YTDL_PlayerResponses = {
-    [key in YTDL_ClientTypes]?: YT_YTInitialPlayerResponse | null;
+    web_creator: YT_YTInitialPlayerResponse;
+    tv_embedded: YT_YTInitialPlayerResponse;
+    ios: YT_YTInitialPlayerResponse;
+    android: YT_YTInitialPlayerResponse;
+    web?: YT_YTInitialPlayerResponse;
+    mweb?: YT_YTInitialPlayerResponse;
+    tv?: YT_YTInitialPlayerResponse;
 };
 async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGetInfo?: boolean): Promise<YTDL_VideoInfo> {
     utils.applyIPv6Rotations(options);
@@ -115,7 +121,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         PLAYER_FETCH_PROMISE = Promise.allSettled(Object.values(PLAYER_API_PROMISE)),
         WATCH_PAGE_INFO = await WATCH_PAGE_INFO_PROMISE,
         PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE,
-        PLAYER_RESPONSES: YTDL_PlayerResponses = {},
+        PLAYER_RESPONSES: YTDL_PlayerResponses = {} as any,
         PLAYER_RESPONSE_ARRAY: Array<YT_YTInitialPlayerResponse> = [],
         VIDEO_INFO: YTDL_VideoInfo = {
             _watchPageInfo: WATCH_PAGE_INFO,
@@ -144,6 +150,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         } else {
             const REASON = PLAYER_API_RESPONSES[i].reason;
             Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error}`);
+            PLAYER_RESPONSES[client] = REASON.contents;
 
             if (client === 'ios') {
                 errorDetails = REASON;
@@ -178,11 +185,11 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p.microformat)[0]?.microformat || null;
 
         const STORYBOARDS = InfoExtras.getStoryboards(INCLUDE_STORYBOARDS),
-            MEDIA = InfoExtras.getMedia(WATCH_PAGE_INFO),
+            MEDIA = InfoExtras.getMedia(PLAYER_RESPONSES.web_creator) || InfoExtras.getMedia(PLAYER_RESPONSES.tv_embedded) || InfoExtras.getMedia(PLAYER_RESPONSES.ios) || InfoExtras.getMedia(PLAYER_RESPONSES.android),
             AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))),
             ADDITIONAL_DATA: YTDL_MoreVideoDetailsAdditions = {
                 video_url: Url.getWatchPageUrl(id),
-                author: InfoExtras.getAuthor(WATCH_PAGE_INFO),
+                author: InfoExtras.getAuthor(PLAYER_RESPONSES.web_creator) || InfoExtras.getAuthor(PLAYER_RESPONSES.tv_embedded) || InfoExtras.getAuthor(PLAYER_RESPONSES.ios) || InfoExtras.getAuthor(PLAYER_RESPONSES.android),
                 media: MEDIA,
                 likes: InfoExtras.getLikes(WATCH_PAGE_INFO),
                 age_restricted: AGE_RESTRICTED,

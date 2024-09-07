@@ -102,6 +102,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         else {
             const REASON = PLAYER_API_RESPONSES[i].reason;
             Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error}`);
+            PLAYER_RESPONSES[client] = REASON.contents;
             if (client === 'ios') {
                 errorDetails = REASON;
             }
@@ -124,9 +125,9 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     if (!IS_MINIMUM_MODE) {
         /* Filtered */
         const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_ARRAY.filter((p) => p.storyboards)[0], VIDEO_DETAILS = PLAYER_RESPONSE_ARRAY.filter((p) => p.videoDetails)[0]?.videoDetails || {}, MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p.microformat)[0]?.microformat || null;
-        const STORYBOARDS = Extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = Extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
+        const STORYBOARDS = Extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = Extras_1.default.getMedia(PLAYER_RESPONSES.web_creator) || Extras_1.default.getMedia(PLAYER_RESPONSES.tv_embedded) || Extras_1.default.getMedia(PLAYER_RESPONSES.ios) || Extras_1.default.getMedia(PLAYER_RESPONSES.android), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
             video_url: Url_1.default.getWatchPageUrl(id),
-            author: Extras_1.default.getAuthor(WATCH_PAGE_INFO),
+            author: Extras_1.default.getAuthor(PLAYER_RESPONSES.web_creator) || Extras_1.default.getAuthor(PLAYER_RESPONSES.tv_embedded) || Extras_1.default.getAuthor(PLAYER_RESPONSES.ios) || Extras_1.default.getAuthor(PLAYER_RESPONSES.android),
             media: MEDIA,
             likes: Extras_1.default.getLikes(WATCH_PAGE_INFO),
             age_restricted: AGE_RESTRICTED,

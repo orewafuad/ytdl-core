@@ -1,13 +1,9 @@
 import querystring from 'querystring';
 import { parseTimestamp } from 'm3u8stream';
 
+import { YTDL_Media, YTDL_Author, YTDL_WatchPageInfo, YTDL_RelatedVideo, YT_CompactVideoRenderer, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_MoreVideoDetails, YT_YTInitialPlayerResponse, YTDL_MicroformatRenderer } from '@/types/youtube';
 import utils from '@/utils';
 import Url from '@/utils/Url';
-import { YTDL_Media, YTDL_Author, YTDL_WatchPageInfo, YTDL_Thumbnail, YTDL_RelatedVideo, YT_CompactVideoRenderer, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_MoreVideoDetails, YT_YTInitialPlayerResponse } from '@/types/youtube';
-
-const TITLE_TO_CATEGORY: Record<string, { name: string; url: string }> = {
-    song: { name: 'Music', url: 'https://music.youtube.com/' },
-};
 
 function getText(obj: any) {
     if (obj && obj.runs) {
@@ -78,94 +74,56 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, rvsParams: Array<qu
 }
 
 export default class InfoExtras {
-    static getMedia(info: YTDL_WatchPageInfo): YTDL_Media | null {
+    static getMedia(info: YT_YTInitialPlayerResponse): YTDL_Media | null {
         let media: YTDL_Media = {
                 category: '',
                 category_url: '',
                 thumbnails: [],
             },
-            results = [];
+            microformat: YTDL_MicroformatRenderer | null = null;
 
         try {
-            results = info.response.contents.twoColumnWatchNextResults.results.results.contents;
+            microformat = info.microformat.playerMicroformatRenderer || null;
         } catch (err) {}
 
-        let videoSecondaryInfoRenderer = results.find((v) => v.videoSecondaryInfoRenderer);
-        if (!videoSecondaryInfoRenderer) {
+        if (!microformat) {
             return null;
         }
 
         try {
-            const METADATA_ROWS = (videoSecondaryInfoRenderer.metadataRowContainer || videoSecondaryInfoRenderer.videoSecondaryInfoRenderer.metadataRowContainer).metadataRowContainerRenderer.rows;
-
-            for (const ROW of METADATA_ROWS) {
-                const ROW_RENDERER = ROW.metadataRowRenderer,
-                    RICH_ROW_RENDERER = ROW.richMetadataRowRenderer;
-
-                if (ROW_RENDERER) {
-                    const TITLE = getText(ROW.metadataRowRenderer.title).toLowerCase(),
-                        CONTENTS = ROW_RENDERER.contents[0];
-
-                    media[TITLE] = getText(CONTENTS);
-
-                    const RUNS = CONTENTS.runs;
-                    if (RUNS && RUNS[0].navigationEndpoint) {
-                        media[`${TITLE}_url`] = new URL(RUNS[0].navigationEndpoint.commandMetadata.webCommandMetadata.url, Url.getBaseUrl()).toString();
-                    }
-
-                    if (TITLE in TITLE_TO_CATEGORY) {
-                        media.category = TITLE_TO_CATEGORY[TITLE].name;
-                        media.category_url = TITLE_TO_CATEGORY[TITLE].url;
-                    }
-                } else if (RICH_ROW_RENDERER) {
-                    const CONTENTS = RICH_ROW_RENDERER.contents as Array<any>,
-                        BOX_ART = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_BOX_ART');
-
-                    for (const { richMetadataRenderer } of BOX_ART) {
-                        const META = richMetadataRenderer;
-                        media.year = getText(META.subtitle);
-
-                        const TYPE = getText(META.callToAction).split(' ')[1];
-                        media[TYPE] = getText(META.title);
-                        media[`${TYPE}_url`] = new URL(META.endpoint.commandMetadata.webCommandMetadata.url, Url.getBaseUrl()).toString();
-                        media.thumbnails = META.thumbnail.thumbnails;
-                    }
-
-                    const TOPIC = CONTENTS.filter((meta) => meta.richMetadataRenderer.style === 'RICH_METADATA_RENDERER_STYLE_TOPIC');
-                    for (const { richMetadataRenderer } of TOPIC) {
-                        const META = richMetadataRenderer;
-                        media.category = getText(META.title);
-                        media.category_url = new URL(META.endpoint.commandMetadata.webCommandMetadata.url, Url.getBaseUrl()).toString();
-                    }
-                }
-            }
+            media.category = microformat.category;
+            media.thumbnails = microformat.thumbnail.thumbnails || [];
         } catch (err) {}
 
         return media;
     }
 
-    static getAuthor(info: YTDL_WatchPageInfo): YTDL_Author | null {
+    static getAuthor(info: YT_YTInitialPlayerResponse): YTDL_Author | null {
         let channelName: string | null = null,
             channelId: string | null = null,
             user: string | null = null,
             thumbnails: YTDL_Author['thumbnails'] = [],
             subscriberCount: number | null = null,
-            verified = false;
+            verified = false,
+            microformat: YTDL_MicroformatRenderer | null = null,
+            endscreen: any | null = null;
 
         try {
-            const TWO_COLUMN_WATCH_NEXT_RESULTS = info.response.contents.twoColumnWatchNextResults.results.results.contents,
-                SECONDARY_INFO_RENDERER = TWO_COLUMN_WATCH_NEXT_RESULTS.find((v) => v.videoSecondaryInfoRenderer && v.videoSecondaryInfoRenderer.owner && v.videoSecondaryInfoRenderer.owner.videoOwnerRenderer),
-                VIDEO_OWNER_RENDERER = SECONDARY_INFO_RENDERER.videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
+            microformat = info.microformat.playerMicroformatRenderer || null;
+            endscreen = info.endscreen.endscreenRenderer.elements.find((e) => e.endscreenElementRenderer.style === 'CHANNEL')?.endscreenElementRenderer;
+        } catch (err) {}
 
-            channelName = VIDEO_OWNER_RENDERER.title.runs[0].text || null;
-            channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId;
-            user = (VIDEO_OWNER_RENDERER?.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl || VIDEO_OWNER_RENDERER.navigationEndpoint.commandMetadata.webCommandMetadata.url).replace('/', '');
-            thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails.map((thumbnail: YTDL_Thumbnail) => {
-                thumbnail.url = new URL(thumbnail.url, Url.getBaseUrl()).toString();
-                return thumbnail;
-            });
-            subscriberCount = utils.parseAbbreviatedNumber(getText(VIDEO_OWNER_RENDERER.subscriberCountText));
-            verified = isVerified(VIDEO_OWNER_RENDERER.badges);
+        if (!microformat) {
+            return null;
+        }
+
+        try {
+            channelName = microformat.ownerChannelName || null;
+            channelId = microformat.externalChannelId;
+            user = '@' + (microformat.ownerProfileUrl || '').split('@')[1];
+            thumbnails = endscreen.image.thumbnails || [];
+            subscriberCount = null;
+            verified = false;
         } catch (err) {}
 
         try {

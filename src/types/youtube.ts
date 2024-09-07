@@ -65,31 +65,7 @@ export type YT_YTInitialPlayerResponse = {
         isLiveContent: boolean;
     };
     microformat: {
-        playerMicroformatRenderer: {
-            thumbnail: {
-                thumbnails: Array<YTDL_Thumbnail>;
-            };
-            title: {
-                simpleText: string;
-            };
-            description: {
-                simpleText: string;
-            };
-            lengthSeconds: string;
-            ownerProfileUrl: string;
-            externalChannelId: string;
-            isFamilySafe: boolean;
-            availableCountries: Array<string>;
-            isUnlisted: boolean;
-            hasYpcMetadata: boolean;
-            viewCount: string;
-            category: string;
-            publishDate: string;
-            ownerChannelName: string;
-            uploadDate: string;
-            isShortsEligible: boolean;
-            channelId?: string;
-        };
+        playerMicroformatRenderer: YTDL_MicroformatRenderer;
     };
     storyboards: {
         playerStoryboardSpecRenderer: {
