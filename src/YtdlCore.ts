@@ -1,12 +1,13 @@
 import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
-import { CACHE as INFO_CACHE, WATCH_PAGE_CACHE, getBasicInfo, getInfo } from './info';
+import { CACHE as INFO_CACHE, WATCH_PAGE_CACHE, getInfo } from './info';
 import utils from './utils';
 import { chooseFormat, filterFormats } from './format-utils';
 import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
+import { getBasicInfo } from './core/Info';
 import pkg from '../package.json';
 
 import { YTDL_DownloadOptions } from '@/types/options';

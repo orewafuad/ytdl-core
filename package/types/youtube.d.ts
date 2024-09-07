@@ -1,4 +1,4 @@
-import { YTDL_ClientTypes } from '../meta/clients';
+import type { YTDL_ClientTypes } from '../meta/Clients';
 export type YT_StreamingFormat = {
     itag: number;
     url: string;

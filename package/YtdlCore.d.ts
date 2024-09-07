@@ -1,9 +1,10 @@
 import { PassThrough } from 'stream';
-import { getBasicInfo, getInfo } from './info';
+import { getInfo } from './info';
 import { chooseFormat, filterFormats } from './format-utils';
 import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
+import { getBasicInfo } from './core/Info';
 import { YTDL_DownloadOptions } from './types/options';
 import { YTDL_VideoInfo } from './types/youtube';
 declare const cache: {

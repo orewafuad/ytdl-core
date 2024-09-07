@@ -32,7 +32,6 @@ const stream_1 = require("stream");
 const miniget_1 = __importDefault(require("miniget"));
 const m3u8stream_1 = __importStar(require("m3u8stream"));
 const info_1 = require("./info");
-Object.defineProperty(exports, "getBasicInfo", { enumerable: true, get: function () { return info_1.getBasicInfo; } });
 Object.defineProperty(exports, "getInfo", { enumerable: true, get: function () { return info_1.getInfo; } });
 const utils_1 = __importDefault(require("./utils"));
 const format_utils_1 = require("./format-utils");
@@ -48,6 +47,8 @@ Object.defineProperty(exports, "createAgent", { enumerable: true, get: function 
 Object.defineProperty(exports, "createProxyAgent", { enumerable: true, get: function () { return Agent_1.createProxyAgent; } });
 const OAuth2_1 = require("./core/OAuth2");
 Object.defineProperty(exports, "OAuth2", { enumerable: true, get: function () { return OAuth2_1.OAuth2; } });
+const Info_1 = require("./core/Info");
+Object.defineProperty(exports, "getBasicInfo", { enumerable: true, get: function () { return Info_1.getBasicInfo; } });
 const package_json_1 = __importDefault(require("../package.json"));
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
@@ -220,7 +221,7 @@ function downloadFromInfo(info, options = {}) {
     return STREAM;
 }
 ytdl.downloadFromInfo = downloadFromInfo;
-ytdl.getBasicInfo = info_1.getBasicInfo;
+ytdl.getBasicInfo = Info_1.getBasicInfo;
 ytdl.getInfo = info_1.getInfo;
 ytdl.chooseFormat = format_utils_1.chooseFormat;
 ytdl.filterFormats = format_utils_1.filterFormats;

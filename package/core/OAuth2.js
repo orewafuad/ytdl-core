@@ -1,8 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OAuth2 = void 0;
-const youtube_1 = require("../meta/youtube");
 const Log_1 = require("../utils/Log");
+const Urls_1 = __importDefault(require("../utils/Urls"));
+const UserAgents_1 = __importDefault(require("../utils/UserAgents"));
 /* Reference: LuanRT/YouTube.js */
 const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') };
 class OAuth2 {
@@ -24,10 +28,10 @@ class OAuth2 {
         this.clientSecret = credentials.clientData?.clientSecret;
     }
     async getClientData() {
-        const YT_TV_RESPONSE = await fetch(youtube_1.BASE_URL + '/tv', {
+        const YT_TV_RESPONSE = await fetch(Urls_1.default.getTvUrl(), {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
-                Referer: 'https://www.youtube.com/tv',
+                'User-Agent': UserAgents_1.default.tv,
+                Referer: Urls_1.default.getTvUrl(),
             },
         });
         if (!YT_TV_RESPONSE.ok) {
@@ -37,7 +41,7 @@ class OAuth2 {
         const YT_TV_HTML = await YT_TV_RESPONSE.text(), SCRIPT_PATH = REGEX.tvScript.exec(YT_TV_HTML)?.[1];
         if (SCRIPT_PATH !== null) {
             Log_1.Logger.debug('Found YouTube TV script: ' + SCRIPT_PATH);
-            const SCRIPT_RESPONSE = await fetch(youtube_1.BASE_URL + SCRIPT_PATH);
+            const SCRIPT_RESPONSE = await fetch(Urls_1.default.getBaseUrl() + SCRIPT_PATH);
             if (!SCRIPT_RESPONSE.ok) {
                 this.isEnabled = false;
                 throw new Error('TV script request failed with status code: ' + SCRIPT_RESPONSE.status);
@@ -78,7 +82,7 @@ class OAuth2 {
             client_secret: this.clientSecret,
             refresh_token: this.refreshToken,
             grant_type: 'refresh_token',
-        }, REFRESH_API_RESPONSE = await fetch(youtube_1.BASE_URL + '/o/oauth2/token', {
+        }, REFRESH_API_RESPONSE = await fetch(Urls_1.default.getRefreshTokenApiUrl(), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

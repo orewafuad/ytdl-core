@@ -6,6 +6,7 @@ import { YTDL_DownloadOptions, YTDL_RequestOptions } from '@/types/options';
 import { VERSION } from './utils/constants';
 import { Logger } from './utils/Log';
 import AGENT from './core/Agent';
+import UserAgent from './utils/UserAgents';
 
 /* Private Constants */
 
@@ -402,7 +403,7 @@ function applyDefaultHeaders(options: YTDL_DownloadOptions) {
     options.requestOptions.headers = Object.assign(
         {},
         {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.101 Safari/537.36',
+            'User-Agent': UserAgent.default,
         },
         options.requestOptions.headers,
     );

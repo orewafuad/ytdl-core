@@ -1,130 +1,328 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.INNERTUBE_CLIENTS = void 0;
-const INNERTUBE_CLIENTS = Object.freeze({
+exports.INNERTUBE_CLIENTS = exports.INNERTUBE_PLAYER_API_URL = exports.Clients = void 0;
+const utils_1 = __importDefault(require("../utils"));
+const UserAgents_1 = __importDefault(require("../utils/UserAgents"));
+const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player', INNERTUBE_CLIENTS = Object.freeze({
     web: {
-        INNERTUBE_CONTEXT: {
+        context: {
             client: {
                 clientName: 'WEB',
                 clientVersion: '2.20240726.00.00',
+                userAgent: UserAgents_1.default.default,
             },
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 1,
-    },
-    web_safari: {
-        INNERTUBE_CONTEXT: {
-            client: {
-                clientName: 'WEB',
-                clientVersion: '2.20240726.00.00',
-                userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15,gzip(gfe)',
-            },
+        clientName: 1,
+        apiInfo: {
+            key: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 1,
     },
     web_creator: {
-        INNERTUBE_CONTEXT: {
+        context: {
             client: {
                 clientName: 'WEB_CREATOR',
                 clientVersion: '1.20240723.03.00',
+                userAgent: UserAgents_1.default.default,
             },
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 62,
+        clientName: 62,
+        apiInfo: {
+            key: 'AIzaSyBUPetSUmoZL-OhlxA7wSac5XinrygCqMo',
+        },
     },
     android: {
-        INNERTUBE_CONTEXT: {
+        context: {
             client: {
                 clientName: 'ANDROID',
                 clientVersion: '19.29.37',
                 androidSdkVersion: 30,
-                userAgent: 'com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip',
+                userAgent: UserAgents_1.default.android,
                 osName: 'Android',
                 osVersion: '11',
             },
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 3,
-        REQUIRE_JS_PLAYER: false,
-    },
-    android_creator: {
-        INNERTUBE_CONTEXT: {
-            client: {
-                clientName: 'ANDROID_CREATOR',
-                clientVersion: '24.30.100',
-                androidSdkVersion: 30,
-                userAgent: 'com.google.android.apps.youtube.creator/24.30.100 (Linux; U; Android 11) gzip',
-                osName: 'Android',
-                osVersion: '11',
-            },
+        clientName: 3,
+        apiInfo: {
+            key: 'AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w',
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 14,
-        REQUIRE_JS_PLAYER: false,
     },
     ios: {
-        INNERTUBE_CONTEXT: {
+        context: {
             client: {
                 clientName: 'IOS',
                 clientVersion: '19.29.1',
                 deviceMake: 'Apple',
                 deviceModel: 'iPhone16,2',
-                userAgent: 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)',
+                userAgent: UserAgents_1.default.ios,
                 osName: 'iPhone',
                 osVersion: '17.5.1.21F90',
             },
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 5,
-        REQUIRE_JS_PLAYER: false,
-    },
-    ios_creator: {
-        INNERTUBE_CONTEXT: {
-            client: {
-                clientName: 'IOS_CREATOR',
-                clientVersion: '24.30.100',
-                deviceMake: 'Apple',
-                deviceModel: 'iPhone16,2',
-                userAgent: 'com.google.ios.ytcreator/24.30.100 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)',
-                osName: 'iPhone',
-                osVersion: '17.5.1.21F90',
-            },
+        clientName: 5,
+        apiInfo: {
+            key: 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 15,
-        REQUIRE_JS_PLAYER: false,
     },
     mweb: {
-        INNERTUBE_CONTEXT: {
+        context: {
             client: {
                 clientName: 'MWEB',
                 clientVersion: '2.20240726.01.00',
+                userAgent: UserAgents_1.default.default,
             },
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 2,
+        clientName: 2,
+        apiInfo: {},
     },
     tv: {
-        INNERTUBE_CONTEXT: {
+        context: {
             client: {
                 clientName: 'TVHTML5',
                 clientVersion: '7.20240724.13.00',
+                userAgent: UserAgents_1.default.tv,
             },
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 7,
+        clientName: 7,
+        apiInfo: {},
     },
     tv_embedded: {
-        INNERTUBE_CONTEXT: {
+        context: {
             client: {
                 clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
                 clientVersion: '2.0',
+                userAgent: UserAgents_1.default.tv,
+            },
+            thirdParty: {
+                embedUrl: 'https://www.youtube.com/',
             },
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 85,
+        clientName: 85,
+        apiInfo: {},
     },
-    mediaconnect: {
-        INNERTUBE_CONTEXT: {
-            client: {
-                clientName: 'MEDIA_CONNECT_FRONTEND',
-                clientVersion: '0.1',
-            },
+}), INNERTUBE_BASE_PAYLOAD = {
+    videoId: '',
+    cpn: utils_1.default.generateClientPlaybackNonce(16),
+    contentCheckOk: true,
+    racyCheckOk: true,
+    serviceIntegrityDimensions: {},
+    playbackContext: {
+        contentPlaybackContext: {
+            vis: 0,
+            splay: false,
+            referer: '',
+            currentUrl: '',
+            autonavState: 'STATE_ON',
+            autoCaptionsDefaultOn: false,
+            html5Preference: 'HTML5_PREF_WANTS',
+            lactMilliseconds: '-1',
+            signatureTimestamp: 0,
         },
-        INNERTUBE_CONTEXT_CLIENT_NAME: 95,
-        REQUIRE_JS_PLAYER: false,
     },
-});
+    attestationRequest: {
+        omitBotguardData: true,
+    },
+    context: {
+        client: {},
+        request: {
+            internalExperimentFlags: [],
+            useSsl: true,
+        },
+        user: {
+            lockedSafetyMode: false,
+        },
+    },
+};
+exports.INNERTUBE_PLAYER_API_URL = INNERTUBE_PLAYER_API_URL;
 exports.INNERTUBE_CLIENTS = INNERTUBE_CLIENTS;
-//# sourceMappingURL=clients.js.map
+class Clients {
+    static getAuthorizationHeader(oauth2) {
+        return oauth2 ? { authorization: 'Bearer ' + oauth2.getAccessToken() } : {};
+    }
+    static web({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+        const CLIENT = INNERTUBE_CLIENTS.web, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+                ...Clients.getAuthorizationHeader(oauth2),
+            },
+        };
+    }
+    static webCreator({ videoId, signatureTimestamp, options: { poToken, visitorData } }) {
+        const CLIENT = INNERTUBE_CLIENTS.web_creator, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+            },
+        };
+    }
+    static android({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+        const CLIENT = INNERTUBE_CLIENTS.android, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${utils_1.default.generateClientPlaybackNonce(12)}`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+                ...Clients.getAuthorizationHeader(oauth2),
+            },
+        };
+    }
+    static ios({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+        const CLIENT = INNERTUBE_CLIENTS.ios, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${utils_1.default.generateClientPlaybackNonce(12)}`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+                ...Clients.getAuthorizationHeader(oauth2),
+            },
+        };
+    }
+    static mweb({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+        const CLIENT = INNERTUBE_CLIENTS.mweb, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+                ...Clients.getAuthorizationHeader(oauth2),
+            },
+        };
+    }
+    static tv({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+        const CLIENT = INNERTUBE_CLIENTS.web, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+                ...Clients.getAuthorizationHeader(oauth2),
+            },
+        };
+    }
+    static tvEmbedded({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+        const CLIENT = INNERTUBE_CLIENTS.web, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+                ...Clients.getAuthorizationHeader(oauth2),
+            },
+        };
+    }
+}
+exports.Clients = Clients;
+exports.default = Clients;
+//# sourceMappingURL=Clients.js.map

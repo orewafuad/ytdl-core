@@ -28,6 +28,7 @@ const node_fs_1 = require("node:fs");
 const constants_1 = require("./utils/constants");
 const Log_1 = require("./utils/Log");
 const Agent_1 = __importDefault(require("./core/Agent"));
+const UserAgents_1 = __importDefault(require("./utils/UserAgents"));
 const ESCAPING_SEQUENCE = [
     { start: '"', end: '"' },
     { start: "'", end: "'" },
@@ -325,7 +326,7 @@ function applyIPv6Rotations(options) {
 function applyDefaultHeaders(options) {
     options.requestOptions = Object.assign({}, options.requestOptions);
     options.requestOptions.headers = Object.assign({}, {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.101 Safari/537.36',
+        'User-Agent': UserAgents_1.default.default,
     }, options.requestOptions.headers);
 }
 function generateClientPlaybackNonce(length) {

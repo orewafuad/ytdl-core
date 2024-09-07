@@ -1,8 +1,9 @@
 node_modules
-test
 .TODO
 ._npmrc
 .npmrc
 publish.txt
 /reference/*
 !/reference/*.bat
+/test/*
+!/test/main.test.ts

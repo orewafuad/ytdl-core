@@ -3,7 +3,6 @@ import { parseTimestamp } from 'm3u8stream';
 
 import utils from './utils';
 import { YTDL_Media, YTDL_Author, YTDL_WatchPageInfo, YTDL_Thumbnail, YTDL_RelatedVideo, YT_CompactVideoRenderer, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_MoreVideoDetails, YT_YTInitialPlayerResponse } from '@/types/youtube';
-import { getInfo } from './info';
 
 /* Private Constants */
 const BASE_URL = 'https://www.youtube.com/watch?v=',
