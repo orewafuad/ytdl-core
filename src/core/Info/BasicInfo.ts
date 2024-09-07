@@ -6,6 +6,7 @@ import { UnrecoverableError } from '@/core/errors';
 import { YTDL_ClientTypes } from '@/meta/Clients';
 import { Logger } from '@/utils/Log';
 import Url from '@/utils/Url';
+import { VERSION } from '@/utils/constants';
 import utils from '@/utils';
 import { Cache } from '@/cache';
 import getHtml5Player from './parser/Html5Player';
@@ -132,6 +133,9 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             clients: options.clients,
             full: false,
             isMinimumMode: false,
+            _ytdl: {
+                version: VERSION,
+            }
         } as any;
 
     let errorDetails: any | null = null;
@@ -149,8 +153,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             Logger.debug(`[ ${client} ]: Success`);
         } else {
             const REASON = PLAYER_API_RESPONSES[i].reason;
-            console.log(REASON.error)
-            Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error.toString()}`);
+            Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error.message || REASON.error.toString()}`);
             PLAYER_RESPONSES[client] = REASON.contents;
 
             if (client === 'ios') {

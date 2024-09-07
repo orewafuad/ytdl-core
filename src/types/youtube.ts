@@ -390,6 +390,9 @@ export type YTDL_VideoInfo = {
         webSafari?: YT_YTInitialPlayerResponse | null;
         mediaconnect?: YT_YTInitialPlayerResponse | null;
     };
+    _ytdl: {
+        version: string;
+    }
 
     /* The following are rarely included. */
     iv_load_policy?: string;

@@ -3,7 +3,6 @@ import { Cache } from '@/cache';
 import utils from '@/utils';
 import Url from '@/utils/Url';
 import UserAgent from '@/utils/UserAgents';
-import Clients from '@/meta/Clients';
 
 const WATCH_PAGE_CACHE = new Cache();
 
@@ -18,7 +17,6 @@ export default class YouTubePageExtractor {
         options.requestOptions = Object.assign({}, options.requestOptions);
         options.requestOptions.headers = {
             'User-Agent': UserAgent.default,
-            ...Clients.getAuthorizationHeader(options.oauth2),
             ...options.requestOptions.headers,
         };
 

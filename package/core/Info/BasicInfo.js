@@ -9,6 +9,7 @@ const clients_1 = require("../../core/clients");
 const errors_1 = require("../../core/errors");
 const Log_1 = require("../../utils/Log");
 const Url_1 = __importDefault(require("../../utils/Url"));
+const constants_1 = require("../../utils/constants");
 const utils_1 = __importDefault(require("../../utils"));
 const cache_1 = require("../../cache");
 const Html5Player_1 = __importDefault(require("./parser/Html5Player"));
@@ -87,6 +88,9 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         clients: options.clients,
         full: false,
         isMinimumMode: false,
+        _ytdl: {
+            version: constants_1.VERSION,
+        }
     };
     let errorDetails = null;
     options.clients.forEach((client, i) => {
@@ -101,8 +105,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         }
         else {
             const REASON = PLAYER_API_RESPONSES[i].reason;
-            console.log(REASON.error);
-            Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error.toString()}`);
+            Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error.message || REASON.error.toString()}`);
             PLAYER_RESPONSES[client] = REASON.contents;
             if (client === 'ios') {
                 errorDetails = REASON;
