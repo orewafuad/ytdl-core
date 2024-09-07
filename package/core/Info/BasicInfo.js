@@ -111,7 +111,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     if (IS_MINIMUM_MODE) {
         const ERROR_TEXT = `All player APIs responded with an error. (Clients: ${options.clients.join(', ')})\nFor more information, specify YTDL_DEBUG as an environment variable.`;
         if (errorDetails && (CONTINUES_NOT_POSSIBLE_ERRORS.includes(errorDetails.contents.playabilityStatus.reason) || !errorDetails.contents.videoDetails)) {
-            throw new errors_1.UnrecoverableError(ERROR_TEXT + `\nNote: This error cannot continue processing.\nDetails: ${JSON.stringify(errorDetails.contents.playabilityStatus.reason)}`);
+            throw new errors_1.UnrecoverableError(ERROR_TEXT + `\nNote: This error cannot continue processing. (Details: ${JSON.stringify(errorDetails.contents.playabilityStatus.reason)})`);
         }
         Log_1.Logger.error(ERROR_TEXT);
         Log_1.Logger.info('Only minimal information is available, as information from the Player API is not available.');

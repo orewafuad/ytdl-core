@@ -157,7 +157,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         const ERROR_TEXT = `All player APIs responded with an error. (Clients: ${options.clients.join(', ')})\nFor more information, specify YTDL_DEBUG as an environment variable.`;
 
         if (errorDetails && (CONTINUES_NOT_POSSIBLE_ERRORS.includes(errorDetails.contents.playabilityStatus.reason) || !errorDetails.contents.videoDetails)) {
-            throw new UnrecoverableError(ERROR_TEXT + `\nNote: This error cannot continue processing.\nDetails: ${JSON.stringify(errorDetails.contents.playabilityStatus.reason)}`);
+            throw new UnrecoverableError(ERROR_TEXT + `\nNote: This error cannot continue processing. (Details: ${JSON.stringify(errorDetails.contents.playabilityStatus.reason)})`);
         }
 
         Logger.error(ERROR_TEXT);

@@ -1,6 +1,6 @@
 import ytdl from '../package/YtdlCore';
 import { VIDEO_IDS } from './videoIds';
-import { NORMAL_ACCESS_TOKEN, CLIENT_DATA_REQUIRED_ACCESS_TOKEN } from './env';
+import { NORMAL_ACCESS_TOKEN, CLIENT_DATA_REQUIRED_ACCESS_TOKEN, PUBLISHERS_ACCESS_TOKEN } from './env';
 
 jest.useRealTimers();
 jest.setTimeout(30000);
@@ -8,10 +8,6 @@ jest.setTimeout(30000);
 const ALL_CLIENTS: any = ['web', 'mweb', 'web_creator', 'android', 'ios', 'tv', 'tv_embedded'];
 
 describe('【@ybd-project/ytdl-core】機能テスト', () => {
-    beforeAll(() => {
-        process.env.YTDL_DEBUG = 'true';
-    });
-
     describe('GetInfo 関数テスト', () => {
         describe('通常', () => {
             const VIDEO_ID = VIDEO_IDS.normal;
@@ -97,7 +93,7 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
-                    oauth2: new ytdl.OAuth2(NORMAL_ACCESS_TOKEN),
+                    oauth2: new ytdl.OAuth2(PUBLISHERS_ACCESS_TOKEN),
                 });
                 expect(RESULTS.videoDetails.videoId).toBe(VIDEO_ID);
             });
