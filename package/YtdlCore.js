@@ -26,6 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.YtdlCore = void 0;
 const stream_1 = require("stream");
 const miniget_1 = __importDefault(require("miniget"));
 const m3u8stream_1 = __importStar(require("m3u8stream"));
@@ -264,6 +265,6 @@ class YtdlCore {
         return (0, Info_1.getFullInfo)(link, this.setupOptions(options));
     }
 }
-module.exports = YtdlCore;
-exports.default = YtdlCore;
+exports.YtdlCore = YtdlCore;
+module.exports.YtdlCore = YtdlCore;
 //# sourceMappingURL=YtdlCore.js.map

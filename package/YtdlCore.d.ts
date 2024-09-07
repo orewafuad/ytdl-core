@@ -38,4 +38,4 @@ declare class YtdlCore {
     getInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
     getFullInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
 }
-export default YtdlCore;
+export { YtdlCore };

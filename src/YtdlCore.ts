@@ -291,5 +291,5 @@ class YtdlCore {
     }
 }
 
-module.exports = YtdlCore;
-export default YtdlCore;
+module.exports.YtdlCore = YtdlCore;
+export { YtdlCore };
