@@ -1,5 +1,5 @@
-import { YTDL_VideoFormat } from './types/youtube';
-import { YTDL_ChooseFormatOptions } from './types/options';
+import { YTDL_VideoFormat } from '../types/youtube';
+import { YTDL_ChooseFormatOptions } from '../types/options';
 declare function sortFormats(a: Object, b: Object): number;
 declare function filterFormats(formats: Array<YTDL_VideoFormat>, filter?: YTDL_ChooseFormatOptions['filter']): Array<YTDL_VideoFormat>;
 declare function chooseFormat(formats: Array<YTDL_VideoFormat>, options: YTDL_ChooseFormatOptions): YTDL_VideoFormat;

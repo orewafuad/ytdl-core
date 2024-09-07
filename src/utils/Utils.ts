@@ -2,11 +2,12 @@ import { request as undiciRequest } from 'undici';
 import { writeFileSync } from 'node:fs';
 
 import { YT_YTInitialPlayerResponse } from '@/types/youtube';
-import { YTDL_DownloadOptions, YTDL_RequestOptions } from '@/types/options';
-import AGENT from './core/Agent';
-import { VERSION } from './utils/constants';
-import { Logger } from './utils/Log';
-import UserAgent from './utils/UserAgents';
+import { YTDL_RequestOptions } from '@/types/options';
+
+import { UnrecoverableError, RequestError } from '@/core/errors';
+
+import { VERSION } from '@/utils/constants';
+import { Logger } from '@/utils/Log';
 
 /* Private Constants */
 
@@ -31,19 +32,6 @@ const UPDATE_INTERVAL = 1000 * 60 * 60 * 12;
 /* Private Functions */
 function findPropKeyInsensitive(obj: object, prop: string): string | null {
     return Object.keys(obj).find((p) => p.toLowerCase() === prop.toLowerCase()) || null;
-}
-
-/* ----------- */
-
-/* Private Classes */
-class UnrecoverableError extends Error {}
-class RequestError extends Error {
-    public statusCode: number;
-
-    constructor(message: string) {
-        super(message);
-        this.statusCode = 0;
-    }
 }
 
 /* ----------- */
@@ -339,80 +327,10 @@ function setPropInsensitive(obj: any, prop: string, value: any) {
     return KEY;
 }
 
-let oldCookieWarning = true;
-let oldDispatcherWarning = true;
-function applyDefaultAgent(options: YTDL_DownloadOptions) {
-    if (!options.agent) {
-        const { jar } = AGENT.defaultAgent,
-            COOKIE = getPropInsensitive<string>(options?.requestOptions?.headers, 'cookie');
-
-        if (COOKIE) {
-            jar.removeAllCookiesSync();
-            AGENT.addCookiesFromString(jar, COOKIE);
-
-            if (oldCookieWarning) {
-                oldCookieWarning = false;
-                Logger.warning('Using old cookie format, please use the new one instead. (https://github.com/ybd-project/ytdl-core#cookies-support)');
-            }
-        }
-
-        if (options.requestOptions?.dispatcher && oldDispatcherWarning) {
-            oldDispatcherWarning = false;
-            Logger.warning('Your dispatcher is overridden by `ytdl.Agent`. To implement your own, check out the documentation. (https://github.com/ybd-project/ytdl-core#how-to-implement-ytdlagent-with-your-own-dispatcher)');
-        }
-
-        options.agent = AGENT.defaultAgent;
-    }
-}
-
-let oldLocalAddressWarning = true;
-function applyOldLocalAddress(options: YTDL_DownloadOptions) {
-    const REQUEST_OPTION_LOCAL_ADDRESS = (options.requestOptions as any).localAddress;
-
-    if (!options.requestOptions || !REQUEST_OPTION_LOCAL_ADDRESS || REQUEST_OPTION_LOCAL_ADDRESS === options.agent?.localAddress) {
-        return;
-    }
-
-    options.agent = AGENT.createAgent(undefined, {
-        localAddress: REQUEST_OPTION_LOCAL_ADDRESS,
-    });
-
-    if (oldLocalAddressWarning) {
-        oldLocalAddressWarning = false;
-        Logger.warning('Using old localAddress option, please add it to the agent options instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
-    }
-}
-
-let oldIpRotationsWarning = true;
-function applyIPv6Rotations(options: YTDL_DownloadOptions) {
-    if (options.IPv6Block) {
-        options.requestOptions = Object.assign({}, options.requestOptions, {
-            localAddress: getRandomIPv6(options.IPv6Block),
-        });
-
-        if (oldIpRotationsWarning) {
-            oldIpRotationsWarning = false;
-            oldLocalAddressWarning = false;
-            Logger.warning('IPv6Block option is deprecated, ' + 'please create your own ip rotation instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
-        }
-    }
-}
-
-function applyDefaultHeaders(options: YTDL_DownloadOptions) {
-    options.requestOptions = Object.assign({}, options.requestOptions);
-    options.requestOptions.headers = Object.assign(
-        {},
-        {
-            'User-Agent': UserAgent.default,
-        },
-        options.requestOptions.headers,
-    );
-}
-
 function generateClientPlaybackNonce(length: number) {
     const CPN_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
     return Array.from({ length }, () => CPN_CHARS[Math.floor(Math.random() * CPN_CHARS.length)]).join('');
 }
 
-export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, playError, request, deprecate, lastUpdateCheck, checkForUpdates, isIPv6, normalizeIP, getRandomIPv6, saveDebugFile, getPropInsensitive, setPropInsensitive, applyDefaultAgent, applyOldLocalAddress, applyIPv6Rotations, applyDefaultHeaders, generateClientPlaybackNonce };
-export default { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, playError, request, deprecate, lastUpdateCheck, checkForUpdates, isIPv6, normalizeIP, getRandomIPv6, saveDebugFile, getPropInsensitive, setPropInsensitive, applyDefaultAgent, applyOldLocalAddress, applyIPv6Rotations, applyDefaultHeaders, generateClientPlaybackNonce };
+export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, playError, request, deprecate, lastUpdateCheck, checkForUpdates, isIPv6, normalizeIP, getRandomIPv6, saveDebugFile, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+export default { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, playError, request, deprecate, lastUpdateCheck, checkForUpdates, isIPv6, normalizeIP, getRandomIPv6, saveDebugFile, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };

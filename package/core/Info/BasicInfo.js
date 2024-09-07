@@ -4,20 +4,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._getBasicInfo = _getBasicInfo;
-const youtube_po_token_generator_1 = require("youtube-po-token-generator");
 const clients_1 = require("../../core/clients");
 const errors_1 = require("../../core/errors");
+const Cache_1 = require("../../core/Cache");
 const Log_1 = require("../../utils/Log");
 const Url_1 = __importDefault(require("../../utils/Url"));
 const constants_1 = require("../../utils/constants");
-const utils_1 = __importDefault(require("../../utils"));
-const cache_1 = require("../../cache");
+const Utils_1 = __importDefault(require("../../utils/Utils"));
+const DownloadOptions_1 = __importDefault(require("../../utils/DownloadOptions"));
 const Html5Player_1 = __importDefault(require("./parser/Html5Player"));
 const WatchPage_1 = __importDefault(require("./parser/WatchPage"));
 const Formats_1 = __importDefault(require("./parser/Formats"));
 const Extras_1 = __importDefault(require("./Extras"));
+const PoToken_1 = __importDefault(require("../PoToken"));
 /* Private Constants */
-const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], CONTINUES_NOT_POSSIBLE_ERRORS = ['This video is private'], SUPPORTED_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android', 'web', 'mweb', 'tv'], BASE_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android'], BASIC_INFO_CACHE = new cache_1.Cache();
+const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], CONTINUES_NOT_POSSIBLE_ERRORS = ['This video is private'], SUPPORTED_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android', 'web', 'mweb', 'tv'], BASE_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android'], BASIC_INFO_CACHE = new Cache_1.Cache();
 /* ----------- */
 /* Private FUnctions */
 function setupClients(clients) {
@@ -29,17 +30,17 @@ function setupClients(clients) {
     return [...new Set([...BASE_CLIENTS, ...clients])];
 }
 async function getSignatureTimestamp(html5player, options) {
-    const BODY = await utils_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
+    const BODY = await Utils_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
     return MO ? MO[1] : undefined;
 }
 async function _getBasicInfo(id, options, isFromGetInfo) {
-    utils_1.default.applyIPv6Rotations(options);
-    utils_1.default.applyDefaultHeaders(options);
-    utils_1.default.applyDefaultAgent(options);
-    utils_1.default.applyOldLocalAddress(options);
+    DownloadOptions_1.default.applyIPv6Rotations(options);
+    DownloadOptions_1.default.applyDefaultHeaders(options);
+    DownloadOptions_1.default.applyDefaultAgent(options);
+    DownloadOptions_1.default.applyOldLocalAddress(options);
     options.requestOptions ??= {};
     const { jar, dispatcher } = options.agent || {};
-    utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
+    Utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
     const HTML5_PLAYER_PROMISE = (0, Html5Player_1.default)(id, options), WATCH_PAGE_INFO_PROMISE = (0, WatchPage_1.default)(id, options);
     if (options.oauth2 && options.oauth2.shouldRefreshToken()) {
@@ -49,15 +50,9 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     if (!options.poToken) {
         Log_1.Logger.warning('Specify poToken for stable and fast operation. See README for details.');
         Log_1.Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.');
-        try {
-            const { poToken, visitorData } = await (0, youtube_po_token_generator_1.generate)();
-            options.poToken = poToken;
-            options.visitorData = visitorData;
-            Log_1.Logger.success('Successfully generated a poToken.');
-        }
-        catch (err) {
-            Log_1.Logger.error('Failed to generate a poToken.');
-        }
+        const { poToken, visitorData } = await PoToken_1.default.generatePoToken();
+        options.poToken = poToken;
+        options.visitorData = visitorData;
     }
     if (options.poToken && !options.visitorData) {
         Log_1.Logger.warning('If you specify a poToken, you must also specify the visitorData.');
@@ -90,7 +85,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         isMinimumMode: false,
         _ytdl: {
             version: constants_1.VERSION,
-        }
+        },
     };
     let errorDetails = null;
     options.clients.forEach((client, i) => {
@@ -150,9 +145,8 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     return VIDEO_INFO;
 }
 async function getBasicInfo(link, options = {}) {
-    utils_1.default.checkForUpdates();
+    Utils_1.default.checkForUpdates();
     const ID = Url_1.default.getVideoID(link), CACHE_KEY = ['getBasicInfo', ID, options.lang].join('-');
-    console.log(BASIC_INFO_CACHE.get(CACHE_KEY));
     return BASIC_INFO_CACHE.getOrSet(CACHE_KEY, () => _getBasicInfo(ID, options));
 }
 exports.default = getBasicInfo;

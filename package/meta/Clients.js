@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.INNERTUBE_CLIENTS = exports.INNERTUBE_PLAYER_API_URL = exports.Clients = void 0;
-const utils_1 = __importDefault(require("../utils"));
+const Utils_1 = __importDefault(require("../utils/Utils"));
 const UserAgents_1 = __importDefault(require("../utils/UserAgents"));
 const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player', INNERTUBE_CLIENTS = Object.freeze({
     web: {
@@ -104,7 +104,7 @@ const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player', I
     },
 }), INNERTUBE_BASE_PAYLOAD = {
     videoId: '',
-    cpn: utils_1.default.generateClientPlaybackNonce(16),
+    cpn: Utils_1.default.generateClientPlaybackNonce(16),
     contentCheckOk: true,
     racyCheckOk: true,
     serviceIntegrityDimensions: {},
@@ -207,7 +207,7 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${utils_1.default.generateClientPlaybackNonce(12)}`,
+            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${Utils_1.default.generateClientPlaybackNonce(12)}`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -233,7 +233,7 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${utils_1.default.generateClientPlaybackNonce(12)}`,
+            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${Utils_1.default.generateClientPlaybackNonce(12)}`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,

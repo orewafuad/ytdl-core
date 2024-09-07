@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Cache = void 0;
 const timers_1 = require("timers");
-// A cache that expires.
 class Cache extends Map {
     timeout;
-    constructor(timeout = 1000) {
+    // timeout = 30 seconds
+    constructor(timeout = 1000 * 30) {
         super();
         this.timeout = timeout;
     }
@@ -60,4 +60,4 @@ class Cache extends Map {
     }
 }
 exports.Cache = Cache;
-//# sourceMappingURL=cache.js.map
+//# sourceMappingURL=Cache.js.map

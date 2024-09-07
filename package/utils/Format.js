@@ -7,8 +7,8 @@ exports.sortFormats = sortFormats;
 exports.filterFormats = filterFormats;
 exports.chooseFormat = chooseFormat;
 exports.addFormatMeta = addFormatMeta;
-const utils_1 = __importDefault(require("./utils"));
-const formats_1 = __importDefault(require("./meta/formats"));
+const formats_1 = __importDefault(require("../meta/formats"));
+const Utils_1 = __importDefault(require("./Utils"));
 /* Private Constants */
 // Use these to help sort formats, higher index is better.
 const AUDIO_ENCODING_RANKS = ['mp4a', 'mp3', 'vorbis', 'aac', 'opus', 'flac'], VIDEO_ENCODING_RANKS = ['mp4v', 'avc1', 'Sorenson H.283', 'MPEG-4 Visual', 'VP8', 'VP9', 'H.264'];
@@ -183,7 +183,7 @@ function addFormatMeta(format) {
     format.hasAudio = !!format.audioBitrate;
     const CONTAINER = format.mimeType && format.mimeType.split(';')[0].split('/')[1];
     format.container = CONTAINER || null;
-    const CODECS = format.mimeType && utils_1.default.between(format.mimeType, 'codecs="', '"');
+    const CODECS = format.mimeType && Utils_1.default.between(format.mimeType, 'codecs="', '"');
     format.codecs = CODECS || null;
     const VIDEO_CODEC = format.hasVideo && format.codecs && format.codecs.split(', ')[0];
     format.videoCodec = VIDEO_CODEC || null;
@@ -195,4 +195,4 @@ function addFormatMeta(format) {
     return format;
 }
 exports.default = { sortFormats, filterFormats, chooseFormat, addFormatMeta };
-//# sourceMappingURL=format-utils.js.map
+//# sourceMappingURL=Format.js.map

@@ -1,5 +1,5 @@
-import { YT_YTInitialPlayerResponse } from './types/youtube';
-import { YTDL_DownloadOptions, YTDL_RequestOptions } from './types/options';
+import { YT_YTInitialPlayerResponse } from '../types/youtube';
+import { YTDL_RequestOptions } from '../types/options';
 /** Extract string inbetween another */
 declare function between(haystack: string, left: RegExp | string, right: string): string;
 declare function tryParseBetween<T = unknown>(body: string, left: RegExp | string, right: string, prepend?: string, append?: string): T | null;
@@ -23,12 +23,8 @@ declare function getRandomIPv6(ip: string): string;
 declare function saveDebugFile(name: string, body: any): string;
 declare function getPropInsensitive<T = unknown>(obj: any, prop: string): T;
 declare function setPropInsensitive(obj: any, prop: string, value: any): string | null;
-declare function applyDefaultAgent(options: YTDL_DownloadOptions): void;
-declare function applyOldLocalAddress(options: YTDL_DownloadOptions): void;
-declare function applyIPv6Rotations(options: YTDL_DownloadOptions): void;
-declare function applyDefaultHeaders(options: YTDL_DownloadOptions): void;
 declare function generateClientPlaybackNonce(length: number): string;
-export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, playError, request, deprecate, lastUpdateCheck, checkForUpdates, isIPv6, normalizeIP, getRandomIPv6, saveDebugFile, getPropInsensitive, setPropInsensitive, applyDefaultAgent, applyOldLocalAddress, applyIPv6Rotations, applyDefaultHeaders, generateClientPlaybackNonce };
+export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, playError, request, deprecate, lastUpdateCheck, checkForUpdates, isIPv6, normalizeIP, getRandomIPv6, saveDebugFile, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
 declare const _default: {
     between: typeof between;
     tryParseBetween: typeof tryParseBetween;
@@ -45,10 +41,6 @@ declare const _default: {
     saveDebugFile: typeof saveDebugFile;
     getPropInsensitive: typeof getPropInsensitive;
     setPropInsensitive: typeof setPropInsensitive;
-    applyDefaultAgent: typeof applyDefaultAgent;
-    applyOldLocalAddress: typeof applyOldLocalAddress;
-    applyIPv6Rotations: typeof applyIPv6Rotations;
-    applyDefaultHeaders: typeof applyDefaultHeaders;
     generateClientPlaybackNonce: typeof generateClientPlaybackNonce;
 };
 export default _default;

@@ -32,7 +32,7 @@ type YTDL_ClientsParams = {
 
 import type { OAuth2 } from '@/core/OAuth2';
 import { YTDL_GetInfoOptions } from '@/types/options';
-import utils from '@/utils';
+import utils from '@/utils/Utils';
 import UserAgent from '@/utils/UserAgents';
 
 const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player',

@@ -26,19 +26,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.VERSION = exports.OAuth2 = exports.createProxyAgent = exports.createAgent = exports.filterFormats = exports.chooseFormat = exports.getInfo = exports.getBasicInfo = void 0;
+exports.downloadFromInfo = downloadFromInfo;
 const stream_1 = require("stream");
 const miniget_1 = __importDefault(require("miniget"));
 const m3u8stream_1 = __importStar(require("m3u8stream"));
 const Info_1 = require("./core/Info");
+Object.defineProperty(exports, "getBasicInfo", { enumerable: true, get: function () { return Info_1.getBasicInfo; } });
+Object.defineProperty(exports, "getInfo", { enumerable: true, get: function () { return Info_1.getInfo; } });
 const Agent_1 = require("./core/Agent");
+Object.defineProperty(exports, "createAgent", { enumerable: true, get: function () { return Agent_1.createAgent; } });
+Object.defineProperty(exports, "createProxyAgent", { enumerable: true, get: function () { return Agent_1.createProxyAgent; } });
 const OAuth2_1 = require("./core/OAuth2");
+Object.defineProperty(exports, "OAuth2", { enumerable: true, get: function () { return OAuth2_1.OAuth2; } });
 const Utils_1 = __importDefault(require("./utils/Utils"));
 const Url_1 = __importDefault(require("./utils/Url"));
 const DownloadOptions_1 = __importDefault(require("./utils/DownloadOptions"));
 const Format_1 = require("./utils/Format");
+Object.defineProperty(exports, "chooseFormat", { enumerable: true, get: function () { return Format_1.chooseFormat; } });
+Object.defineProperty(exports, "filterFormats", { enumerable: true, get: function () { return Format_1.filterFormats; } });
 const constants_1 = require("./utils/constants");
-const Log_1 = require("./utils/Log");
-const PoToken_1 = __importDefault(require("./core/PoToken"));
+Object.defineProperty(exports, "VERSION", { enumerable: true, get: function () { return constants_1.VERSION; } });
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
 /* Private Functions */
@@ -181,89 +189,41 @@ function downloadFromInfoCallback(stream, info, options) {
         }
     };
 }
-/* Public CLass */
-class YtdlCore {
-    static chooseFormat = Format_1.chooseFormat;
-    static filterFormats = Format_1.filterFormats;
-    static validateID = Url_1.default.validateID;
-    static validateURL = Url_1.default.validateURL;
-    static getURLVideoID = Url_1.default.getURLVideoID;
-    static getVideoID = Url_1.default.getVideoID;
-    static createAgent = Agent_1.createAgent;
-    static createProxyAgent = Agent_1.createProxyAgent;
-    static OAuth2 = OAuth2_1.OAuth2;
-    lang = 'en';
-    requestOptions = {};
-    agent;
-    poToken;
-    visitorData;
-    includesPlayerAPIResponse = false;
-    includesWatchPageInfo = false;
-    clients = [];
-    oauth2;
-    version = constants_1.VERSION;
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesWatchPageInfo, clients, oauth2, debug } = {}) {
-        this.lang = lang || 'en';
-        this.requestOptions = requestOptions || {};
-        this.agent = agent || undefined;
-        this.poToken = poToken || undefined;
-        this.visitorData = visitorData || undefined;
-        this.includesPlayerAPIResponse = includesPlayerAPIResponse || false;
-        this.includesWatchPageInfo = includesWatchPageInfo || false;
-        this.clients = clients || [];
-        this.oauth2 = oauth2 || undefined;
-        process.env.YTDL_DEBUG = (debug ?? false).toString();
-        if (!this.poToken && !this.visitorData) {
-            Log_1.Logger.info('Since PoToken and VisitorData are not specified, they are generated automatically.');
-            PoToken_1.default.generatePoToken()
-                .then(({ poToken, visitorData }) => {
-                this.poToken = poToken;
-                this.visitorData = visitorData;
-            })
-                .catch(() => { });
-        }
+/* Public Functions */
+const ytdl = (link, options = {}) => {
+    const STREAM = createStream(options);
+    (0, Info_1.getFullInfo)(link, options).then((info) => {
+        downloadFromInfoCallback(STREAM, info, options);
+    }, STREAM.emit.bind(STREAM, 'error'));
+    return STREAM;
+};
+/** Can be used to download video after its `info` is gotten through
+ * `ytdl.getInfo()`. In case the user might want to look at the
+ * `info` object before deciding to download. */
+function downloadFromInfo(info, options = {}) {
+    const STREAM = createStream(options);
+    if (!info.full) {
+        throw new Error('Cannot use `ytdl.downloadFromInfo()` when called with info from `ytdl.getBasicInfo()`');
     }
-    setupOptions(options) {
-        options.lang ??= this.lang;
-        options.requestOptions ??= this.requestOptions;
-        options.agent ??= this.agent;
-        options.poToken ??= this.poToken;
-        options.visitorData ??= this.visitorData;
-        options.includesPlayerAPIResponse ??= this.includesPlayerAPIResponse;
-        options.includesWatchPageInfo ??= this.includesWatchPageInfo;
-        options.clients ??= this.clients;
-        options.oauth2 ??= this.oauth2;
-        return options;
-    }
-    download(link, options = {}) {
-        options = this.setupOptions(options);
-        const STREAM = createStream(options);
-        (0, Info_1.getFullInfo)(link, options).then((info) => {
-            downloadFromInfoCallback(STREAM, info, options);
-        }, STREAM.emit.bind(STREAM, 'error'));
-        return STREAM;
-    }
-    downloadFromInfo(info, options = {}) {
-        options = this.setupOptions(options);
-        const STREAM = createStream(options);
-        if (!info.full) {
-            throw new Error('Cannot use `ytdl.downloadFromInfo()` when called with info from `ytdl.getBasicInfo()`');
-        }
-        setImmediate(() => {
-            downloadFromInfoCallback(STREAM, info, options);
-        });
-        return STREAM;
-    }
-    getBasicInfo(link, options = {}) {
-        return (0, Info_1.getBasicInfo)(link, this.setupOptions(options));
-    }
-    getInfo(link, options = {}) {
-        return (0, Info_1.getInfo)(link, this.setupOptions(options));
-    }
-    getFullInfo(link, options = {}) {
-        return (0, Info_1.getFullInfo)(link, this.setupOptions(options));
-    }
+    setImmediate(() => {
+        downloadFromInfoCallback(STREAM, info, options);
+    });
+    return STREAM;
 }
-module.exports = YtdlCore;
-exports.default = YtdlCore;
-//# sourceMappingURL=YtdlCore.js.map
+ytdl.downloadFromInfo = downloadFromInfo;
+ytdl.getBasicInfo = Info_1.getBasicInfo;
+ytdl.getInfo = Info_1.getInfo;
+ytdl.getFullInfo = Info_1.getFullInfo;
+ytdl.chooseFormat = Format_1.chooseFormat;
+ytdl.filterFormats = Format_1.filterFormats;
+ytdl.validateID = Url_1.default.validateID;
+ytdl.validateURL = Url_1.default.validateURL;
+ytdl.getURLVideoID = Url_1.default.getURLVideoID;
+ytdl.getVideoID = Url_1.default.getVideoID;
+ytdl.createAgent = Agent_1.createAgent;
+ytdl.createProxyAgent = Agent_1.createProxyAgent;
+ytdl.OAuth2 = OAuth2_1.OAuth2;
+ytdl.version = constants_1.VERSION;
+module.exports = ytdl;
+exports.default = ytdl;
+//# sourceMappingURL=YtdlCore.old.js.map

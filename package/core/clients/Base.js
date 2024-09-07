@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("../../core/errors");
-const utils_1 = __importDefault(require("../../utils"));
+const Utils_1 = __importDefault(require("../../utils/Utils"));
 class Base {
     static request(url, requestOptions, params) {
         return new Promise(async (resolve, reject) => {
@@ -20,7 +20,7 @@ class Base {
                     headers: HEADERS,
                     body: typeof requestOptions.payload === 'string' ? requestOptions.payload : JSON.stringify(requestOptions.payload),
                 },
-            }, RESPONSE = await utils_1.default.request(url, OPTS), PLAY_ERROR = utils_1.default.playError(RESPONSE);
+            }, RESPONSE = await Utils_1.default.request(url, OPTS), PLAY_ERROR = Utils_1.default.playError(RESPONSE);
             if (PLAY_ERROR) {
                 return reject({
                     isError: true,

@@ -1,10 +1,10 @@
 import { setTimeout } from 'timers';
 
-// A cache that expires.
 export class Cache extends Map {
     private timeout: number;
 
-    constructor(timeout = 1000) {
+    // timeout = 30 seconds
+    constructor(timeout = 1000 * 30) {
         super();
         this.timeout = timeout;
     }
@@ -50,7 +50,7 @@ export class Cache extends Map {
         }
     }
 
-    delete(key: any): boolean {
+    delete(key: string): boolean {
         let ENTRY = super.get(key);
 
         if (ENTRY) {

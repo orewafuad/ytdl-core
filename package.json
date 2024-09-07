@@ -15,6 +15,16 @@
     },
     "main": "./package/YtdlCore.js",
     "types": "./package/YtdlCore.d.ts",
+    "exports": {
+        ".": {
+            "types": "./package/YtdlCore.d.ts",
+            "default": "./package/YtdlCore.js"
+        },
+        "./old": {
+            "types": "./package/YtdlCore.old.d.ts",
+            "default": "./package/YtdlCore.old.js"
+        }
+    },
     "files": [
         "package"
     ],

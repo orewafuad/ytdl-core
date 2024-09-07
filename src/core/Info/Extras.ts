@@ -2,7 +2,7 @@ import querystring from 'querystring';
 import { parseTimestamp } from 'm3u8stream';
 
 import { YTDL_Media, YTDL_Author, YTDL_WatchPageInfo, YTDL_RelatedVideo, YT_CompactVideoRenderer, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_MoreVideoDetails, YT_YTInitialPlayerResponse, YTDL_MicroformatRenderer } from '@/types/youtube';
-import utils from '@/utils';
+import utils from '@/utils/Utils';
 import Url from '@/utils/Url';
 
 function getText(obj: any) {

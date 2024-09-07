@@ -1,18 +1,23 @@
-import { generate } from 'youtube-po-token-generator';
 import { YTDL_GetInfoOptions } from '@/types/options';
 import { YT_StreamingFormat, YT_YTInitialPlayerResponse, YTDL_MoreVideoDetailsAdditions, YTDL_VideoInfo } from '@/types/youtube';
+
 import { WebCreator, TvEmbedded, Ios, Android, Web, MWeb, Tv } from '@/core/clients';
 import { UnrecoverableError } from '@/core/errors';
+import { Cache } from '@/core/Cache';
+
 import { YTDL_ClientTypes } from '@/meta/Clients';
+
 import { Logger } from '@/utils/Log';
 import Url from '@/utils/Url';
 import { VERSION } from '@/utils/constants';
-import utils from '@/utils';
-import { Cache } from '@/cache';
+import utils from '@/utils/Utils';
+import DownloadOptionsUtils from '@/utils/DownloadOptions';
+
 import getHtml5Player from './parser/Html5Player';
 import getWatchHTMLPageInfo from './parser/WatchPage';
 import Formats from './parser/Formats';
 import InfoExtras from './Extras';
+import PoToken from '../PoToken';
 
 /* Private Constants */
 const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'],
@@ -57,10 +62,10 @@ type YTDL_PlayerResponses = {
     tv?: YT_YTInitialPlayerResponse;
 };
 async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGetInfo?: boolean): Promise<YTDL_VideoInfo> {
-    utils.applyIPv6Rotations(options);
-    utils.applyDefaultHeaders(options);
-    utils.applyDefaultAgent(options);
-    utils.applyOldLocalAddress(options);
+    DownloadOptionsUtils.applyIPv6Rotations(options);
+    DownloadOptionsUtils.applyDefaultHeaders(options);
+    DownloadOptionsUtils.applyDefaultAgent(options);
+    DownloadOptionsUtils.applyOldLocalAddress(options);
 
     options.requestOptions ??= {};
 
@@ -81,15 +86,9 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         Logger.warning('Specify poToken for stable and fast operation. See README for details.');
         Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.');
 
-        try {
-            const { poToken, visitorData } = await generate();
-            options.poToken = poToken;
-            options.visitorData = visitorData;
-
-            Logger.success('Successfully generated a poToken.');
-        } catch (err) {
-            Logger.error('Failed to generate a poToken.');
-        }
+        const { poToken, visitorData } = await PoToken.generatePoToken();
+        options.poToken = poToken;
+        options.visitorData = visitorData;
     }
 
     if (options.poToken && !options.visitorData) {
@@ -135,7 +134,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             isMinimumMode: false,
             _ytdl: {
                 version: VERSION,
-            }
+            },
         } as any;
 
     let errorDetails: any | null = null;

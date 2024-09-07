@@ -1,11 +1,15 @@
 import { YTDL_GetInfoOptions } from '@/types/options';
 import { YT_YTInitialPlayerResponse, YTDL_VideoInfo } from '@/types/youtube';
-import utils from '@/utils';
-import formatUtils from '@/format-utils';
+
+import { Cache } from '@/core/Cache';
+import sig from '@/core/Signature';
+
 import Url from '@/utils/Url';
-import { Cache } from '@/cache';
-import sig from '@/sig';
 import { Logger } from '@/utils/Log';
+import utils from '@/utils/Utils';
+import downloadOptionsUtils from '@/utils/DownloadOptions';
+import formatUtils from '@/utils/Format';
+
 import { _getBasicInfo } from './BasicInfo';
 import Formats from './parser/Formats';
 
@@ -15,10 +19,10 @@ const CACHE = new Cache();
 
 /** Gets info from a video additional formats and deciphered Url. */
 async function _getFullInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_VideoInfo> {
-    utils.applyIPv6Rotations(options);
-    utils.applyDefaultHeaders(options);
-    utils.applyDefaultAgent(options);
-    utils.applyOldLocalAddress(options);
+    downloadOptionsUtils.applyIPv6Rotations(options);
+    downloadOptionsUtils.applyDefaultHeaders(options);
+    downloadOptionsUtils.applyDefaultAgent(options);
+    downloadOptionsUtils.applyOldLocalAddress(options);
 
     const INFO: YTDL_VideoInfo = await _getBasicInfo(id, options, true),
         FUNCTIONS = [];

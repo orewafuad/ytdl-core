@@ -1,7 +1,4 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.lastUpdateCheck = void 0;
 exports.between = between;
@@ -18,17 +15,12 @@ exports.getRandomIPv6 = getRandomIPv6;
 exports.saveDebugFile = saveDebugFile;
 exports.getPropInsensitive = getPropInsensitive;
 exports.setPropInsensitive = setPropInsensitive;
-exports.applyDefaultAgent = applyDefaultAgent;
-exports.applyOldLocalAddress = applyOldLocalAddress;
-exports.applyIPv6Rotations = applyIPv6Rotations;
-exports.applyDefaultHeaders = applyDefaultHeaders;
 exports.generateClientPlaybackNonce = generateClientPlaybackNonce;
 const undici_1 = require("undici");
 const node_fs_1 = require("node:fs");
-const Agent_1 = __importDefault(require("./core/Agent"));
-const constants_1 = require("./utils/constants");
-const Log_1 = require("./utils/Log");
-const UserAgents_1 = __importDefault(require("./utils/UserAgents"));
+const errors_1 = require("../core/errors");
+const constants_1 = require("../utils/constants");
+const Log_1 = require("../utils/Log");
 const ESCAPING_SEQUENCE = [
     { start: '"', end: '"' },
     { start: "'", end: "'" },
@@ -41,17 +33,6 @@ const UPDATE_INTERVAL = 1000 * 60 * 60 * 12;
 /* Private Functions */
 function findPropKeyInsensitive(obj, prop) {
     return Object.keys(obj).find((p) => p.toLowerCase() === prop.toLowerCase()) || null;
-}
-/* ----------- */
-/* Private Classes */
-class UnrecoverableError extends Error {
-}
-class RequestError extends Error {
-    statusCode;
-    constructor(message) {
-        super(message);
-        this.statusCode = 0;
-    }
 }
 /* ----------- */
 /* Public Functions */
@@ -168,13 +149,13 @@ function playError(playerResponse) {
         return null;
     }
     if (PLAYABILITY.status === 'ERROR' || PLAYABILITY.status === 'LOGIN_REQUIRED') {
-        return new UnrecoverableError(PLAYABILITY.reason || (PLAYABILITY.messages && PLAYABILITY.messages[0]));
+        return new errors_1.UnrecoverableError(PLAYABILITY.reason || (PLAYABILITY.messages && PLAYABILITY.messages[0]));
     }
     else if (PLAYABILITY.status === 'LIVE_STREAM_OFFLINE') {
-        return new UnrecoverableError(PLAYABILITY.reason || 'The live stream is offline.');
+        return new errors_1.UnrecoverableError(PLAYABILITY.reason || 'The live stream is offline.');
     }
     else if (PLAYABILITY.status === 'UNPLAYABLE') {
-        return new UnrecoverableError(PLAYABILITY.reason || 'This video is unavailable.');
+        return new errors_1.UnrecoverableError(PLAYABILITY.reason || 'This video is unavailable.');
     }
     return null;
 }
@@ -191,7 +172,7 @@ async function request(url, options = {}) {
     else if (STATUS_CODE.startsWith('3') && LOCATION) {
         return request(LOCATION.toString(), options);
     }
-    const ERROR = new RequestError(`Status Code: ${STATUS_CODE}`);
+    const ERROR = new errors_1.RequestError(`Status Code: ${STATUS_CODE}`);
     ERROR.statusCode = REQUEST_RESULTS.statusCode;
     throw ERROR;
 }
@@ -276,62 +257,9 @@ function setPropInsensitive(obj, prop, value) {
     obj[KEY || prop] = value;
     return KEY;
 }
-let oldCookieWarning = true;
-let oldDispatcherWarning = true;
-function applyDefaultAgent(options) {
-    if (!options.agent) {
-        const { jar } = Agent_1.default.defaultAgent, COOKIE = getPropInsensitive(options?.requestOptions?.headers, 'cookie');
-        if (COOKIE) {
-            jar.removeAllCookiesSync();
-            Agent_1.default.addCookiesFromString(jar, COOKIE);
-            if (oldCookieWarning) {
-                oldCookieWarning = false;
-                Log_1.Logger.warning('Using old cookie format, please use the new one instead. (https://github.com/ybd-project/ytdl-core#cookies-support)');
-            }
-        }
-        if (options.requestOptions?.dispatcher && oldDispatcherWarning) {
-            oldDispatcherWarning = false;
-            Log_1.Logger.warning('Your dispatcher is overridden by `ytdl.Agent`. To implement your own, check out the documentation. (https://github.com/ybd-project/ytdl-core#how-to-implement-ytdlagent-with-your-own-dispatcher)');
-        }
-        options.agent = Agent_1.default.defaultAgent;
-    }
-}
-let oldLocalAddressWarning = true;
-function applyOldLocalAddress(options) {
-    const REQUEST_OPTION_LOCAL_ADDRESS = options.requestOptions.localAddress;
-    if (!options.requestOptions || !REQUEST_OPTION_LOCAL_ADDRESS || REQUEST_OPTION_LOCAL_ADDRESS === options.agent?.localAddress) {
-        return;
-    }
-    options.agent = Agent_1.default.createAgent(undefined, {
-        localAddress: REQUEST_OPTION_LOCAL_ADDRESS,
-    });
-    if (oldLocalAddressWarning) {
-        oldLocalAddressWarning = false;
-        Log_1.Logger.warning('Using old localAddress option, please add it to the agent options instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
-    }
-}
-let oldIpRotationsWarning = true;
-function applyIPv6Rotations(options) {
-    if (options.IPv6Block) {
-        options.requestOptions = Object.assign({}, options.requestOptions, {
-            localAddress: getRandomIPv6(options.IPv6Block),
-        });
-        if (oldIpRotationsWarning) {
-            oldIpRotationsWarning = false;
-            oldLocalAddressWarning = false;
-            Log_1.Logger.warning('IPv6Block option is deprecated, ' + 'please create your own ip rotation instead. (https://github.com/ybd-project/ytdl-core#ip-rotation)');
-        }
-    }
-}
-function applyDefaultHeaders(options) {
-    options.requestOptions = Object.assign({}, options.requestOptions);
-    options.requestOptions.headers = Object.assign({}, {
-        'User-Agent': UserAgents_1.default.default,
-    }, options.requestOptions.headers);
-}
 function generateClientPlaybackNonce(length) {
     const CPN_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
     return Array.from({ length }, () => CPN_CHARS[Math.floor(Math.random() * CPN_CHARS.length)]).join('');
 }
-exports.default = { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, playError, request, deprecate, lastUpdateCheck, checkForUpdates, isIPv6, normalizeIP, getRandomIPv6, saveDebugFile, getPropInsensitive, setPropInsensitive, applyDefaultAgent, applyOldLocalAddress, applyIPv6Rotations, applyDefaultHeaders, generateClientPlaybackNonce };
-//# sourceMappingURL=utils.js.map
+exports.default = { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, playError, request, deprecate, lastUpdateCheck, checkForUpdates, isIPv6, normalizeIP, getRandomIPv6, saveDebugFile, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+//# sourceMappingURL=Utils.js.map

@@ -1,8 +1,10 @@
 import type { YTDL_GetInfoOptions } from '@/types/options';
-import { Cache } from '@/cache';
-import utils from '@/utils';
+
+import { Cache } from '@/core/Cache';
+
 import Url from '@/utils/Url';
 import UserAgent from '@/utils/UserAgents';
+import utils from '@/utils/Utils';
 
 const WATCH_PAGE_CACHE = new Cache();
 

@@ -18,6 +18,9 @@ export type YTDL_OAuth2Credentials = {
     refreshToken: string;
     expiryDate: string;
     clientData?: YTDL_OAuth2ClientData;
+    expiresIn?: number;
+    scope?: string;
+    tokenType?: string;
 };
 export type YTDL_GetInfoOptions = {
     lang?: string;

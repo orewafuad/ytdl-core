@@ -1,32 +1,41 @@
+type YTDL_Constructor = YTDL_GetInfoOptions & {
+    debug?: boolean;
+};
 import { PassThrough } from 'stream';
-import Url from './utils/Url';
-import { chooseFormat, filterFormats } from './format-utils';
+import { YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/options';
+import { YTDL_VideoInfo } from './types/youtube';
+import { YTDL_Agent } from './types/agent';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
-import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
-import { YTDL_DownloadOptions } from './types/options';
-import { YTDL_VideoInfo } from './types/youtube';
-import { VERSION } from './utils/constants';
-declare const ytdl: {
-    (link: string, options?: YTDL_DownloadOptions): PassThrough;
-    downloadFromInfo: typeof downloadFromInfo;
-    getBasicInfo: typeof getBasicInfo;
-    getInfo: typeof getInfo;
-    getFullInfo: typeof getFullInfo;
-    chooseFormat: typeof chooseFormat;
-    filterFormats: typeof filterFormats;
-    validateID: typeof Url.validateID;
-    validateURL: typeof Url.validateURL;
-    getURLVideoID: typeof Url.getURLVideoID;
-    getVideoID: typeof Url.getVideoID;
-    createAgent: typeof createAgent;
-    createProxyAgent: typeof createProxyAgent;
-    OAuth2: typeof OAuth2;
+import { YTDL_ClientTypes } from './meta/Clients';
+import Url from './utils/Url';
+import { chooseFormat, filterFormats } from './utils/Format';
+declare class YtdlCore {
+    static chooseFormat: typeof chooseFormat;
+    static filterFormats: typeof filterFormats;
+    static validateID: typeof Url.validateID;
+    static validateURL: typeof Url.validateURL;
+    static getURLVideoID: typeof Url.getURLVideoID;
+    static getVideoID: typeof Url.getVideoID;
+    static createAgent: typeof createAgent;
+    static createProxyAgent: typeof createProxyAgent;
+    static OAuth2: typeof OAuth2;
+    lang: string;
+    requestOptions: any;
+    agent: YTDL_Agent | undefined;
+    poToken: string | undefined;
+    visitorData: string | undefined;
+    includesPlayerAPIResponse: boolean;
+    includesWatchPageInfo: boolean;
+    clients: Array<YTDL_ClientTypes>;
+    oauth2: OAuth2 | undefined;
     version: string;
-};
-/** Can be used to download video after its `info` is gotten through
- * `ytdl.getInfo()`. In case the user might want to look at the
- * `info` object before deciding to download. */
-declare function downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;
-export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, createAgent, createProxyAgent, OAuth2, VERSION };
-export default ytdl;
+    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesWatchPageInfo, clients, oauth2, debug }?: YTDL_Constructor);
+    private setupOptions;
+    download(link: string, options?: YTDL_DownloadOptions): PassThrough;
+    downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;
+    getBasicInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
+    getInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
+    getFullInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
+}
+export default YtdlCore;

@@ -1,10 +1,12 @@
 import querystring from 'querystring';
 import vm from 'node:vm';
-import { Cache } from './cache';
-import utils from './utils';
-import { Logger } from './utils/Log';
 
 import { YTDL_RequestOptions } from '@/types/options';
+
+import utils from '@/utils/Utils';
+import { Logger } from '@/utils/Log';
+
+import { Cache } from './Cache';
 
 /* Private Constants */
 const DECIPHER_NAME_REGEXPS = [
@@ -16,42 +18,37 @@ const DECIPHER_NAME_REGEXPS = [
 ];
 
 // LavaPlayer regexps
-const VARIABLE_PART = '[a-zA-Z_\\$][a-zA-Z_0-9]*';
-const VARIABLE_PART_DEFINE = `\\"?${VARIABLE_PART}\\"?`;
-const BEFORE_ACCESS = '(?:\\[\\"|\\.)';
-const AFTER_ACCESS = '(?:\\"\\]|)';
-const VARIABLE_PART_ACCESS = BEFORE_ACCESS + VARIABLE_PART + AFTER_ACCESS;
-const REVERSE_PART = ':function\\(a\\)\\{(?:return )?a\\.reverse\\(\\)\\}';
-const SLICE_PART = ':function\\(a,b\\)\\{return a\\.slice\\(b\\)\\}';
-const SPLICE_PART = ':function\\(a,b\\)\\{a\\.splice\\(0,b\\)\\}';
-const SWAP_PART = ':function\\(a,b\\)\\{' + 'var c=a\\[0\\];a\\[0\\]=a\\[b%a\\.length\\];a\\[b(?:%a.length|)\\]=c(?:;return a)?\\}';
-
-const DECIPHER_REGEXP = `function(?: ${VARIABLE_PART})?\\(a\\)\\{` + `a=a\\.split\\(""\\);\\s*` + `((?:(?:a=)?${VARIABLE_PART}${VARIABLE_PART_ACCESS}\\(a,\\d+\\);)+)` + `return a\\.join\\(""\\)` + `\\}`;
-
-const HELPER_REGEXP = `var (${VARIABLE_PART})=\\{((?:(?:${VARIABLE_PART_DEFINE}${REVERSE_PART}|${VARIABLE_PART_DEFINE}${SLICE_PART}|${VARIABLE_PART_DEFINE}${SPLICE_PART}|${VARIABLE_PART_DEFINE}${SWAP_PART}),?\\n?)+)\\};`;
-
-const SCVR = '[a-zA-Z0-9$_]';
-const FNR = `${SCVR}+`;
-const AAR = '\\[(\\d+)]';
-const N_TRANSFORM_NAME_REGEXPS = [
-    // NewPipeExtractor regexps
-    `${SCVR}+="nn"\\[\\+${SCVR}+\\.${SCVR}+],${SCVR}+=${SCVR}+\\.get\\(${SCVR}+\\)\\)&&\\(${SCVR}+=(${SCVR}+)\\[(\\d+)]`,
-    `${SCVR}+="nn"\\[\\+${SCVR}+\\.${SCVR}+],${SCVR}+=${SCVR}+\\.get\\(${SCVR}+\\)\\).+\\|\\|(${SCVR}+)\\(""\\)`,
-    `\\(${SCVR}=String\\.fromCharCode\\(110\\),${SCVR}=${SCVR}\\.get\\(${SCVR}\\)\\)&&\\(${SCVR}=(${FNR})(?:${AAR})?\\(${SCVR}\\)`,
-    `\\.get\\("n"\\)\\)&&\\(${SCVR}=(${FNR})(?:${AAR})?\\(${SCVR}\\)`,
-    // Skick regexps
-    '(\\w+).length\\|\\|\\w+\\(""\\)',
-    '\\w+.length\\|\\|(\\w+)\\(""\\)',
-];
+const VARIABLE_PART = '[a-zA-Z_\\$][a-zA-Z_0-9]*',
+    VARIABLE_PART_DEFINE = `\\"?${VARIABLE_PART}\\"?`,
+    BEFORE_ACCESS = '(?:\\[\\"|\\.)',
+    AFTER_ACCESS = '(?:\\"\\]|)',
+    VARIABLE_PART_ACCESS = BEFORE_ACCESS + VARIABLE_PART + AFTER_ACCESS,
+    REVERSE_PART = ':function\\(a\\)\\{(?:return )?a\\.reverse\\(\\)\\}',
+    SLICE_PART = ':function\\(a,b\\)\\{return a\\.slice\\(b\\)\\}',
+    SPLICE_PART = ':function\\(a,b\\)\\{a\\.splice\\(0,b\\)\\}',
+    SWAP_PART = ':function\\(a,b\\)\\{' + 'var c=a\\[0\\];a\\[0\\]=a\\[b%a\\.length\\];a\\[b(?:%a.length|)\\]=c(?:;return a)?\\}',
+    DECIPHER_REGEXP = `function(?: ${VARIABLE_PART})?\\(a\\)\\{` + `a=a\\.split\\(""\\);\\s*` + `((?:(?:a=)?${VARIABLE_PART}${VARIABLE_PART_ACCESS}\\(a,\\d+\\);)+)` + `return a\\.join\\(""\\)` + `\\}`,
+    HELPER_REGEXP = `var (${VARIABLE_PART})=\\{((?:(?:${VARIABLE_PART_DEFINE}${REVERSE_PART}|${VARIABLE_PART_DEFINE}${SLICE_PART}|${VARIABLE_PART_DEFINE}${SPLICE_PART}|${VARIABLE_PART_DEFINE}${SWAP_PART}),?\\n?)+)\\};`,
+    SCVR = '[a-zA-Z0-9$_]',
+    FNR = `${SCVR}+`,
+    AAR = '\\[(\\d+)]',
+    N_TRANSFORM_NAME_REGEXPS = [
+        // NewPipeExtractor regexps
+        `${SCVR}+="nn"\\[\\+${SCVR}+\\.${SCVR}+],${SCVR}+=${SCVR}+\\.get\\(${SCVR}+\\)\\)&&\\(${SCVR}+=(${SCVR}+)\\[(\\d+)]`,
+        `${SCVR}+="nn"\\[\\+${SCVR}+\\.${SCVR}+],${SCVR}+=${SCVR}+\\.get\\(${SCVR}+\\)\\).+\\|\\|(${SCVR}+)\\(""\\)`,
+        `\\(${SCVR}=String\\.fromCharCode\\(110\\),${SCVR}=${SCVR}\\.get\\(${SCVR}\\)\\)&&\\(${SCVR}=(${FNR})(?:${AAR})?\\(${SCVR}\\)`,
+        `\\.get\\("n"\\)\\)&&\\(${SCVR}=(${FNR})(?:${AAR})?\\(${SCVR}\\)`,
+        // Skick regexps
+        '(\\w+).length\\|\\|\\w+\\(""\\)',
+        '\\w+.length\\|\\|(\\w+)\\(""\\)',
+    ];
 
 // LavaPlayer regexps
-const N_TRANSFORM_REGEXP = 'function\\(\\s*(\\w+)\\s*\\)\\s*\\{' + 'var\\s*(\\w+)=(?:\\1\\.split\\(""\\)|String\\.prototype\\.split\\.call\\(\\1,""\\)),' + '\\s*(\\w+)=(\\[.*?]);\\s*\\3\\[\\d+]' + '(.*?try)(\\{.*?})catch\\(\\s*(\\w+)\\s*\\)\\s*\\' + '{\\s*return"enhanced_except_([A-z0-9-]+)"\\s*\\+\\s*\\1\\s*}' + '\\s*return\\s*(\\2\\.join\\(""\\)|Array\\.prototype\\.join\\.call\\(\\2,""\\))};';
-
-const DECIPHER_ARGUMENT = 'sig';
-const N_ARGUMENT = 'ncode';
-
-const DECIPHER_FUNC_NAME = 'YBDProjectDecipherFunc';
-const N_TRANSFORM_FUNC_NAME = 'YBDProjectNTransformFunc';
+const N_TRANSFORM_REGEXP = 'function\\(\\s*(\\w+)\\s*\\)\\s*\\{' + 'var\\s*(\\w+)=(?:\\1\\.split\\(""\\)|String\\.prototype\\.split\\.call\\(\\1,""\\)),' + '\\s*(\\w+)=(\\[.*?]);\\s*\\3\\[\\d+]' + '(.*?try)(\\{.*?})catch\\(\\s*(\\w+)\\s*\\)\\s*\\' + '{\\s*return"enhanced_except_([A-z0-9-]+)"\\s*\\+\\s*\\1\\s*}' + '\\s*return\\s*(\\2\\.join\\(""\\)|Array\\.prototype\\.join\\.call\\(\\2,""\\))};',
+    DECIPHER_ARGUMENT = 'sig',
+    N_ARGUMENT = 'ncode',
+    DECIPHER_FUNC_NAME = 'YBDProjectDecipherFunc',
+    N_TRANSFORM_FUNC_NAME = 'YBDProjectNTransformFunc';
 
 /* ----------- */
 

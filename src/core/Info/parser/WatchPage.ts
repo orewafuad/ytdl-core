@@ -1,6 +1,6 @@
 import { YTDL_GetInfoOptions } from '@/types/options';
 import { YT_YTInitialPlayerResponse, YTDL_WatchPageInfo } from '@/types/youtube';
-import utils from '@/utils';
+import utils from '@/utils/Utils';
 import YouTubePageExtractor from './PageExtractor';
 import getHtml5Player from './Html5Player';
 

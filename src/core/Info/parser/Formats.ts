@@ -14,7 +14,7 @@ import sax from 'sax';
 
 import { YTDL_RequestOptions } from '@/types/options';
 import { YT_StreamingFormat, YT_YTInitialPlayerResponse } from '@/types/youtube';
-import utils from '@/utils';
+import utils from '@/utils/Utils';
 import Url from '@/utils/Url';
 
 export default class Formats {
