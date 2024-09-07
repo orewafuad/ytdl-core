@@ -2,6 +2,8 @@ import type { YTDL_GetInfoOptions } from '@/types/options';
 import { Cache } from '@/cache';
 import utils from '@/utils';
 import Url from '@/utils/Url';
+import UserAgent from '@/utils/UserAgents';
+import Clients from '@/meta/Clients';
 
 const WATCH_PAGE_CACHE = new Cache();
 
@@ -12,6 +14,13 @@ export default class YouTubePageExtractor {
 
     static getWatchPageBody(id: string, options: YTDL_GetInfoOptions): Promise<string> {
         const WATCH_PAGE_URL = YouTubePageExtractor.getWatchHtmlUrl(id, options);
+
+        options.requestOptions = Object.assign({}, options.requestOptions);
+        options.requestOptions.headers = {
+            'User-Agent': UserAgent.default,
+            ...Clients.getAuthorizationHeader(options.oauth2),
+            ...options.requestOptions.headers,
+        };
 
         return WATCH_PAGE_CACHE.getOrSet(WATCH_PAGE_URL, () => utils.request(WATCH_PAGE_URL, options)) || Promise.resolve('');
     }
