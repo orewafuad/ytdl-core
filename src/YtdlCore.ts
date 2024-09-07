@@ -7,7 +7,6 @@ import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils'
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
 import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
-import pkg from '../package.json';
 
 import { YTDL_DownloadOptions } from '@/types/options';
 import { YTDL_VideoInfo } from '@/types/youtube';

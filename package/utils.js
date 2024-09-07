@@ -25,9 +25,9 @@ exports.applyDefaultHeaders = applyDefaultHeaders;
 exports.generateClientPlaybackNonce = generateClientPlaybackNonce;
 const undici_1 = require("undici");
 const node_fs_1 = require("node:fs");
+const Agent_1 = __importDefault(require("./core/Agent"));
 const constants_1 = require("./utils/constants");
 const Log_1 = require("./utils/Log");
-const Agent_1 = __importDefault(require("./core/Agent"));
 const UserAgents_1 = __importDefault(require("./utils/UserAgents"));
 const ESCAPING_SEQUENCE = [
     { start: '"', end: '"' },
