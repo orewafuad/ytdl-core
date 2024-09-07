@@ -9,7 +9,6 @@
     },
     "dependencies": {
         "@inquirer/prompts": "^5.5.0",
-        "got": "^11.8.5",
-        "inquirer": ""
+        "got": "^11.8.5"
     }
 }
