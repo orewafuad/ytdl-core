@@ -40,7 +40,7 @@ class OAuth2 {
             throw new Error('Failed to get client data: ' + YT_TV_RESPONSE.status);
         }
         const YT_TV_HTML = await YT_TV_RESPONSE.text(), SCRIPT_PATH = REGEX.tvScript.exec(YT_TV_HTML)?.[1];
-        if (SCRIPT_PATH !== null) {
+        if (SCRIPT_PATH) {
             Log_1.Logger.debug('Found YouTube TV script: ' + SCRIPT_PATH);
             const SCRIPT_RESPONSE = await (0, undici_1.fetch)(Url_1.default.getBaseUrl() + SCRIPT_PATH);
             if (!SCRIPT_RESPONSE.ok) {

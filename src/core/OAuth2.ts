@@ -53,7 +53,7 @@ export class OAuth2 {
         const YT_TV_HTML = await YT_TV_RESPONSE.text(),
             SCRIPT_PATH = REGEX.tvScript.exec(YT_TV_HTML)?.[1];
 
-        if (SCRIPT_PATH !== null) {
+        if (SCRIPT_PATH) {
             Logger.debug('Found YouTube TV script: ' + SCRIPT_PATH);
 
             const SCRIPT_RESPONSE = await fetch(Url.getBaseUrl() + SCRIPT_PATH);
