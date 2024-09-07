@@ -12,11 +12,12 @@ import { WebCreator, TvEmbedded, Ios, Android, Web, MWeb, Tv } from '@/core/clie
 import getHtml5Player from './parser/Html5Player';
 import getWatchHTMLPageInfo from './parser/WatchPage';
 import Formats from './parser/Formats';
+import Urls from '@/utils/Urls';
 
 /* Private Constants */
-const BASE_URL = 'https://www.youtube.com/watch?v=',
-    AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'],
-    BASE_CLIENTS: Array<YTDL_ClientTypes> = ['web_creator', 'tv_embedded', 'ios', 'android'];
+const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'],
+    BASE_CLIENTS: Array<YTDL_ClientTypes> = ['web_creator', 'tv_embedded', 'ios', 'android'],
+    BASIC_INFO_CACHE = new Cache();
 
 /* ----------- */
 
@@ -36,11 +37,6 @@ async function getSignatureTimestamp(html5player: string, options: YTDL_GetInfoO
 
     return MO ? MO[1] : undefined;
 }
-
-/* ----------- */
-
-/* Public Constants */
-const BASIC_INFO_CACHE = new Cache();
 
 /* ----------- */
 
@@ -167,7 +163,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         MEDIA = extras.getMedia(WATCH_PAGE_INFO),
         AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))),
         ADDITIONAL_DATA: YTDL_MoreVideoDetailsAdditions = {
-            video_url: BASE_URL + id,
+            video_url: Urls.getWatchPageUrl(id),
             author: extras.getAuthor(WATCH_PAGE_INFO),
             media: MEDIA,
             likes: extras.getLikes(WATCH_PAGE_INFO),

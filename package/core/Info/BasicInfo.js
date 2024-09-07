@@ -14,8 +14,9 @@ const clients_1 = require("../../core/clients");
 const Html5Player_1 = __importDefault(require("./parser/Html5Player"));
 const WatchPage_1 = __importDefault(require("./parser/WatchPage"));
 const Formats_1 = __importDefault(require("./parser/Formats"));
+const Urls_1 = __importDefault(require("../../utils/Urls"));
 /* Private Constants */
-const BASE_URL = 'https://www.youtube.com/watch?v=', AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], BASE_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android'];
+const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], BASE_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android'], BASIC_INFO_CACHE = new cache_1.Cache();
 /* ----------- */
 /* Private FUnctions */
 function setupClients(clients) {
@@ -29,9 +30,6 @@ async function getSignatureTimestamp(html5player, options) {
     const BODY = await utils_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
     return MO ? MO[1] : undefined;
 }
-/* ----------- */
-/* Public Constants */
-const BASIC_INFO_CACHE = new cache_1.Cache();
 async function _getBasicInfo(id, options, isFromGetInfo) {
     utils_1.default.applyIPv6Rotations(options);
     utils_1.default.applyDefaultHeaders(options);
@@ -117,7 +115,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     /* Filtered */
     const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_ARRAY.filter((p) => p.storyboards)[0], VIDEO_DETAILS = PLAYER_RESPONSE_ARRAY.filter((p) => p.videoDetails)[0]?.videoDetails || {}, MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p.microformat)[0]?.microformat || null;
     const STORYBOARDS = info_extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = info_extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
-        video_url: BASE_URL + id,
+        video_url: Urls_1.default.getWatchPageUrl(id),
         author: info_extras_1.default.getAuthor(WATCH_PAGE_INFO),
         media: MEDIA,
         likes: info_extras_1.default.getLikes(WATCH_PAGE_INFO),
