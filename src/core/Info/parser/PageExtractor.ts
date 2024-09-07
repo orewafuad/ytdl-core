@@ -1,13 +1,13 @@
 import type { YTDL_GetInfoOptions } from '@/types/options';
 import { Cache } from '@/cache';
 import utils from '@/utils';
-import Urls from '@/utils/Urls';
+import Url from '@/utils/Url';
 
 const WATCH_PAGE_CACHE = new Cache();
 
 export default class YouTubePageExtractor {
     static getWatchHtmlUrl(id: string, options: YTDL_GetInfoOptions): string {
-        return `${Urls.getWatchPageUrl(id)}&hl=${options.lang || 'en'}&bpctr=${Math.ceil(Date.now() / 1000)}&has_verified=1`;
+        return `${Url.getWatchPageUrl(id)}&hl=${options.lang || 'en'}&bpctr=${Math.ceil(Date.now() / 1000)}&has_verified=1`;
     }
 
     static getWatchPageBody(id: string, options: YTDL_GetInfoOptions): Promise<string> {
@@ -17,7 +17,7 @@ export default class YouTubePageExtractor {
     }
 
     static getEmbedPageBody(id: string, options: YTDL_GetInfoOptions): Promise<string> {
-        const EMBED_PAGE_URL = `${Urls.getEmbedUrl(id)}?hl=${options.lang || 'en'}`;
+        const EMBED_PAGE_URL = `${Url.getEmbedUrl(id)}?hl=${options.lang || 'en'}`;
 
         return utils.request(EMBED_PAGE_URL, options);
     }

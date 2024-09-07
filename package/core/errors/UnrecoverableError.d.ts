@@ -1,0 +1,2 @@
+export default class UnrecoverableError extends Error {
+}

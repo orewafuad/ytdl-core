@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getInfo = getInfo;
 const utils_1 = __importDefault(require("../../utils"));
 const format_utils_1 = __importDefault(require("../../format-utils"));
-const url_utils_1 = __importDefault(require("../../url-utils"));
+const Url_1 = __importDefault(require("../../utils/Url"));
 const cache_1 = require("../../cache");
 const sig_1 = __importDefault(require("../../sig"));
 const Log_1 = require("../../utils/Log");
@@ -14,8 +14,7 @@ const BasicInfo_1 = require("./BasicInfo");
 const Formats_1 = __importDefault(require("./parser/Formats"));
 const CACHE = new cache_1.Cache();
 /* Public Functions */
-// TODO: Clean up this function for readability and support more clients
-/** Gets info from a video additional formats and deciphered URLs. */
+/** Gets info from a video additional formats and deciphered Url. */
 async function _getFullInfo(id, options) {
     utils_1.default.applyIPv6Rotations(options);
     utils_1.default.applyDefaultHeaders(options);
@@ -51,12 +50,12 @@ async function _getFullInfo(id, options) {
 async function getInfo(link, options = {}) {
     Log_1.Logger.warning('`getInfo` is deprecated and will be removed in the next major version. Please use `getFullInfo` instead.');
     utils_1.default.checkForUpdates();
-    const ID = url_utils_1.default.getVideoID(link), CACHE_KEY = ['getFullInfo', ID, options.lang].join('-');
+    const ID = Url_1.default.getVideoID(link), CACHE_KEY = ['getFullInfo', ID, options.lang].join('-');
     return CACHE.getOrSet(CACHE_KEY, () => _getFullInfo(ID, options));
 }
 async function getFullInfo(link, options = {}) {
     utils_1.default.checkForUpdates();
-    const ID = url_utils_1.default.getVideoID(link), CACHE_KEY = ['getFullInfo', ID, options.lang].join('-');
+    const ID = Url_1.default.getVideoID(link), CACHE_KEY = ['getFullInfo', ID, options.lang].join('-');
     return CACHE.getOrSet(CACHE_KEY, () => _getFullInfo(ID, options));
 }
 exports.default = getFullInfo;

@@ -15,7 +15,7 @@ import sax from 'sax';
 import { YTDL_RequestOptions } from '@/types/options';
 import { YT_StreamingFormat, YT_YTInitialPlayerResponse } from '@/types/youtube';
 import utils from '@/utils';
-import Urls from '@/utils/Urls';
+import Url from '@/utils/Url';
 
 export default class Formats {
     static parseFormats(playerResponse: YT_YTInitialPlayerResponse | null): Array<YT_StreamingFormat> {
@@ -29,7 +29,7 @@ export default class Formats {
     }
 
     static async getM3U8(url: string, options: YTDL_RequestOptions): Promise<Record<string, YTDL_M3U8Data>> {
-        const _URL = new URL(url, Urls.getBaseUrl()),
+        const _URL = new URL(url, Url.getBaseUrl()),
             BODY = await utils.request<string>(_URL.toString(), options),
             FORMATS: Record<string, YTDL_M3U8Data> = {};
 
@@ -95,7 +95,7 @@ export default class Formats {
             };
 
             utils
-                .request(new URL(url, Urls.getBaseUrl()).toString(), options)
+                .request(new URL(url, Url.getBaseUrl()).toString(), options)
                 .then((res: any) => {
                     PARSER.write(res);
                     PARSER.close();

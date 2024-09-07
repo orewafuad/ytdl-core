@@ -7,7 +7,7 @@ interface RefreshApiResponse {
 
 import { YTDL_OAuth2ClientData, YTDL_OAuth2Credentials } from '@/types/options';
 import { Logger } from '@/utils/Log';
-import Urls from '@/utils/Urls';
+import Url from '@/utils/Url';
 import UserAgent from '@/utils/UserAgents';
 
 /* Reference: LuanRT/YouTube.js */
@@ -36,10 +36,10 @@ export class OAuth2 {
     }
 
     private async getClientData(): Promise<YTDL_OAuth2ClientData> {
-        const YT_TV_RESPONSE = await fetch(Urls.getTvUrl(), {
+        const YT_TV_RESPONSE = await fetch(Url.getTvUrl(), {
             headers: {
                 'User-Agent': UserAgent.tv,
-                Referer: Urls.getTvUrl(),
+                Referer: Url.getTvUrl(),
             },
         });
 
@@ -54,7 +54,7 @@ export class OAuth2 {
         if (SCRIPT_PATH !== null) {
             Logger.debug('Found YouTube TV script: ' + SCRIPT_PATH);
 
-            const SCRIPT_RESPONSE = await fetch(Urls.getBaseUrl() + SCRIPT_PATH);
+            const SCRIPT_RESPONSE = await fetch(Url.getBaseUrl() + SCRIPT_PATH);
             if (!SCRIPT_RESPONSE.ok) {
                 this.isEnabled = false;
                 throw new Error('TV script request failed with status code: ' + SCRIPT_RESPONSE.status);
@@ -91,8 +91,6 @@ export class OAuth2 {
             return;
         }
 
-        console.log(this)
-
         if (!this.clientId || !this.clientSecret) {
             const { clientId, clientSecret } = await this.getClientData();
 
@@ -110,7 +108,7 @@ export class OAuth2 {
                 refresh_token: this.refreshToken,
                 grant_type: 'refresh_token',
             },
-            REFRESH_API_RESPONSE = await fetch(Urls.getRefreshTokenApiUrl(), {
+            REFRESH_API_RESPONSE = await fetch(Url.getRefreshTokenApiUrl(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

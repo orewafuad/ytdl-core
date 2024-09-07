@@ -49,7 +49,7 @@ ytdl.getBasicInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ').then((info) => {
 });
 
 // Get video info with download formats
-ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ').then((info) => {
+ytdl.getFullInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ').then((info) => {
     console.log(info.formats);
 });
 ```
@@ -64,29 +64,36 @@ Currently, the use of cookies is deprecated due to the “Sign in to confirm you
 
 These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
 
+> [!TIP]
+> Do not specify OAuth2 directly as an argument. If you specify it directly, the token will be renewed repeatedly when it expires. Be sure to assign the token to a variable before specifying it.
+
 ```js
 const ytdl = require('@ybd-project/ytdl-core');
 
 /* Normal usage */
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", {
-    oauth2: new ytdl.OAuth2({
-        accessToken: "...",
-        refreshToken: "...",
-        expiryDate: "yyyy-MM-ddThh-mm-ssZ",
-    }),
+const NORMAL_OAUTH2 = new ytdl.OAuth2({
+    accessToken: '...',
+    refreshToken: '...',
+    expiryDate: 'yyyy-MM-ddThh-mm-ssZ',
+});
+
+ytdl.getFullInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', {
+    oauth2: NORMAL_OAUTH2,
 });
 
 /* If you need to specify a client ID and secret */
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", {
-    oauth2: new ytdl.OAuth2({
-        accessToken: "...",
-        refreshToken: "...",
-        expiryDate: "yyyy-MM-ddThh-mm-ssZ",
-        clientData: {
-            clientId: '...',
-            clientSecret: '...',
-        }
-    }),
+const OAUTH2_SPECIFY_CLIENT_DATA = new ytdl.OAuth2({
+    accessToken: '...',
+    refreshToken: '...',
+    expiryDate: 'yyyy-MM-ddThh-mm-ssZ',
+    clientData: {
+        clientId: '...',
+        clientSecret: '...',
+    },
+});
+
+ytdl.getFullInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', {
+    oauth2: OAUTH2_SPECIFY_CLIENT_DATA,
 });
 ```
 
@@ -104,6 +111,7 @@ There are two recommended methods for generating OAuth2 tokens.
 > If you generate it yourself, specify the client ID and secret in `clientData`. This is required to refresh the token.
 
 To generate tokens using Cobalt, execute the following command.
+
 ```bash
 $ git clone https://github.com/imputnet/cobalt
 $ cd cobalt
@@ -126,7 +134,7 @@ The `poToken` can be used to avoid bot errors and must be specified with `visito
 const ytdl = require('@ybd-project/ytdl-core');
 
 ytdl.getBasicInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
-ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
+ytdl.getFullInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
 ```
 
 ### Proxy Support
@@ -137,7 +145,7 @@ const ytdl = require('@ybd-project/ytdl-core');
 const agent = ytdl.createProxyAgent({ uri: 'my.proxy.server' });
 
 ytdl.getBasicInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent });
-ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent });
+ytdl.getFullInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent });
 ```
 
 ### IP Rotation
@@ -161,7 +169,7 @@ const agentForAnotherRandomIP = ytdl.createAgent(undefined, {
     localAddress: getRandomIPv6('2001:2::/48'),
 });
 
-ytdl.getInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent: agentForAnotherRandomIP });
+ytdl.getFullInfo('http://www.youtube.com/watch?v=aqz-KE-bpKQ', { agent: agentForAnotherRandomIP });
 ```
 
 ## API

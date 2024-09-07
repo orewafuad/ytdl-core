@@ -1,9 +1,20 @@
 # Changelog
 
+## v5.0.17 (2024/09/07)
+
+### Features
+* **Clients:** Change supported clients to only those that work properly
+* **OAuth2:** OAuth2 support
+
+### Bug Fixes
+* **Player:** Improved implementation of Player API to reduce errors (when specifying PoToken or OAuth2)
+
+### Deprecated
+* **getInfo:** The getInfo function has been deprecated. Please use the getFullInfo function instead. (The getInfo function can be used until v5.2.x.)
+
 ## v5.0.13, v5.0.14 (2024/09/05)
 
 ### Features
-
 * **Log:** Changed to be able to check the status of the player API. (Specify `YTDL_DEBUG` in the environment variable)
 
 ### Bug Fixes

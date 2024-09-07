@@ -6,10 +6,8 @@ export default class Base {
         payload: string;
         headers: Record<string, any>;
     }, params: YTDL_ClientsParams): Promise<{
-        isError: false;
+        isError: boolean;
+        error: PlayerRequestError | null;
         contents: YT_YTInitialPlayerResponse;
-    } | {
-        isError: true;
-        contents: PlayerRequestError;
     }>;
 }

@@ -5,7 +5,7 @@ import { YT_YTInitialPlayerResponse } from '@/types/youtube';
 import utils from '@/utils';
 
 export default class Base {
-    static request(url: string, requestOptions: { payload: string; headers: Record<string, any> }, params: YTDL_ClientsParams): Promise<{ isError: false; contents: YT_YTInitialPlayerResponse } | { isError: true; contents: PlayerRequestError }> {
+    static request(url: string, requestOptions: { payload: string; headers: Record<string, any> }, params: YTDL_ClientsParams): Promise<{ isError: boolean; error: PlayerRequestError | null; contents: YT_YTInitialPlayerResponse }> {
         return new Promise(async (resolve, reject) => {
             const { jar, dispatcher } = params.options.agent || {},
                 HEADERS = {
@@ -28,7 +28,8 @@ export default class Base {
             if (PLAY_ERROR) {
                 return reject({
                     isError: true,
-                    contents: PLAY_ERROR,
+                    error: PLAY_ERROR,
+                    contents: RESPONSE,
                 });
             }
 
@@ -38,12 +39,14 @@ export default class Base {
 
                 return reject({
                     isError: true,
-                    contents: ERROR,
+                    error: ERROR,
+                    contents: RESPONSE,
                 });
             }
 
             resolve({
                 isError: false,
+                error: null,
                 contents: RESPONSE,
             });
         });

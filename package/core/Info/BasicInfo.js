@@ -5,18 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._getBasicInfo = _getBasicInfo;
 const youtube_po_token_generator_1 = require("youtube-po-token-generator");
-const utils_1 = __importDefault(require("../../utils"));
-const url_utils_1 = __importDefault(require("../../url-utils"));
-const info_extras_1 = __importDefault(require("../../info-extras"));
-const cache_1 = require("../../cache");
-const Log_1 = require("../../utils/Log");
 const clients_1 = require("../../core/clients");
+const errors_1 = require("../../core/errors");
+const Log_1 = require("../../utils/Log");
+const Url_1 = __importDefault(require("../../utils/Url"));
+const utils_1 = __importDefault(require("../../utils"));
+const cache_1 = require("../../cache");
 const Html5Player_1 = __importDefault(require("./parser/Html5Player"));
 const WatchPage_1 = __importDefault(require("./parser/WatchPage"));
 const Formats_1 = __importDefault(require("./parser/Formats"));
-const Urls_1 = __importDefault(require("../../utils/Urls"));
+const Extras_1 = __importDefault(require("./Extras"));
 /* Private Constants */
-const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], BASE_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android'], BASIC_INFO_CACHE = new cache_1.Cache();
+const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], CONTINUES_NOT_POSSIBLE_ERRORS = ['This video is private'], SUPPORTED_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android', 'web', 'mweb', 'tv'], BASE_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android'], BASIC_INFO_CACHE = new cache_1.Cache();
 /* ----------- */
 /* Private FUnctions */
 function setupClients(clients) {
@@ -24,6 +24,7 @@ function setupClients(clients) {
         Log_1.Logger.warning('At least one client must be specified.');
         clients = BASE_CLIENTS;
     }
+    clients = clients.filter((client) => SUPPORTED_CLIENTS.includes(client));
     return [...new Set([...BASE_CLIENTS, ...clients])];
 }
 async function getSignatureTimestamp(html5player, options) {
@@ -51,6 +52,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
             const { poToken, visitorData } = await (0, youtube_po_token_generator_1.generate)();
             options.poToken = poToken;
             options.visitorData = visitorData;
+            Log_1.Logger.success('Successfully generated a poToken.');
         }
         catch (err) {
             Log_1.Logger.error('Failed to generate a poToken.');
@@ -84,47 +86,59 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         html5Player: null,
         clients: options.clients,
         full: false,
+        isMinimumMode: false,
     };
+    let errorDetails = null;
     options.clients.forEach((client, i) => {
         if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
             if (PLAYER_API_RESPONSES[i].value === null) {
                 return;
             }
             const CONTENTS = PLAYER_API_RESPONSES[i].value?.contents;
-            if (!PLAYER_API_RESPONSES[i].value.isError) {
-                PLAYER_RESPONSES[client] = CONTENTS;
-                PLAYER_RESPONSE_ARRAY.push(CONTENTS);
-                Log_1.Logger.debug(`[ ${client} ]: Success`);
-            }
-            else {
-                Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${CONTENTS}`);
-            }
+            PLAYER_RESPONSES[client] = CONTENTS;
+            PLAYER_RESPONSE_ARRAY.push(CONTENTS);
+            Log_1.Logger.debug(`[ ${client} ]: Success`);
         }
         else {
-            Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${PLAYER_API_RESPONSES[i].reason}`);
+            const REASON = PLAYER_API_RESPONSES[i].reason;
+            Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error}`);
+            if (client === 'ios') {
+                errorDetails = REASON;
+            }
         }
     });
-    if (PLAYER_API_RESPONSES.every((r) => r.status === 'rejected')) {
-        Log_1.Logger.error(`All player APIs responded with an error. (Clients: ${options.clients.join(', ')})\nFor more information, specify YTDL_DEBUG as an environment variable.`);
+    const IS_MINIMUM_MODE = PLAYER_API_RESPONSES.every((r) => r.status === 'rejected');
+    if (IS_MINIMUM_MODE) {
+        const ERROR_TEXT = `All player APIs responded with an error. (Clients: ${options.clients.join(', ')})\nFor more information, specify YTDL_DEBUG as an environment variable.`;
+        if (errorDetails && (CONTINUES_NOT_POSSIBLE_ERRORS.includes(errorDetails.contents.playabilityStatus.reason) || !errorDetails.contents.videoDetails)) {
+            throw new errors_1.UnrecoverableError(ERROR_TEXT + `\nNote: This error cannot continue processing.\nDetails: ${JSON.stringify(errorDetails.contents.playabilityStatus.reason)}`);
+        }
+        Log_1.Logger.error(ERROR_TEXT);
         Log_1.Logger.info('Only minimal information is available, as information from the Player API is not available.');
     }
+    VIDEO_INFO.isMinimumMode = IS_MINIMUM_MODE;
     VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
     if (isFromGetInfo) {
         VIDEO_INFO._playerResponses = PLAYER_RESPONSES;
     }
-    /* Filtered */
-    const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_ARRAY.filter((p) => p.storyboards)[0], VIDEO_DETAILS = PLAYER_RESPONSE_ARRAY.filter((p) => p.videoDetails)[0]?.videoDetails || {}, MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p.microformat)[0]?.microformat || null;
-    const STORYBOARDS = info_extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = info_extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
-        video_url: Urls_1.default.getWatchPageUrl(id),
-        author: info_extras_1.default.getAuthor(WATCH_PAGE_INFO),
-        media: MEDIA,
-        likes: info_extras_1.default.getLikes(WATCH_PAGE_INFO),
-        age_restricted: AGE_RESTRICTED,
-        storyboards: STORYBOARDS,
-        chapters: info_extras_1.default.getChapters(WATCH_PAGE_INFO),
-    };
-    VIDEO_INFO.related_videos = info_extras_1.default.getRelatedVideos(WATCH_PAGE_INFO);
-    VIDEO_INFO.videoDetails = info_extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT);
+    if (!IS_MINIMUM_MODE) {
+        /* Filtered */
+        const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_ARRAY.filter((p) => p.storyboards)[0], VIDEO_DETAILS = PLAYER_RESPONSE_ARRAY.filter((p) => p.videoDetails)[0]?.videoDetails || {}, MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p.microformat)[0]?.microformat || null;
+        const STORYBOARDS = Extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = Extras_1.default.getMedia(WATCH_PAGE_INFO), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
+            video_url: Url_1.default.getWatchPageUrl(id),
+            author: Extras_1.default.getAuthor(WATCH_PAGE_INFO),
+            media: MEDIA,
+            likes: Extras_1.default.getLikes(WATCH_PAGE_INFO),
+            age_restricted: AGE_RESTRICTED,
+            storyboards: STORYBOARDS,
+            chapters: Extras_1.default.getChapters(WATCH_PAGE_INFO),
+        };
+        VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT);
+    }
+    else {
+        VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(errorDetails.contents.videoDetails, null);
+    }
+    VIDEO_INFO.related_videos = Extras_1.default.getRelatedVideos(WATCH_PAGE_INFO);
     VIDEO_INFO.formats = PLAYER_RESPONSE_ARRAY.reduce((items, playerResponse) => {
         return [...items, ...Formats_1.default.parseFormats(playerResponse)];
     }, []);
@@ -132,7 +146,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
 }
 async function getBasicInfo(link, options = {}) {
     utils_1.default.checkForUpdates();
-    const ID = url_utils_1.default.getVideoID(link), CACHE_KEY = ['getBasicInfo', ID, options.lang].join('-');
+    const ID = Url_1.default.getVideoID(link), CACHE_KEY = ['getBasicInfo', ID, options.lang].join('-');
     return BASIC_INFO_CACHE.getOrSet(CACHE_KEY, () => _getBasicInfo(ID, options));
 }
 exports.default = getBasicInfo;

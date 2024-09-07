@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sax_1 = __importDefault(require("sax"));
 const utils_1 = __importDefault(require("../../../utils"));
-const Urls_1 = __importDefault(require("../../../utils/Urls"));
+const Url_1 = __importDefault(require("../../../utils/Url"));
 class Formats {
     static parseFormats(playerResponse) {
         let formats = [];
@@ -15,7 +15,7 @@ class Formats {
         return formats;
     }
     static async getM3U8(url, options) {
-        const _URL = new URL(url, Urls_1.default.getBaseUrl()), BODY = await utils_1.default.request(_URL.toString(), options), FORMATS = {};
+        const _URL = new URL(url, Url_1.default.getBaseUrl()), BODY = await utils_1.default.request(_URL.toString(), options), FORMATS = {};
         BODY.split('\n')
             .filter((line) => /^https?:\/\//.test(line))
             .forEach((line) => {
@@ -65,7 +65,7 @@ class Formats {
                 resolve(FORMATS);
             };
             utils_1.default
-                .request(new URL(url, Urls_1.default.getBaseUrl()).toString(), options)
+                .request(new URL(url, Url_1.default.getBaseUrl()).toString(), options)
                 .then((res) => {
                 PARSER.write(res);
                 PARSER.close();

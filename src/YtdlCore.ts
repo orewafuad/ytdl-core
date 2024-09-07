@@ -2,8 +2,8 @@ import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
 import utils from './utils';
+import Url from './utils/Url';
 import { chooseFormat, filterFormats } from './format-utils';
-import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
 import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
@@ -182,7 +182,7 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
 const ytdl = (link: string, options: YTDL_DownloadOptions = {}) => {
     const STREAM = createStream(options);
 
-    getInfo(link, options).then((info) => {
+    getFullInfo(link, options).then((info) => {
         downloadFromInfoCallback(STREAM, info, options);
     }, STREAM.emit.bind(STREAM, 'error'));
 
@@ -212,15 +212,15 @@ ytdl.getInfo = getInfo;
 ytdl.getFullInfo = getFullInfo;
 ytdl.chooseFormat = chooseFormat;
 ytdl.filterFormats = filterFormats;
-ytdl.validateID = validateID;
-ytdl.validateURL = validateURL;
-ytdl.getURLVideoID = getURLVideoID;
-ytdl.getVideoID = getVideoID;
+ytdl.validateID = Url.validateID;
+ytdl.validateURL = Url.validateURL;
+ytdl.getURLVideoID = Url.getURLVideoID;
+ytdl.getVideoID = Url.getVideoID;
 ytdl.createAgent = createAgent;
 ytdl.createProxyAgent = createProxyAgent;
 ytdl.OAuth2 = OAuth2;
 ytdl.version = VERSION;
 
 module.exports = ytdl;
-export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, validateID, validateURL, getURLVideoID, getVideoID, createAgent, createProxyAgent, OAuth2, VERSION };
+export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, createAgent, createProxyAgent, OAuth2, VERSION };
 export default ytdl;

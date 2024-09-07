@@ -1,7 +1,7 @@
 type Html5PlayerInfo = { playerUrl: string | null; path: string | null };
 
 import type { YTDL_GetInfoOptions } from '@/types/options';
-import Urls from '@/utils/Urls';
+import Url from '@/utils/Url';
 import YouTubePageExtractor from './PageExtractor';
 
 function getPlayerPath(body: string): string | null {
@@ -16,7 +16,7 @@ export default async function getHtml5Player(id: string, options: YTDL_GetInfoOp
         PLAYER_PATH = getPlayerPath(await WATCH_PAGE_BODY_PROMISE) || getPlayerPath(await EMBED_PAGE_BODY_PROMISE);
 
     return {
-        playerUrl: PLAYER_PATH ? new URL(PLAYER_PATH, Urls.getBaseUrl()).toString() : null,
+        playerUrl: PLAYER_PATH ? new URL(PLAYER_PATH, Url.getBaseUrl()).toString() : null,
         path: PLAYER_PATH,
     };
 }

@@ -24,7 +24,8 @@ class Base {
             if (PLAY_ERROR) {
                 return reject({
                     isError: true,
-                    contents: PLAY_ERROR,
+                    error: PLAY_ERROR,
+                    contents: RESPONSE,
                 });
             }
             if (!RESPONSE.videoDetails || params.videoId !== RESPONSE.videoDetails.videoId) {
@@ -32,11 +33,13 @@ class Base {
                 ERROR.response = RESPONSE;
                 return reject({
                     isError: true,
-                    contents: ERROR,
+                    error: ERROR,
+                    contents: RESPONSE,
                 });
             }
             resolve({
                 isError: false,
+                error: null,
                 contents: RESPONSE,
             });
         });

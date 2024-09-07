@@ -1,6 +1,6 @@
 import { PassThrough } from 'stream';
+import Url from './utils/Url';
 import { chooseFormat, filterFormats } from './format-utils';
-import { validateID, validateURL, getURLVideoID, getVideoID } from './url-utils';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
 import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
@@ -15,10 +15,10 @@ declare const ytdl: {
     getFullInfo: typeof getFullInfo;
     chooseFormat: typeof chooseFormat;
     filterFormats: typeof filterFormats;
-    validateID: typeof validateID;
-    validateURL: typeof validateURL;
-    getURLVideoID: typeof getURLVideoID;
-    getVideoID: typeof getVideoID;
+    validateID: typeof Url.validateID;
+    validateURL: typeof Url.validateURL;
+    getURLVideoID: typeof Url.getURLVideoID;
+    getVideoID: typeof Url.getVideoID;
     createAgent: typeof createAgent;
     createProxyAgent: typeof createProxyAgent;
     OAuth2: typeof OAuth2;
@@ -28,5 +28,5 @@ declare const ytdl: {
  * `ytdl.getInfo()`. In case the user might want to look at the
  * `info` object before deciding to download. */
 declare function downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;
-export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, validateID, validateURL, getURLVideoID, getVideoID, createAgent, createProxyAgent, OAuth2, VERSION };
+export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, createAgent, createProxyAgent, OAuth2, VERSION };
 export default ytdl;

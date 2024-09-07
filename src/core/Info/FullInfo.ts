@@ -1,6 +1,6 @@
 import utils from '@/utils';
 import formatUtils from '@/format-utils';
-import urlUtils from '@/url-utils';
+import Url from '@/utils/Url';
 import { Cache } from '@/cache';
 import sig from '@/sig';
 import { Logger } from '@/utils/Log';
@@ -14,8 +14,7 @@ const CACHE = new Cache();
 
 /* Public Functions */
 
-// TODO: Clean up this function for readability and support more clients
-/** Gets info from a video additional formats and deciphered URLs. */
+/** Gets info from a video additional formats and deciphered Url. */
 async function _getFullInfo(id: string, options: YTDL_GetInfoOptions): Promise<YTDL_VideoInfo> {
     utils.applyIPv6Rotations(options);
     utils.applyDefaultHeaders(options);
@@ -63,7 +62,7 @@ async function _getFullInfo(id: string, options: YTDL_GetInfoOptions): Promise<Y
 async function getInfo(link: string, options: YTDL_GetInfoOptions = {}): Promise<YTDL_VideoInfo> {
     Logger.warning('`getInfo` is deprecated and will be removed in the next major version. Please use `getFullInfo` instead.');
     utils.checkForUpdates();
-    const ID = urlUtils.getVideoID(link),
+    const ID = Url.getVideoID(link),
         CACHE_KEY = ['getFullInfo', ID, options.lang].join('-');
 
     return CACHE.getOrSet(CACHE_KEY, () => _getFullInfo(ID, options)) as Promise<YTDL_VideoInfo>;
@@ -71,7 +70,7 @@ async function getInfo(link: string, options: YTDL_GetInfoOptions = {}): Promise
 
 async function getFullInfo(link: string, options: YTDL_GetInfoOptions = {}): Promise<YTDL_VideoInfo> {
     utils.checkForUpdates();
-    const ID = urlUtils.getVideoID(link),
+    const ID = Url.getVideoID(link),
         CACHE_KEY = ['getFullInfo', ID, options.lang].join('-');
 
     return CACHE.getOrSet(CACHE_KEY, () => _getFullInfo(ID, options)) as Promise<YTDL_VideoInfo>;

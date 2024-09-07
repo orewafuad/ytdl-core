@@ -17,7 +17,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             const VIDEO_ID = VIDEO_IDS.normal;
 
             it(`通常（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -26,7 +28,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -36,7 +40,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`独自OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -50,7 +56,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             const VIDEO_ID = VIDEO_IDS.private;
 
             it(`通常（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -59,7 +67,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -69,7 +79,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`独自OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -79,7 +91,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`OAuth2（公開者のアカウント）あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -93,7 +107,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             const VIDEO_ID = VIDEO_IDS.beforePublication;
 
             it(`通常（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -106,7 +122,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             const VIDEO_ID = VIDEO_IDS.limitedPublication;
 
             it(`通常（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -115,7 +133,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -125,7 +145,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`独自OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -139,7 +161,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             const VIDEO_ID = VIDEO_IDS.forChildren;
 
             it(`通常（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -148,7 +172,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -158,7 +184,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`独自OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -172,7 +200,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             const VIDEO_ID = VIDEO_IDS.ageRestricted;
 
             it(`通常（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -181,7 +211,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -191,7 +223,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             });
 
             it(`独自OAuth2あり（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -205,7 +239,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             const VIDEO_ID = VIDEO_IDS.unavailable;
 
             it(`通常（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,
@@ -218,7 +254,9 @@ describe('【@ybd-project/ytdl-core】機能テスト', () => {
             const VIDEO_ID = VIDEO_IDS.invalid;
 
             it(`通常（ID: ${VIDEO_ID}）`, async () => {
-                const RESULTS = await ytdl.getInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                const RESULTS = await ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID, {
+                    poToken: 'MnQvoU39lB1OrS-ZFJP2UOjzocFXQIhGdoizjiS2YO0rxe6lKcCJoKif0byytPJIUVDVR-MpXQ3qECJzXcp2J-D32vzEG2xB7aiyv5TpwKN9LPPErgpBhos2MbeIBXUOrgP-w62LWEBUJdv91aDgzDubRI3J6w==',
+                    visitorData: 'CgtFbmhuaDdZVkVhbyj6npK2BjIKCgJKUBIEGgAgYQ%3D%3D',
                     includesPlayerAPIResponse: true,
                     includesWatchPageInfo: true,
                     clients: ALL_CLIENTS,

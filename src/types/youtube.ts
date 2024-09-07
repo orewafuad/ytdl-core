@@ -399,6 +399,7 @@ export type YTDL_VideoInfo = {
     related_videos: Array<YTDL_RelatedVideo>;
     videoDetails: YTDL_MoreVideoDetails;
     full: boolean;
+    isMinimumMode: boolean;
     clients: Array<YTDL_ClientTypes>;
     _watchPageInfo: YTDL_WatchPageInfo;
     _playerResponses: {
