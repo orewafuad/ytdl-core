@@ -182,8 +182,30 @@ function downloadFromInfoCallback(stream, info, options) {
         }
     };
 }
+function downloadFromInfo(info, options = {}) {
+    const STREAM = createStream(options);
+    if (!info.full) {
+        throw new Error('Cannot use `ytdl.downloadFromInfo()` when called with info from `ytdl.getBasicInfo()`');
+    }
+    setImmediate(() => {
+        downloadFromInfoCallback(STREAM, info, options);
+    });
+    return STREAM;
+}
+function download(link, options = {}) {
+    const STREAM = createStream(options);
+    (0, Info_1.getFullInfo)(link, options).then((info) => {
+        downloadFromInfoCallback(STREAM, info, options);
+    }, STREAM.emit.bind(STREAM, 'error'));
+    return STREAM;
+}
 /* Public CLass */
 class YtdlCore {
+    static download = download;
+    static getBasicInfo = Info_1.getBasicInfo;
+    /** @deprecated */
+    static getInfo = Info_1.getInfo;
+    static getFullInfo = Info_1.getFullInfo;
     static chooseFormat = Format_1.chooseFormat;
     static filterFormats = Format_1.filterFormats;
     static validateID = Url_1.default.validateID;
@@ -237,30 +259,22 @@ class YtdlCore {
         return options;
     }
     download(link, options = {}) {
-        options = this.setupOptions(options);
-        const STREAM = createStream(options);
-        (0, Info_1.getFullInfo)(link, options).then((info) => {
-            downloadFromInfoCallback(STREAM, info, options);
-        }, STREAM.emit.bind(STREAM, 'error'));
-        return STREAM;
+        return download(link, this.setupOptions(options));
     }
     downloadFromInfo(info, options = {}) {
-        options = this.setupOptions(options);
-        const STREAM = createStream(options);
-        if (!info.full) {
-            throw new Error('Cannot use `ytdl.downloadFromInfo()` when called with info from `ytdl.getBasicInfo()`');
-        }
-        setImmediate(() => {
-            downloadFromInfoCallback(STREAM, info, options);
-        });
-        return STREAM;
+        return downloadFromInfo(info, this.setupOptions(options));
     }
+    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     getBasicInfo(link, options = {}) {
         return (0, Info_1.getBasicInfo)(link, this.setupOptions(options));
     }
+    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.)
+     * @deprecated
+     */
     getInfo(link, options = {}) {
         return (0, Info_1.getInfo)(link, this.setupOptions(options));
     }
+    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     getFullInfo(link, options = {}) {
         return (0, Info_1.getFullInfo)(link, this.setupOptions(options));
     }

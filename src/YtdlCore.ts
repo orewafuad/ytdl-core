@@ -190,8 +190,39 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
     };
 }
 
+function downloadFromInfo(info: YTDL_VideoInfo, options: YTDL_DownloadOptions = {}) {
+    const STREAM = createStream(options);
+
+    if (!info.full) {
+        throw new Error('Cannot use `ytdl.downloadFromInfo()` when called with info from `ytdl.getBasicInfo()`');
+    }
+
+    setImmediate(() => {
+        downloadFromInfoCallback(STREAM, info, options);
+    });
+
+    return STREAM;
+}
+
+function download(link: string, options: YTDL_DownloadOptions = {}) {
+    const STREAM = createStream(options);
+
+    getFullInfo(link, options).then((info) => {
+        downloadFromInfoCallback(STREAM, info, options);
+    }, STREAM.emit.bind(STREAM, 'error'));
+
+    return STREAM;
+}
+
 /* Public CLass */
 class YtdlCore {
+    public static download = download;
+
+    public static getBasicInfo = getBasicInfo;
+    /** @deprecated */
+    public static getInfo = getInfo;
+    public static getFullInfo = getFullInfo;
+
     public static chooseFormat = chooseFormat;
     public static filterFormats = filterFormats;
 
@@ -256,36 +287,23 @@ class YtdlCore {
     }
 
     public download(link: string, options: YTDL_DownloadOptions = {}) {
-        options = this.setupOptions(options);
-        const STREAM = createStream(options);
-
-        getFullInfo(link, options).then((info) => {
-            downloadFromInfoCallback(STREAM, info, options);
-        }, STREAM.emit.bind(STREAM, 'error'));
-
-        return STREAM;
+        return download(link, this.setupOptions(options));
     }
     public downloadFromInfo(info: YTDL_VideoInfo, options: YTDL_DownloadOptions = {}) {
-        options = this.setupOptions(options);
-        const STREAM = createStream(options);
-
-        if (!info.full) {
-            throw new Error('Cannot use `ytdl.downloadFromInfo()` when called with info from `ytdl.getBasicInfo()`');
-        }
-
-        setImmediate(() => {
-            downloadFromInfoCallback(STREAM, info, options);
-        });
-
-        return STREAM;
+        return downloadFromInfo(info, this.setupOptions(options));
     }
 
+    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     public getBasicInfo(link: string, options: YTDL_DownloadOptions = {}) {
         return getBasicInfo(link, this.setupOptions(options));
     }
+    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.)
+     * @deprecated
+     */
     public getInfo(link: string, options: YTDL_DownloadOptions = {}) {
         return getInfo(link, this.setupOptions(options));
     }
+    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     public getFullInfo(link: string, options: YTDL_DownloadOptions = {}) {
         return getFullInfo(link, this.setupOptions(options));
     }
