@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OAuth2 = void 0;
+const undici_1 = require("undici");
 const Log_1 = require("../utils/Log");
 const Url_1 = __importDefault(require("../utils/Url"));
 const UserAgents_1 = __importDefault(require("../utils/UserAgents"));
@@ -28,7 +29,7 @@ class OAuth2 {
         this.clientSecret = credentials.clientData?.clientSecret;
     }
     async getClientData() {
-        const YT_TV_RESPONSE = await fetch(Url_1.default.getTvUrl(), {
+        const YT_TV_RESPONSE = await (0, undici_1.fetch)(Url_1.default.getTvUrl(), {
             headers: {
                 'User-Agent': UserAgents_1.default.tv,
                 Referer: Url_1.default.getTvUrl(),
@@ -41,7 +42,7 @@ class OAuth2 {
         const YT_TV_HTML = await YT_TV_RESPONSE.text(), SCRIPT_PATH = REGEX.tvScript.exec(YT_TV_HTML)?.[1];
         if (SCRIPT_PATH !== null) {
             Log_1.Logger.debug('Found YouTube TV script: ' + SCRIPT_PATH);
-            const SCRIPT_RESPONSE = await fetch(Url_1.default.getBaseUrl() + SCRIPT_PATH);
+            const SCRIPT_RESPONSE = await (0, undici_1.fetch)(Url_1.default.getBaseUrl() + SCRIPT_PATH);
             if (!SCRIPT_RESPONSE.ok) {
                 this.isEnabled = false;
                 throw new Error('TV script request failed with status code: ' + SCRIPT_RESPONSE.status);
@@ -81,7 +82,7 @@ class OAuth2 {
             client_secret: this.clientSecret,
             refresh_token: this.refreshToken,
             grant_type: 'refresh_token',
-        }, REFRESH_API_RESPONSE = await fetch(Url_1.default.getRefreshTokenApiUrl(), {
+        }, REFRESH_API_RESPONSE = await (0, undici_1.fetch)(Url_1.default.getRefreshTokenApiUrl(), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
