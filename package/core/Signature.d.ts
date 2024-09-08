@@ -1,5 +1,5 @@
 import vm from 'node:vm';
-import { YTDL_RequestOptions } from '../types/options';
+import { YTDL_RequestOptions } from '../types/Options';
 import { Cache } from './Cache';
 declare const CACHE: Cache;
 declare function extractFunctions(body: string): (vm.Script | null)[];

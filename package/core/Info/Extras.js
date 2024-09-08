@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const querystring_1 = __importDefault(require("querystring"));
 const m3u8stream_1 = require("m3u8stream");
 const Utils_1 = __importDefault(require("../../utils/Utils"));
 const Url_1 = __importDefault(require("../../utils/Url"));
@@ -14,21 +13,19 @@ function getText(obj) {
     else if (obj) {
         return obj.simpleText;
     }
-    return null;
+    return '';
 }
 function isVerified(badges) {
-    const IS_FOUND_VERIFIED_BADGE = !!badges.find((b) => b.metadataBadgeRenderer.tooltip === 'Verified');
-    return !!badges && IS_FOUND_VERIFIED_BADGE;
+    return !!(badges && badges.find((b) => b.metadataBadgeRenderer.tooltip === 'Verified'));
 }
-function parseRelatedVideo(details, rvsParams) {
+function parseRelatedVideo(details) {
     if (!details) {
         return null;
     }
     try {
-        const RVS_DETAILS = rvsParams.find((elem) => elem.id === details.videoId);
         let viewCount = getText(details.viewCountText), shortViewCount = getText(details.shortViewCountText);
         if (!/^\d/.test(shortViewCount)) {
-            shortViewCount = (RVS_DETAILS && RVS_DETAILS.short_view_count_text) || '';
+            shortViewCount = '';
         }
         viewCount = (/^\d/.test(viewCount) ? viewCount : shortViewCount).split(' ')[0];
         const BROWSE_ENDPOINT = details.shortBylineText.runs[0].navigationEndpoint.browseEndpoint, CHANNEL_ID = BROWSE_ENDPOINT.browseId, NAME = getText(details.shortBylineText), USER = (BROWSE_ENDPOINT.canonicalBaseUrl || '').split('/').slice(-1)[0], VIDEO = {
@@ -39,17 +36,18 @@ function parseRelatedVideo(details, rvsParams) {
                 id: CHANNEL_ID,
                 name: NAME,
                 user: USER,
-                channel_url: `https://www.youtube.com/channel/${CHANNEL_ID}`,
-                user_url: `https://www.youtube.com/user/${USER}`,
+                channelUrl: `https://www.youtube.com/channel/${CHANNEL_ID}`,
+                userUrl: `https://www.youtube.com/user/${USER}`,
                 thumbnails: details.channelThumbnail.thumbnails.map((thumbnail) => {
                     thumbnail.url = new URL(thumbnail.url, Url_1.default.getBaseUrl()).toString();
                     return thumbnail;
                 }),
+                subscriberCount: null,
                 verified: isVerified(details.ownerBadges || []),
             },
-            short_view_count_text: shortViewCount.split(' ')[0],
-            view_count: viewCount.replace(/,/g, ''),
-            length_seconds: details.lengthText ? Math.floor((0, m3u8stream_1.parseTimestamp)(getText(details.lengthText)) / 1000) : rvsParams && rvsParams.length_seconds,
+            shortViewCountText: shortViewCount.split(' ')[0],
+            viewCount: viewCount.replace(/,/g, ''),
+            lengthSeconds: details.lengthText ? Math.floor((0, m3u8stream_1.parseTimestamp)(getText(details.lengthText)) / 1000) : undefined,
             thumbnails: details.thumbnail.thumbnails || [],
             richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails.thumbnails : [],
             isLive: !!(details.badges && details.badges.find((b) => b.metadataBadgeRenderer.label === 'LIVE NOW')),
@@ -62,15 +60,31 @@ function parseRelatedVideo(details, rvsParams) {
         return null;
     }
 }
+function parseStringToNumber(input) {
+    const SUFFIX = input.slice(-1).toUpperCase(), VALUE = parseFloat(input.slice(0, -1));
+    switch (SUFFIX) {
+        case 'K':
+            return VALUE * 1000;
+        case 'M':
+            return VALUE * 1000000;
+        case 'B':
+            return VALUE * 1000000000;
+        default:
+            return parseFloat(input);
+    }
+}
 class InfoExtras {
     static getMedia(info) {
+        if (!info) {
+            return null;
+        }
         let media = {
             category: '',
-            category_url: '',
+            categoryUrl: '',
             thumbnails: [],
         }, microformat = null;
         try {
-            microformat = info.microformat.playerMicroformatRenderer || null;
+            microformat = info.microformat?.playerMicroformatRenderer || null;
         }
         catch (err) { }
         if (!microformat) {
@@ -79,15 +93,65 @@ class InfoExtras {
         try {
             media.category = microformat.category;
             media.thumbnails = microformat.thumbnail.thumbnails || [];
+            if (media.category === 'Music') {
+                media.categoryUrl = Url_1.default.getBaseUrl() + '/music';
+            }
+            else if (media.category === 'Gaming') {
+                media.categoryUrl = Url_1.default.getBaseUrl() + '/gaming';
+            }
         }
         catch (err) { }
         return media;
     }
     static getAuthor(info) {
+        if (!info) {
+            return null;
+        }
+        let channelName = null, channelId = null, user = null, thumbnails = [], subscriberCount = null, verified = false, videoSecondaryInfoRenderer = null;
+        try {
+            const VIDEO_SECONDARY_INFO_RENDERER = info.contents.twoColumnWatchNextResults.results.results.contents.find((c) => c.videoSecondaryInfoRenderer);
+            videoSecondaryInfoRenderer = VIDEO_SECONDARY_INFO_RENDERER?.videoSecondaryInfoRenderer;
+        }
+        catch (err) { }
+        if (!videoSecondaryInfoRenderer || !videoSecondaryInfoRenderer.owner) {
+            return null;
+        }
+        try {
+            const VIDEO_OWNER_RENDERER = videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
+            channelName = VIDEO_OWNER_RENDERER.title.runs[0].text || null;
+            channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId || null;
+            user = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.canonicalBaseUrl || null;
+            thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails || [];
+            subscriberCount = Math.floor(parseStringToNumber(VIDEO_OWNER_RENDERER.subscriberCountText.simpleText.split(' ')[0])) || null;
+            verified = isVerified(VIDEO_OWNER_RENDERER.badges || []);
+        }
+        catch (err) { }
+        try {
+            const AUTHOR = {
+                id: channelId || '',
+                name: channelName || '',
+                user: user || '',
+                channelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+                externalChannelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+                userUrl: 'https://www.youtube.com' + user,
+                thumbnails,
+                subscriberCount,
+                verified,
+            };
+            if (thumbnails?.length) {
+                Utils_1.default.deprecate(AUTHOR, 'avatar', AUTHOR.thumbnails[0]?.url, 'author.thumbnails', 'author.thumbnails[0].url');
+            }
+            return AUTHOR;
+        }
+        catch (err) {
+            return null;
+        }
+    }
+    static getAuthorFromPlayerResponse(info) {
         let channelName = null, channelId = null, user = null, thumbnails = [], subscriberCount = null, verified = false, microformat = null, endscreen = null;
         try {
-            microformat = info.microformat.playerMicroformatRenderer || null;
-            endscreen = info.endscreen.endscreenRenderer.elements.find((e) => e.endscreenElementRenderer.style === 'CHANNEL')?.endscreenElementRenderer;
+            microformat = info.microformat?.playerMicroformatRenderer || null;
+            endscreen = info.endscreen?.endscreenRenderer.elements.find((e) => e.endscreenElementRenderer.style === 'CHANNEL')?.endscreenElementRenderer;
         }
         catch (err) { }
         if (!microformat) {
@@ -104,14 +168,14 @@ class InfoExtras {
         catch (err) { }
         try {
             const AUTHOR = {
-                id: channelId,
-                name: channelName,
-                user,
-                channel_url: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
-                external_channel_url: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
-                user_url: 'https://www.youtube.com/' + user,
+                id: channelId || '',
+                name: channelName || '',
+                user: user || '',
+                channelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+                externalChannelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+                userUrl: 'https://www.youtube.com/' + user,
                 thumbnails,
-                subscriber_count: subscriberCount,
+                subscriberCount: subscriberCount,
                 verified,
             };
             if (thumbnails?.length) {
@@ -124,29 +188,38 @@ class InfoExtras {
         }
     }
     static getLikes(info) {
+        if (!info) {
+            return null;
+        }
         try {
-            const CONTENTS = info.response.contents.twoColumnWatchNextResults.results.results.contents, VIDEO = CONTENTS.find((r) => r.videoPrimaryInfoRenderer), BUTTONS = VIDEO.videoPrimaryInfoRenderer.videoActions.menuRenderer.topLevelButtons, ACCESSIBILITY_TEXT = BUTTONS.find((b) => b.segmentedLikeDislikeButtonViewModel).segmentedLikeDislikeButtonViewModel.likeButtonViewModel.likeButtonViewModel.toggleButtonViewModel.toggleButtonViewModel.defaultButtonViewModel.buttonViewModel.accessibilityText;
-            return parseInt(ACCESSIBILITY_TEXT.match(/[\d,.]+/)[0].replace(/\D+/g, ''));
+            const CONTENTS = info.contents.twoColumnWatchNextResults.results.results.contents, VIDEO = CONTENTS.find((r) => r.videoPrimaryInfoRenderer), BUTTONS = VIDEO.videoPrimaryInfoRenderer.videoActions.menuRenderer.topLevelButtons, BUTTON_VIEW_MODEL = BUTTONS.filter((b) => b.segmentedLikeDislikeButtonViewModel)[0].segmentedLikeDislikeButtonViewModel.likeButtonViewModel.likeButtonViewModel.toggleButtonViewModel.toggleButtonViewModel.defaultButtonViewModel.buttonViewModel, ACCESSIBILITY_TEXT = BUTTON_VIEW_MODEL.accessibilityText, TITLE = BUTTON_VIEW_MODEL.title;
+            if (ACCESSIBILITY_TEXT) {
+                const MATCH = ACCESSIBILITY_TEXT.match(/[\d,.]+/) || [];
+                return parseInt((MATCH[0] || '').replace(/\D+/g, ''));
+            }
+            else if (TITLE) {
+                return parseStringToNumber(TITLE);
+            }
+            return null;
         }
         catch (err) {
             return null;
         }
     }
     static getRelatedVideos(info) {
-        let rvsParams = [], secondaryResults = [];
-        try {
-            rvsParams = info.response.webWatchNextResponseExtensionData?.relatedVideoArgs.split(',').map((e) => querystring_1.default.parse(e)) || [];
+        if (!info) {
+            return [];
         }
-        catch (err) { }
+        let secondaryResults = [];
         try {
-            secondaryResults = info.response.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
+            secondaryResults = info.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
         }
         catch (err) { }
         const VIDEOS = [];
         for (const RESULT of secondaryResults) {
             const DETAILS = RESULT.compactVideoRenderer;
             if (DETAILS) {
-                const VIDEO = parseRelatedVideo(DETAILS, rvsParams);
+                const VIDEO = parseRelatedVideo(DETAILS);
                 if (VIDEO) {
                     VIDEOS.push(VIDEO);
                 }
@@ -157,7 +230,7 @@ class InfoExtras {
                     continue;
                 }
                 for (const CONTENT of AUTOPLAY.contents) {
-                    const VIDEO = parseRelatedVideo(CONTENT.compactVideoRenderer, rvsParams);
+                    const VIDEO = parseRelatedVideo(CONTENT.compactVideoRenderer);
                     if (VIDEO) {
                         VIDEOS.push(VIDEO);
                     }
@@ -180,8 +253,10 @@ class InfoExtras {
             Utils_1.default.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
         }
         if (microformat) {
-            // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
-            DETAILS.lengthSeconds = microformat.playerMicroformatRenderer.lengthSeconds || videoDetails.lengthSeconds;
+            DETAILS.lengthSeconds = parseInt(microformat.lengthSeconds || videoDetails.lengthSeconds);
+        }
+        if (DETAILS.viewCount) {
+            DETAILS.viewCount = parseInt(DETAILS.viewCount);
         }
         return DETAILS;
     }
@@ -214,7 +289,10 @@ class InfoExtras {
         });
     }
     static getChapters(info) {
-        const PLAYER_OVERLAY_RENDERER = info.response && info.response.playerOverlays && info.response.playerOverlays.playerOverlayRenderer, PLAYER_BAR = PLAYER_OVERLAY_RENDERER && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer.decoratedPlayerBarRenderer && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer.decoratedPlayerBarRenderer.playerBar, MARKERS_MAP = PLAYER_BAR && PLAYER_BAR.multiMarkersPlayerBarRenderer && PLAYER_BAR.multiMarkersPlayerBarRenderer.markersMap, MARKER = Array.isArray(MARKERS_MAP) && MARKERS_MAP.find((m) => m.value && Array.isArray(m.value.chapters));
+        if (!info) {
+            return [];
+        }
+        const PLAYER_OVERLAY_RENDERER = info.playerOverlays && info.playerOverlays.playerOverlayRenderer, PLAYER_BAR = PLAYER_OVERLAY_RENDERER && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer.decoratedPlayerBarRenderer && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer.decoratedPlayerBarRenderer.playerBar, MARKERS_MAP = PLAYER_BAR && PLAYER_BAR.multiMarkersPlayerBarRenderer && PLAYER_BAR.multiMarkersPlayerBarRenderer.markersMap, MARKER = Array.isArray(MARKERS_MAP) && MARKERS_MAP.find((m) => m.value && Array.isArray(m.value.chapters));
         if (!MARKER) {
             return [];
         }
@@ -222,7 +300,7 @@ class InfoExtras {
         return CHAPTERS.map((chapter) => {
             return {
                 title: getText(chapter.chapterRenderer.title),
-                start_time: chapter.chapterRenderer.timeRangeStartMillis / 1000,
+                startTime: chapter.chapterRenderer.timeRangeStartMillis / 1000,
             };
         });
     }

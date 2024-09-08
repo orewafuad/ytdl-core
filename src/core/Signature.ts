@@ -1,7 +1,9 @@
 import querystring from 'querystring';
 import vm from 'node:vm';
 
-import { YTDL_RequestOptions } from '@/types/options';
+import { YTDL_RequestOptions } from '@/types/Options';
+
+import Fetcher from '@/core/Fetcher';
 
 import utils from '@/utils/Utils';
 import { Logger } from '@/utils/Log';
@@ -190,7 +192,7 @@ function extractFunctions(body: string) {
 
 function getFunctions<T = unknown>(html5PlayerFile: string, options: YTDL_RequestOptions) {
     return CACHE.getOrSet<T>(html5PlayerFile, async () => {
-        const BODY = await utils.request<string>(html5PlayerFile, options),
+        const BODY = await Fetcher.request<string>(html5PlayerFile, options),
             FUNCTIONS = extractFunctions(BODY);
 
         CACHE.set(html5PlayerFile, FUNCTIONS);

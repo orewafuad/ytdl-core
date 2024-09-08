@@ -7,4 +7,10 @@ export default class Web {
 
         return await Base.request(url, { payload, headers }, params);
     }
+
+    static async getNextResponse(params: YTDL_ClientsParams) {
+        const { url, payload, headers } = Clients.web_nextApi(params);
+
+        return await Base.request(url, { payload, headers }, params);
+    }
 }

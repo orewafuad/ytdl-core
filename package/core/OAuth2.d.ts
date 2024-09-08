@@ -1,4 +1,4 @@
-import { YTDL_OAuth2Credentials } from '../types/options';
+import { YTDL_OAuth2Credentials } from '../types/Options';
 export declare class OAuth2 {
     isEnabled: boolean;
     accessToken: string;

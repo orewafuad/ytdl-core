@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sax_1 = __importDefault(require("sax"));
-const Utils_1 = __importDefault(require("../../../utils/Utils"));
+const Fetcher_1 = __importDefault(require("../../../core/Fetcher"));
 const Url_1 = __importDefault(require("../../../utils/Url"));
 class Formats {
     static parseFormats(playerResponse) {
@@ -15,7 +15,7 @@ class Formats {
         return formats;
     }
     static async getM3U8(url, options) {
-        const _URL = new URL(url, Url_1.default.getBaseUrl()), BODY = await Utils_1.default.request(_URL.toString(), options), FORMATS = {};
+        const _URL = new URL(url, Url_1.default.getBaseUrl()), BODY = await Fetcher_1.default.request(_URL.toString(), options), FORMATS = {};
         BODY.split('\n')
             .filter((line) => /^https?:\/\//.test(line))
             .forEach((line) => {
@@ -64,8 +64,7 @@ class Formats {
             PARSER.onend = () => {
                 resolve(FORMATS);
             };
-            Utils_1.default
-                .request(new URL(url, Url_1.default.getBaseUrl()).toString(), options)
+            Fetcher_1.default.request(new URL(url, Url_1.default.getBaseUrl()).toString(), options)
                 .then((res) => {
                 PARSER.write(res);
                 PARSER.close();

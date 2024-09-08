@@ -10,6 +10,10 @@ class Web {
         const { url, payload, headers } = Clients_1.Clients.web(params);
         return await Base_1.default.request(url, { payload, headers }, params);
     }
+    static async getNextResponse(params) {
+        const { url, payload, headers } = Clients_1.Clients.web_nextApi(params);
+        return await Base_1.default.request(url, { payload, headers }, params);
+    }
 }
 exports.default = Web;
 //# sourceMappingURL=Web.js.map

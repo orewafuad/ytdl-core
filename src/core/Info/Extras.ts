@@ -1,38 +1,35 @@
-import querystring from 'querystring';
 import { parseTimestamp } from 'm3u8stream';
 
-import { YTDL_Media, YTDL_Author, YTDL_WatchPageInfo, YTDL_RelatedVideo, YT_CompactVideoRenderer, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_MoreVideoDetails, YT_YTInitialPlayerResponse, YTDL_MicroformatRenderer } from '@/types/youtube';
+import { YT_CompactVideoRenderer, YT_PlayerApiResponse, YT_NextApiResponse, YT_MicroformatRenderer, YT_VideoSecondaryInfoRenderer, YT_VideoOwnerRenderer, YT_VideoPrimaryInfoRenderer } from '@/types/youtube';
+import { YTDL_Media, YTDL_Author, YTDL_RelatedVideo, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails } from '@/types/Ytdl';
 import utils from '@/utils/Utils';
 import Url from '@/utils/Url';
 
-function getText(obj: any) {
+function getText(obj: any): string {
     if (obj && obj.runs) {
         return obj.runs[0].text;
     } else if (obj) {
         return obj.simpleText;
     }
 
-    return null;
+    return '';
 }
 
-function isVerified(badges: Array<any>) {
-    const IS_FOUND_VERIFIED_BADGE = !!badges.find((b) => b.metadataBadgeRenderer.tooltip === 'Verified');
-
-    return !!badges && IS_FOUND_VERIFIED_BADGE;
+function isVerified(badges: YT_VideoOwnerRenderer['badges']): boolean {
+    return !!(badges && badges.find((b) => b.metadataBadgeRenderer.tooltip === 'Verified'));
 }
 
-function parseRelatedVideo(details: YT_CompactVideoRenderer, rvsParams: Array<querystring.ParsedUrlQuery>): YTDL_RelatedVideo | null {
+function parseRelatedVideo(details: YT_CompactVideoRenderer): YTDL_RelatedVideo | null {
     if (!details) {
         return null;
     }
 
     try {
-        const RVS_DETAILS = rvsParams.find((elem) => elem.id === details.videoId);
         let viewCount = getText(details.viewCountText),
             shortViewCount = getText(details.shortViewCountText);
 
         if (!/^\d/.test(shortViewCount)) {
-            shortViewCount = (RVS_DETAILS && RVS_DETAILS.short_view_count_text) || '';
+            shortViewCount = '';
         }
 
         viewCount = (/^\d/.test(viewCount) ? viewCount : shortViewCount).split(' ')[0];
@@ -49,17 +46,18 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, rvsParams: Array<qu
                     id: CHANNEL_ID,
                     name: NAME,
                     user: USER,
-                    channel_url: `https://www.youtube.com/channel/${CHANNEL_ID}`,
-                    user_url: `https://www.youtube.com/user/${USER}`,
+                    channelUrl: `https://www.youtube.com/channel/${CHANNEL_ID}`,
+                    userUrl: `https://www.youtube.com/user/${USER}`,
                     thumbnails: details.channelThumbnail.thumbnails.map((thumbnail) => {
                         thumbnail.url = new URL(thumbnail.url, Url.getBaseUrl()).toString();
                         return thumbnail;
                     }),
+                    subscriberCount: null,
                     verified: isVerified(details.ownerBadges || []),
                 },
-                short_view_count_text: shortViewCount.split(' ')[0],
-                view_count: viewCount.replace(/,/g, ''),
-                length_seconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1000) : rvsParams && ((rvsParams as any).length_seconds as number),
+                shortViewCountText: shortViewCount.split(' ')[0],
+                viewCount: viewCount.replace(/,/g, ''),
+                lengthSeconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1000) : undefined,
                 thumbnails: details.thumbnail.thumbnails || [],
                 richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails.thumbnails : [],
                 isLive: !!(details.badges && details.badges.find((b) => b.metadataBadgeRenderer.label === 'LIVE NOW')),
@@ -73,17 +71,37 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, rvsParams: Array<qu
     }
 }
 
+function parseStringToNumber(input: string): number {
+    const SUFFIX = input.slice(-1).toUpperCase(),
+        VALUE = parseFloat(input.slice(0, -1));
+
+    switch (SUFFIX) {
+        case 'K':
+            return VALUE * 1000;
+        case 'M':
+            return VALUE * 1000000;
+        case 'B':
+            return VALUE * 1000000000;
+        default:
+            return parseFloat(input);
+    }
+}
+
 export default class InfoExtras {
-    static getMedia(info: YT_YTInitialPlayerResponse): YTDL_Media | null {
+    static getMedia(info: YT_PlayerApiResponse | null): YTDL_Media | null {
+        if (!info) {
+            return null;
+        }
+
         let media: YTDL_Media = {
                 category: '',
-                category_url: '',
+                categoryUrl: '',
                 thumbnails: [],
             },
-            microformat: YTDL_MicroformatRenderer | null = null;
+            microformat: YT_MicroformatRenderer | null = null;
 
         try {
-            microformat = info.microformat.playerMicroformatRenderer || null;
+            microformat = info.microformat?.playerMicroformatRenderer || null;
         } catch (err) {}
 
         if (!microformat) {
@@ -93,24 +111,85 @@ export default class InfoExtras {
         try {
             media.category = microformat.category;
             media.thumbnails = microformat.thumbnail.thumbnails || [];
+
+            if (media.category === 'Music') {
+                media.categoryUrl = Url.getBaseUrl() + '/music';
+            } else if (media.category === 'Gaming') {
+                media.categoryUrl = Url.getBaseUrl() + '/gaming';
+            }
         } catch (err) {}
 
         return media;
     }
 
-    static getAuthor(info: YT_YTInitialPlayerResponse): YTDL_Author | null {
+    static getAuthor(info: YT_NextApiResponse | null): YTDL_Author | null {
+        if (!info) {
+            return null;
+        }
+
         let channelName: string | null = null,
             channelId: string | null = null,
             user: string | null = null,
             thumbnails: YTDL_Author['thumbnails'] = [],
             subscriberCount: number | null = null,
             verified = false,
-            microformat: YTDL_MicroformatRenderer | null = null,
+            videoSecondaryInfoRenderer: YT_VideoSecondaryInfoRenderer['videoSecondaryInfoRenderer'] | null = null;
+
+        try {
+            const VIDEO_SECONDARY_INFO_RENDERER = info.contents.twoColumnWatchNextResults.results.results.contents.find((c: any) => c.videoSecondaryInfoRenderer) as YT_VideoSecondaryInfoRenderer;
+            videoSecondaryInfoRenderer = VIDEO_SECONDARY_INFO_RENDERER?.videoSecondaryInfoRenderer;
+        } catch (err) {}
+
+        if (!videoSecondaryInfoRenderer || !videoSecondaryInfoRenderer.owner) {
+            return null;
+        }
+
+        try {
+            const VIDEO_OWNER_RENDERER = videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
+            channelName = VIDEO_OWNER_RENDERER.title.runs[0].text || null;
+            channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId || null;
+            user = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.canonicalBaseUrl || null;
+            thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails || [];
+            subscriberCount = Math.floor(parseStringToNumber(VIDEO_OWNER_RENDERER.subscriberCountText.simpleText.split(' ')[0])) || null;
+            verified = isVerified(VIDEO_OWNER_RENDERER.badges || []);
+        } catch (err) {}
+
+        try {
+            const AUTHOR: YTDL_Author = {
+                id: channelId || '',
+                name: channelName || '',
+                user: user || '',
+                channelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+                externalChannelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+                userUrl: 'https://www.youtube.com' + user,
+                thumbnails,
+                subscriberCount,
+                verified,
+            };
+
+            if (thumbnails?.length) {
+                utils.deprecate(AUTHOR, 'avatar', AUTHOR.thumbnails[0]?.url, 'author.thumbnails', 'author.thumbnails[0].url');
+            }
+
+            return AUTHOR;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    static getAuthorFromPlayerResponse(info: YT_PlayerApiResponse): YTDL_Author | null {
+        let channelName: string | null = null,
+            channelId: string | null = null,
+            user: string | null = null,
+            thumbnails: YTDL_Author['thumbnails'] = [],
+            subscriberCount: number | null = null,
+            verified = false,
+            microformat: YT_MicroformatRenderer | null = null,
             endscreen: any | null = null;
 
         try {
-            microformat = info.microformat.playerMicroformatRenderer || null;
-            endscreen = info.endscreen.endscreenRenderer.elements.find((e) => e.endscreenElementRenderer.style === 'CHANNEL')?.endscreenElementRenderer;
+            microformat = info.microformat?.playerMicroformatRenderer || null;
+            endscreen = info.endscreen?.endscreenRenderer.elements.find((e) => e.endscreenElementRenderer.style === 'CHANNEL')?.endscreenElementRenderer;
         } catch (err) {}
 
         if (!microformat) {
@@ -127,15 +206,15 @@ export default class InfoExtras {
         } catch (err) {}
 
         try {
-            const AUTHOR: any = {
-                id: channelId,
-                name: channelName,
-                user,
-                channel_url: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
-                external_channel_url: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
-                user_url: 'https://www.youtube.com/' + user,
+            const AUTHOR: YTDL_Author = {
+                id: channelId || '',
+                name: channelName || '',
+                user: user || '',
+                channelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+                externalChannelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : '',
+                userUrl: 'https://www.youtube.com/' + user,
                 thumbnails,
-                subscriber_count: subscriberCount,
+                subscriberCount: subscriberCount,
                 verified,
             };
 
@@ -149,29 +228,41 @@ export default class InfoExtras {
         }
     }
 
-    static getLikes(info: YTDL_WatchPageInfo): number | null {
-        try {
-            const CONTENTS = info.response.contents.twoColumnWatchNextResults.results.results.contents,
-                VIDEO = CONTENTS.find((r) => r.videoPrimaryInfoRenderer),
-                BUTTONS = VIDEO.videoPrimaryInfoRenderer.videoActions.menuRenderer.topLevelButtons as Array<any>,
-                ACCESSIBILITY_TEXT = BUTTONS.find((b) => b.segmentedLikeDislikeButtonViewModel).segmentedLikeDislikeButtonViewModel.likeButtonViewModel.likeButtonViewModel.toggleButtonViewModel.toggleButtonViewModel.defaultButtonViewModel.buttonViewModel.accessibilityText;
+    static getLikes(info: YT_NextApiResponse | null): number | null {
+        if (!info) {
+            return null;
+        }
 
-            return parseInt(ACCESSIBILITY_TEXT.match(/[\d,.]+/)[0].replace(/\D+/g, ''));
+        try {
+            const CONTENTS = info.contents.twoColumnWatchNextResults.results.results.contents,
+                VIDEO = CONTENTS.find((r: any) => r.videoPrimaryInfoRenderer) as YT_VideoPrimaryInfoRenderer,
+                BUTTONS = VIDEO.videoPrimaryInfoRenderer.videoActions.menuRenderer.topLevelButtons,
+                BUTTON_VIEW_MODEL = BUTTONS.filter((b) => b.segmentedLikeDislikeButtonViewModel)[0].segmentedLikeDislikeButtonViewModel.likeButtonViewModel.likeButtonViewModel.toggleButtonViewModel.toggleButtonViewModel.defaultButtonViewModel.buttonViewModel,
+                ACCESSIBILITY_TEXT = BUTTON_VIEW_MODEL.accessibilityText,
+                TITLE = BUTTON_VIEW_MODEL.title;
+
+            if (ACCESSIBILITY_TEXT) {
+                const MATCH = ACCESSIBILITY_TEXT.match(/[\d,.]+/) || [];
+                return parseInt((MATCH[0] || '').replace(/\D+/g, ''));
+            } else if (TITLE) {
+                return parseStringToNumber(TITLE);
+            }
+
+            return null;
         } catch (err) {
             return null;
         }
     }
 
-    static getRelatedVideos(info: YTDL_WatchPageInfo): Array<YTDL_RelatedVideo> {
-        let rvsParams: Array<querystring.ParsedUrlQuery> = [],
-            secondaryResults = [];
+    static getRelatedVideos(info: YT_NextApiResponse | null): Array<YTDL_RelatedVideo> {
+        if (!info) {
+            return [];
+        }
+
+        let secondaryResults: Array<any> = [];
 
         try {
-            rvsParams = info.response.webWatchNextResponseExtensionData?.relatedVideoArgs.split(',').map((e) => querystring.parse(e)) || [];
-        } catch (err) {}
-
-        try {
-            secondaryResults = info.response.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
+            secondaryResults = info.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
         } catch (err) {}
 
         const VIDEOS: Array<YTDL_RelatedVideo> = [];
@@ -180,7 +271,7 @@ export default class InfoExtras {
             const DETAILS = RESULT.compactVideoRenderer as YT_CompactVideoRenderer;
 
             if (DETAILS) {
-                const VIDEO = parseRelatedVideo(DETAILS, rvsParams);
+                const VIDEO = parseRelatedVideo(DETAILS);
                 if (VIDEO) {
                     VIDEOS.push(VIDEO);
                 }
@@ -192,7 +283,7 @@ export default class InfoExtras {
                 }
 
                 for (const CONTENT of AUTOPLAY.contents) {
-                    const VIDEO = parseRelatedVideo(CONTENT.compactVideoRenderer, rvsParams);
+                    const VIDEO = parseRelatedVideo(CONTENT.compactVideoRenderer);
                     if (VIDEO) {
                         VIDEOS.push(VIDEO);
                     }
@@ -203,7 +294,7 @@ export default class InfoExtras {
         return VIDEOS;
     }
 
-    static cleanVideoDetails(videoDetails: YTDL_VideoDetails, microformat: YT_YTInitialPlayerResponse['microformat'] | null): YTDL_MoreVideoDetails {
+    static cleanVideoDetails(videoDetails: YTDL_VideoDetails, microformat: YT_MicroformatRenderer | null): YTDL_VideoDetails {
         const DETAILS = videoDetails as any;
 
         if (DETAILS.thumbnail) {
@@ -220,14 +311,17 @@ export default class InfoExtras {
         }
 
         if (microformat) {
-            // Use more reliable `lengthSeconds` from `playerMicroformatRenderer`.
-            DETAILS.lengthSeconds = microformat.playerMicroformatRenderer.lengthSeconds || videoDetails.lengthSeconds;
+            DETAILS.lengthSeconds = parseInt(microformat.lengthSeconds || videoDetails.lengthSeconds);
+        }
+
+        if (DETAILS.viewCount) {
+            DETAILS.viewCount = parseInt(DETAILS.viewCount);
         }
 
         return DETAILS;
     }
 
-    static getStoryboards(info: YT_YTInitialPlayerResponse | null): Array<YTDL_Storyboard> {
+    static getStoryboards(info: YT_PlayerApiResponse | null): Array<YTDL_Storyboard> {
         if (!info) {
             return [];
         }
@@ -264,8 +358,12 @@ export default class InfoExtras {
         });
     }
 
-    static getChapters(info: YTDL_WatchPageInfo): Array<YTDL_Chapter> {
-        const PLAYER_OVERLAY_RENDERER = info.response && info.response.playerOverlays && info.response.playerOverlays.playerOverlayRenderer,
+    static getChapters(info: YT_NextApiResponse | null): Array<YTDL_Chapter> {
+        if (!info) {
+            return [];
+        }
+
+        const PLAYER_OVERLAY_RENDERER = info.playerOverlays && info.playerOverlays.playerOverlayRenderer,
             PLAYER_BAR = PLAYER_OVERLAY_RENDERER && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer.decoratedPlayerBarRenderer && PLAYER_OVERLAY_RENDERER.decoratedPlayerBarRenderer.decoratedPlayerBarRenderer.playerBar,
             MARKERS_MAP = PLAYER_BAR && PLAYER_BAR.multiMarkersPlayerBarRenderer && PLAYER_BAR.multiMarkersPlayerBarRenderer.markersMap,
             MARKER = Array.isArray(MARKERS_MAP) && MARKERS_MAP.find((m) => m.value && Array.isArray(m.value.chapters));
@@ -279,7 +377,7 @@ export default class InfoExtras {
         return CHAPTERS.map((chapter) => {
             return {
                 title: getText(chapter.chapterRenderer.title),
-                start_time: chapter.chapterRenderer.timeRangeStartMillis / 1000,
+                startTime: chapter.chapterRenderer.timeRangeStartMillis / 1000,
             };
         });
     }

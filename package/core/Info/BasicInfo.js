@@ -4,33 +4,46 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._getBasicInfo = _getBasicInfo;
+var CLIENTS_NUMBER;
+(function (CLIENTS_NUMBER) {
+    CLIENTS_NUMBER[CLIENTS_NUMBER["WEBCREATOR"] = 0] = "WEBCREATOR";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["TVEMBEDDED"] = 1] = "TVEMBEDDED";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["IOS"] = 2] = "IOS";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["ANDROID"] = 3] = "ANDROID";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["WEB"] = 4] = "WEB";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["MWEB"] = 5] = "MWEB";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["TV"] = 6] = "TV";
+})(CLIENTS_NUMBER || (CLIENTS_NUMBER = {}));
 const clients_1 = require("../../core/clients");
 const errors_1 = require("../../core/errors");
 const Cache_1 = require("../../core/Cache");
+const PoToken_1 = __importDefault(require("../../core/PoToken"));
+const Fetcher_1 = __importDefault(require("../../core/Fetcher"));
 const Log_1 = require("../../utils/Log");
 const Url_1 = __importDefault(require("../../utils/Url"));
 const constants_1 = require("../../utils/constants");
 const Utils_1 = __importDefault(require("../../utils/Utils"));
 const DownloadOptions_1 = __importDefault(require("../../utils/DownloadOptions"));
 const Html5Player_1 = __importDefault(require("./parser/Html5Player"));
-const WatchPage_1 = __importDefault(require("./parser/WatchPage"));
 const Formats_1 = __importDefault(require("./parser/Formats"));
 const Extras_1 = __importDefault(require("./Extras"));
-const PoToken_1 = __importDefault(require("../PoToken"));
 /* Private Constants */
-const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], CONTINUES_NOT_POSSIBLE_ERRORS = ['This video is private'], SUPPORTED_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android', 'web', 'mweb', 'tv'], BASE_CLIENTS = ['web_creator', 'tv_embedded', 'ios', 'android'], BASIC_INFO_CACHE = new Cache_1.Cache();
+const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], CONTINUES_NOT_POSSIBLE_ERRORS = ['This video is private'], SUPPORTED_CLIENTS = ['webCreator', 'tvEmbedded', 'ios', 'android', 'web', 'mweb', 'tv'], BASE_CLIENTS = ['web', 'webCreator', 'tvEmbedded', 'ios', 'android'], BASIC_INFO_CACHE = new Cache_1.Cache();
 /* ----------- */
 /* Private FUnctions */
-function setupClients(clients) {
+function setupClients(clients, disableDefaultClients) {
     if (clients && clients.length === 0) {
         Log_1.Logger.warning('At least one client must be specified.');
         clients = BASE_CLIENTS;
     }
     clients = clients.filter((client) => SUPPORTED_CLIENTS.includes(client));
+    if (disableDefaultClients) {
+        return clients;
+    }
     return [...new Set([...BASE_CLIENTS, ...clients])];
 }
 async function getSignatureTimestamp(html5player, options) {
-    const BODY = await Utils_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
+    const BODY = await Fetcher_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
     return MO ? MO[1] : undefined;
 }
 async function _getBasicInfo(id, options, isFromGetInfo) {
@@ -42,7 +55,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     const { jar, dispatcher } = options.agent || {};
     Utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher ??= dispatcher;
-    const HTML5_PLAYER_PROMISE = (0, Html5Player_1.default)(id, options), WATCH_PAGE_INFO_PROMISE = (0, WatchPage_1.default)(id, options);
+    const HTML5_PLAYER_PROMISE = (0, Html5Player_1.default)(id, options);
     if (options.oauth2 && options.oauth2.shouldRefreshToken()) {
         Log_1.Logger.info('The specified OAuth2 token has expired and will be renewed automatically.');
         await options.oauth2.refreshAccessToken();
@@ -57,7 +70,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     if (options.poToken && !options.visitorData) {
         Log_1.Logger.warning('If you specify a poToken, you must also specify the visitorData.');
     }
-    options.clients = setupClients(options.clients || BASE_CLIENTS);
+    options.clients = setupClients(options.clients || BASE_CLIENTS, options.disableDefaultClients ?? false);
     const HTML5_PLAYER_URL = (await HTML5_PLAYER_PROMISE).playerUrl;
     if (!HTML5_PLAYER_URL) {
         throw new Error('Unable to find html5player file');
@@ -67,17 +80,18 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         signatureTimestamp: SIGNATURE_TIMESTAMP,
         options,
     }, PLAYER_API_PROMISE = {
-        web_creator: clients_1.WebCreator.getPlayerResponse(PLAYER_API_PARAMS),
-        tv_embedded: clients_1.TvEmbedded.getPlayerResponse(PLAYER_API_PARAMS),
-        ios: clients_1.Ios.getPlayerResponse(PLAYER_API_PARAMS),
-        android: clients_1.Android.getPlayerResponse(PLAYER_API_PARAMS),
+        webCreator: options.clients.includes('webCreator') ? clients_1.WebCreator.getPlayerResponse(PLAYER_API_PARAMS) : Promise.resolve(null),
+        tvEmbedded: options.clients.includes('tvEmbedded') ? clients_1.TvEmbedded.getPlayerResponse(PLAYER_API_PARAMS) : Promise.resolve(null),
+        ios: options.clients.includes('ios') ? clients_1.Ios.getPlayerResponse(PLAYER_API_PARAMS) : Promise.resolve(null),
+        android: options.clients.includes('android') ? clients_1.Android.getPlayerResponse(PLAYER_API_PARAMS) : Promise.resolve(null),
         web: options.clients.includes('web') ? clients_1.Web.getPlayerResponse(PLAYER_API_PARAMS) : Promise.resolve(null),
         mweb: options.clients.includes('mweb') ? clients_1.MWeb.getPlayerResponse(PLAYER_API_PARAMS) : Promise.resolve(null),
         tv: options.clients.includes('tv') ? clients_1.Tv.getPlayerResponse(PLAYER_API_PARAMS) : Promise.resolve(null),
-    }, PLAYER_FETCH_PROMISE = Promise.allSettled(Object.values(PLAYER_API_PROMISE)), WATCH_PAGE_INFO = await WATCH_PAGE_INFO_PROMISE, PLAYER_API_RESPONSES = await PLAYER_FETCH_PROMISE, PLAYER_RESPONSES = {}, PLAYER_RESPONSE_ARRAY = [], VIDEO_INFO = {
-        _watchPageInfo: WATCH_PAGE_INFO,
-        related_videos: [],
+    }, NEXT_API_PROMISE = clients_1.Web.getNextResponse(PLAYER_API_PARAMS), PLAYER_API_RESPONSES = await Promise.allSettled(Object.values(PLAYER_API_PROMISE)), NEXT_API_RESPONSE = (await Promise.allSettled([NEXT_API_PROMISE]))[0], PLAYER_RESPONSES = {}, PLAYER_RESPONSE_ARRAY = [], NEXT_RESPONSES = {
+        web: null,
+    }, VIDEO_INFO = {
         videoDetails: {},
+        relatedVideos: [],
         formats: [],
         html5Player: null,
         clients: options.clients,
@@ -86,27 +100,42 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         _ytdl: {
             version: constants_1.VERSION,
         },
-    };
-    let errorDetails = null;
-    options.clients.forEach((client, i) => {
-        if (PLAYER_API_RESPONSES[i].status === 'fulfilled') {
-            if (PLAYER_API_RESPONSES[i].value === null) {
+    }, checkResponse = (res, client) => {
+        if (res.status === 'fulfilled') {
+            if (res.value === null) {
                 return;
             }
-            const CONTENTS = PLAYER_API_RESPONSES[i].value?.contents;
-            PLAYER_RESPONSES[client] = CONTENTS;
-            PLAYER_RESPONSE_ARRAY.push(CONTENTS);
+            const CONTENTS = res.value?.contents;
+            if (client === 'next') {
+                NEXT_RESPONSES.web = CONTENTS;
+            }
+            else {
+                PLAYER_RESPONSES[client] = CONTENTS;
+                PLAYER_RESPONSE_ARRAY.push(CONTENTS);
+            }
             Log_1.Logger.debug(`[ ${client} ]: Success`);
         }
         else {
-            const REASON = PLAYER_API_RESPONSES[i].reason;
+            const REASON = res.reason;
             Log_1.Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error.message || REASON.error.toString()}`);
-            PLAYER_RESPONSES[client] = REASON.contents;
+            if (client === 'next') {
+                NEXT_RESPONSES.web = REASON.contents;
+            }
+            else {
+                PLAYER_RESPONSES[client] = REASON.contents;
+            }
             if (client === 'ios') {
                 errorDetails = REASON;
             }
         }
+    };
+    let errorDetails = null;
+    options.clients.forEach((client) => {
+        checkResponse(PLAYER_API_RESPONSES[CLIENTS_NUMBER[client.toUpperCase()]], client);
     });
+    if (NEXT_API_RESPONSE) {
+        checkResponse(NEXT_API_RESPONSE, 'next');
+    }
     const IS_MINIMUM_MODE = PLAYER_API_RESPONSES.every((r) => r.status === 'rejected');
     if (IS_MINIMUM_MODE) {
         const ERROR_TEXT = `All player APIs responded with an error. (Clients: ${options.clients.join(', ')})\nFor more information, specify YTDL_DEBUG as an environment variable.`;
@@ -119,26 +148,27 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     VIDEO_INFO.isMinimumMode = IS_MINIMUM_MODE;
     VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
     if (isFromGetInfo) {
-        VIDEO_INFO._playerResponses = PLAYER_RESPONSES;
+        VIDEO_INFO._playerApiResponses = PLAYER_RESPONSES;
+        VIDEO_INFO._nextApiResponses = NEXT_RESPONSES;
     }
     if (!IS_MINIMUM_MODE) {
         /* Filtered */
         const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_ARRAY.filter((p) => p.storyboards)[0], VIDEO_DETAILS = PLAYER_RESPONSE_ARRAY.filter((p) => p.videoDetails)[0]?.videoDetails || {}, MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p.microformat)[0]?.microformat || null;
-        const STORYBOARDS = Extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = Extras_1.default.getMedia(PLAYER_RESPONSES.web_creator) || Extras_1.default.getMedia(PLAYER_RESPONSES.tv_embedded) || Extras_1.default.getMedia(PLAYER_RESPONSES.ios) || Extras_1.default.getMedia(PLAYER_RESPONSES.android), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
-            video_url: Url_1.default.getWatchPageUrl(id),
-            author: Extras_1.default.getAuthor(PLAYER_RESPONSES.web_creator) || Extras_1.default.getAuthor(PLAYER_RESPONSES.tv_embedded) || Extras_1.default.getAuthor(PLAYER_RESPONSES.ios) || Extras_1.default.getAuthor(PLAYER_RESPONSES.android),
+        const STORYBOARDS = Extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = Extras_1.default.getMedia(PLAYER_RESPONSES.webCreator) || Extras_1.default.getMedia(PLAYER_RESPONSES.tvEmbedded) || Extras_1.default.getMedia(PLAYER_RESPONSES.ios) || Extras_1.default.getMedia(PLAYER_RESPONSES.android) || Extras_1.default.getMedia(PLAYER_RESPONSES.web) || Extras_1.default.getMedia(PLAYER_RESPONSES.mweb) || Extras_1.default.getMedia(PLAYER_RESPONSES.tv), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
+            videoUrl: Url_1.default.getWatchPageUrl(id),
+            author: Extras_1.default.getAuthor(NEXT_RESPONSES.web),
             media: MEDIA,
-            likes: Extras_1.default.getLikes(WATCH_PAGE_INFO),
-            age_restricted: AGE_RESTRICTED,
+            likes: Extras_1.default.getLikes(NEXT_RESPONSES.web),
+            ageRestricted: AGE_RESTRICTED,
             storyboards: STORYBOARDS,
-            chapters: Extras_1.default.getChapters(WATCH_PAGE_INFO),
+            chapters: Extras_1.default.getChapters(NEXT_RESPONSES.web),
         };
-        VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT);
+        VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT?.playerMicroformatRenderer || null);
     }
     else {
         VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(errorDetails.contents.videoDetails, null);
     }
-    VIDEO_INFO.related_videos = Extras_1.default.getRelatedVideos(WATCH_PAGE_INFO);
+    VIDEO_INFO.relatedVideos = Extras_1.default.getRelatedVideos(NEXT_RESPONSES.web);
     VIDEO_INFO.formats = PLAYER_RESPONSE_ARRAY.reduce((items, playerResponse) => {
         return [...items, ...Formats_1.default.parseFormats(playerResponse)];
     }, []);

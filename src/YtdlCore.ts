@@ -6,13 +6,15 @@ import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
 
-import { YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/options';
-import { YTDL_VideoInfo } from './types/youtube';
-import { YTDL_Agent } from './types/agent';
+import { YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/Options';
+import { YTDL_VideoInfo } from './types/Ytdl';
+import { YTDL_Agent } from './types/Agent';
+import { YTDL_Hreflang } from './types/Language';
 
 import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
+import PoToken from './core/PoToken';
 
 import { YTDL_ClientTypes } from './meta/Clients';
 
@@ -22,7 +24,7 @@ import DownloadOptionsUtils from './utils/DownloadOptions';
 import { chooseFormat, filterFormats } from './utils/Format';
 import { VERSION } from './utils/constants';
 import { Logger } from './utils/Log';
-import PoToken from './core/PoToken';
+import IP from './utils/IP';
 
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
@@ -83,7 +85,7 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
     DownloadOptionsUtils.applyDefaultHeaders(options);
     if (options.IPv6Block) {
         options.requestOptions = Object.assign({}, options.requestOptions, {
-            localAddress: utils.getRandomIPv6(options.IPv6Block),
+            localAddress: IP.getRandomIPv6(options.IPv6Block),
         });
     }
     if (options.agent) {
@@ -236,26 +238,30 @@ class YtdlCore {
 
     public static OAuth2 = OAuth2;
 
-    public lang: string = 'en';
+    public lang: YTDL_Hreflang = 'en';
     public requestOptions: any = {};
     public agent: YTDL_Agent | undefined;
     public poToken: string | undefined;
     public visitorData: string | undefined;
     public includesPlayerAPIResponse: boolean = false;
-    public includesWatchPageInfo: boolean = false;
-    public clients: Array<YTDL_ClientTypes> = [];
+    public includesNextAPIResponse: boolean = false;
+    public includesOriginalFormatData: boolean = false;
+    public clients: Array<YTDL_ClientTypes> | undefined = undefined;
+    public disableDefaultClients: boolean = false;
     public oauth2: OAuth2 | undefined;
     public version = VERSION;
 
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesWatchPageInfo, clients, oauth2, debug }: YTDL_Constructor = {}) {
+    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, clients, disableDefaultClients, oauth2, debug }: YTDL_Constructor = {}) {
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
         this.agent = agent || undefined;
         this.poToken = poToken || undefined;
         this.visitorData = visitorData || undefined;
-        this.includesPlayerAPIResponse = includesPlayerAPIResponse || false;
-        this.includesWatchPageInfo = includesWatchPageInfo || false;
-        this.clients = clients || [];
+        this.includesPlayerAPIResponse = includesPlayerAPIResponse ?? false;
+        this.includesNextAPIResponse = includesNextAPIResponse ?? false;
+        this.includesOriginalFormatData = includesOriginalFormatData ?? false;
+        this.clients = clients || undefined;
+        this.disableDefaultClients = disableDefaultClients ?? false;
         this.oauth2 = oauth2 || undefined;
 
         process.env.YTDL_DEBUG = (debug ?? false).toString();
@@ -279,9 +285,14 @@ class YtdlCore {
         options.poToken ??= this.poToken;
         options.visitorData ??= this.visitorData;
         options.includesPlayerAPIResponse ??= this.includesPlayerAPIResponse;
-        options.includesWatchPageInfo ??= this.includesWatchPageInfo;
+        options.includesNextAPIResponse ??= this.includesNextAPIResponse;
         options.clients ??= this.clients;
+        options.disableDefaultClients ??= this.disableDefaultClients;
         options.oauth2 ??= this.oauth2;
+
+        if (!this.oauth2 && options.oauth2) {
+            Logger.warning('The OAuth2 token should be specified when instantiating the YtdlCore class, not as a function argument.');
+        }
 
         return options;
     }

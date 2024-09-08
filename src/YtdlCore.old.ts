@@ -2,8 +2,8 @@ import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
 
-import { YTDL_DownloadOptions } from './types/options';
-import { YTDL_VideoInfo } from './types/youtube';
+import { YTDL_DownloadOptions } from './types/Options';
+import { YTDL_VideoInfo } from './types/Ytdl';
 
 import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
 import { createAgent, createProxyAgent } from './core/Agent';
@@ -14,6 +14,7 @@ import Url from './utils/Url';
 import DownloadOptionsUtils from './utils/DownloadOptions';
 import { chooseFormat, filterFormats } from './utils/Format';
 import { VERSION } from './utils/constants';
+import IP from './utils/IP';
 
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
@@ -74,7 +75,7 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
     DownloadOptionsUtils.applyDefaultHeaders(options);
     if (options.IPv6Block) {
         options.requestOptions = Object.assign({}, options.requestOptions, {
-            localAddress: utils.getRandomIPv6(options.IPv6Block),
+            localAddress: IP.getRandomIPv6(options.IPv6Block),
         });
     }
     if (options.agent) {

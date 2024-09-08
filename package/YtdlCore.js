@@ -33,13 +33,14 @@ const m3u8stream_1 = __importStar(require("m3u8stream"));
 const Info_1 = require("./core/Info");
 const Agent_1 = require("./core/Agent");
 const OAuth2_1 = require("./core/OAuth2");
+const PoToken_1 = __importDefault(require("./core/PoToken"));
 const Utils_1 = __importDefault(require("./utils/Utils"));
 const Url_1 = __importDefault(require("./utils/Url"));
 const DownloadOptions_1 = __importDefault(require("./utils/DownloadOptions"));
 const Format_1 = require("./utils/Format");
 const constants_1 = require("./utils/constants");
 const Log_1 = require("./utils/Log");
-const PoToken_1 = __importDefault(require("./core/PoToken"));
+const IP_1 = __importDefault(require("./utils/IP"));
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
 /* Private Functions */
@@ -86,7 +87,7 @@ function downloadFromInfoCallback(stream, info, options) {
     DownloadOptions_1.default.applyDefaultHeaders(options);
     if (options.IPv6Block) {
         options.requestOptions = Object.assign({}, options.requestOptions, {
-            localAddress: Utils_1.default.getRandomIPv6(options.IPv6Block),
+            localAddress: IP_1.default.getRandomIPv6(options.IPv6Block),
         });
     }
     if (options.agent) {
@@ -221,19 +222,23 @@ class YtdlCore {
     poToken;
     visitorData;
     includesPlayerAPIResponse = false;
-    includesWatchPageInfo = false;
-    clients = [];
+    includesNextAPIResponse = false;
+    includesOriginalFormatData = false;
+    clients = undefined;
+    disableDefaultClients = false;
     oauth2;
     version = constants_1.VERSION;
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesWatchPageInfo, clients, oauth2, debug } = {}) {
+    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, clients, disableDefaultClients, oauth2, debug } = {}) {
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
         this.agent = agent || undefined;
         this.poToken = poToken || undefined;
         this.visitorData = visitorData || undefined;
-        this.includesPlayerAPIResponse = includesPlayerAPIResponse || false;
-        this.includesWatchPageInfo = includesWatchPageInfo || false;
-        this.clients = clients || [];
+        this.includesPlayerAPIResponse = includesPlayerAPIResponse ?? false;
+        this.includesNextAPIResponse = includesNextAPIResponse ?? false;
+        this.includesOriginalFormatData = includesOriginalFormatData ?? false;
+        this.clients = clients || undefined;
+        this.disableDefaultClients = disableDefaultClients ?? false;
         this.oauth2 = oauth2 || undefined;
         process.env.YTDL_DEBUG = (debug ?? false).toString();
         if (!this.poToken && !this.visitorData) {
@@ -253,9 +258,13 @@ class YtdlCore {
         options.poToken ??= this.poToken;
         options.visitorData ??= this.visitorData;
         options.includesPlayerAPIResponse ??= this.includesPlayerAPIResponse;
-        options.includesWatchPageInfo ??= this.includesWatchPageInfo;
+        options.includesNextAPIResponse ??= this.includesNextAPIResponse;
         options.clients ??= this.clients;
+        options.disableDefaultClients ??= this.disableDefaultClients;
         options.oauth2 ??= this.oauth2;
+        if (!this.oauth2 && options.oauth2) {
+            Log_1.Logger.warning('The OAuth2 token should be specified when instantiating the YtdlCore class, not as a function argument.');
+        }
         return options;
     }
     download(link, options = {}) {

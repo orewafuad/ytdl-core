@@ -1,10 +1,11 @@
-import { YTDL_DownloadOptions } from '@/types/options';
+import { YTDL_DownloadOptions } from '@/types/Options';
 
 import AGENT from '@/core/Agent';
 
 import { Logger } from './Log';
 import UserAgent from './UserAgents';
-import { getPropInsensitive, getRandomIPv6 } from './Utils';
+import { getPropInsensitive } from './Utils';
+import IP from './IP';
 
 let oldCookieWarning = true,
     oldDispatcherWarning = true,
@@ -56,7 +57,7 @@ export default class DownloadOptionsUtils {
     static applyIPv6Rotations(options: YTDL_DownloadOptions) {
         if (options.IPv6Block) {
             options.requestOptions = Object.assign({}, options.requestOptions, {
-                localAddress: getRandomIPv6(options.IPv6Block),
+                localAddress: IP.getRandomIPv6(options.IPv6Block),
             });
 
             if (oldIpRotationsWarning) {

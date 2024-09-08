@@ -1,11 +1,12 @@
 import { Dispatcher, request } from 'undici';
 import type { OAuth2 } from '../core/OAuth2';
 import type { YTDL_ClientTypes } from '../meta/Clients';
-import { YTDL_Agent } from './agent';
-import { YTDL_VideoFormat } from './youtube';
+import { YTDL_Agent } from './Agent';
+import { YTDL_VideoFormat } from './Ytdl';
+import { YTDL_Hreflang } from './Language';
 export type YTDL_Filter = 'audioandvideo' | 'videoandaudio' | 'video' | 'videoonly' | 'audio' | 'audioonly' | ((format: YTDL_VideoFormat) => boolean);
 export type YTDL_ChooseFormatOptions = {
-    quality?: 'lowest' | 'highest' | 'highestaudio' | 'lowestaudio' | 'highestvideo' | 'lowestvideo' | string | number | string[] | number[];
+    quality?: 'lowest' | 'highest' | 'highestaudio' | 'lowestaudio' | 'highestvideo' | 'lowestvideo' | (string & {}) | number | string[] | number[];
     filter?: YTDL_Filter;
     format?: YTDL_VideoFormat;
 };
@@ -23,7 +24,7 @@ export type YTDL_OAuth2Credentials = {
     tokenType?: string;
 };
 export type YTDL_GetInfoOptions = {
-    lang?: string;
+    lang?: YTDL_Hreflang;
     requestOptions?: Parameters<typeof request>[1];
     agent?: YTDL_Agent;
     poToken?: string;
@@ -32,15 +33,21 @@ export type YTDL_GetInfoOptions = {
      * @default false
      */
     includesPlayerAPIResponse?: boolean;
-    /** You can specify whether to include data obtained from Watch pages.
+    /** You can specify whether to include Next API responses.
      * @default false
      */
-    includesWatchPageInfo?: boolean;
+    includesNextAPIResponse?: boolean;
+    /** You can specify whether to include the original streaming adaptive data in the formatted data.
+     * @default false
+     */
+    includesOriginalFormatData?: boolean;
     /** You can specify the client from which you want to retrieve video information.
-     * @note Even if not specified, web_creator, tv_embedded, ios and android are always included.
-     * @default ["web_creator", "tv_embedded", "ios", "android"]
+     * @note To stabilize functionality, web, webCreator, tvEmbedded, IOS, and android are always included. To disable it, specify `disableDefaultClients`. (If clients is not specified, it will be included.)
+     * @default ["web", "webCreator", "tvEmbedded", "ios", "android"]
      */
     clients?: Array<YTDL_ClientTypes>;
+    /** You can disable the default client. (If clients is not specified, it will be included.) */
+    disableDefaultClients?: boolean;
     /** You can specify OAuth2 tokens to avoid age restrictions and bot errors.
      * @default null
      */

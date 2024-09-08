@@ -1,5 +1,6 @@
-import { YTDL_GetInfoOptions } from '@/types/options';
-import { YT_YTInitialPlayerResponse, YTDL_VideoInfo } from '@/types/youtube';
+import { YTDL_GetInfoOptions } from '@/types/Options';
+import { YT_PlayerApiResponse, YT_StreamingAdaptiveFormat } from '@/types/youtube';
+import { YTDL_VideoInfo } from '@/types/Ytdl';
 
 import { Cache } from '@/core/Cache';
 import sig from '@/core/Signature';
@@ -28,34 +29,28 @@ async function _getFullInfo(id: string, options: YTDL_GetInfoOptions): Promise<Y
         FUNCTIONS = [];
 
     try {
-        const FORMATS = INFO.formats as any as Array<YT_YTInitialPlayerResponse>;
+        const FORMATS = INFO.formats as any as Array<YT_PlayerApiResponse>;
 
         FUNCTIONS.push(sig.decipherFormats(FORMATS, INFO.html5Player, options));
 
         for (const RESPONSE of FORMATS) {
             FUNCTIONS.push(...Formats.parseAdditionalManifests(RESPONSE, options));
         }
-    } catch (err) {
-        Logger.warning('Error in player API; falling back to web-scraping');
+    } catch (err) {}
 
-        FUNCTIONS.push(sig.decipherFormats(Formats.parseFormats(INFO._watchPageInfo.player_response), INFO.html5Player, options));
-        FUNCTIONS.push(...Formats.parseAdditionalManifests(INFO._watchPageInfo.player_response, options));
-    }
+    const RESULTS: Array<YT_StreamingAdaptiveFormat> = Object.values(Object.assign({}, ...await Promise.all(FUNCTIONS)));
 
-    const RESULTS = await Promise.all(FUNCTIONS);
-
-    INFO.formats = Object.values(Object.assign({}, ...RESULTS));
-    INFO.formats = INFO.formats.map(formatUtils.addFormatMeta);
+    INFO.formats = RESULTS.map((format) => formatUtils.addFormatMeta(format, options.includesOriginalFormatData ?? false));
     INFO.formats.sort(formatUtils.sortFormats);
 
     INFO.full = true;
 
-    if (!options.includesWatchPageInfo) {
-        delete (INFO as any)._watchPageInfo;
+    if (!options.includesPlayerAPIResponse) {
+        delete (INFO as any)._playerApiResponses;
     }
 
-    if (!options.includesPlayerAPIResponse) {
-        delete (INFO as any)._playerResponses;
+    if (!options.includesNextAPIResponse) {
+        delete (INFO as any)._nextApiResponses;
     }
 
     return INFO;

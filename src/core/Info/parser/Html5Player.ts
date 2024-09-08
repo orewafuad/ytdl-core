@@ -1,6 +1,6 @@
 type Html5PlayerInfo = { playerUrl: string | null; path: string | null };
 
-import type { YTDL_GetInfoOptions } from '@/types/options';
+import type { YTDL_GetInfoOptions } from '@/types/Options';
 import Url from '@/utils/Url';
 import YouTubePageExtractor from './PageExtractor';
 

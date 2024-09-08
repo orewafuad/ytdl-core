@@ -3,6 +3,11 @@ export default class Web {
     static getPlayerResponse(params: YTDL_ClientsParams): Promise<{
         isError: boolean;
         error: import("../errors").PlayerRequestError | null;
-        contents: import("../../types/youtube").YT_YTInitialPlayerResponse;
+        contents: import("../../types/youtube").YT_PlayerApiResponse;
+    }>;
+    static getNextResponse(params: YTDL_ClientsParams): Promise<{
+        isError: boolean;
+        error: import("../errors").PlayerRequestError | null;
+        contents: import("../../types/youtube").YT_PlayerApiResponse;
     }>;
 }

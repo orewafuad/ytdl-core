@@ -1,6 +1,6 @@
 import { PassThrough } from 'stream';
-import { YTDL_DownloadOptions } from './types/options';
-import { YTDL_VideoInfo } from './types/youtube';
+import { YTDL_DownloadOptions } from './types/Options';
+import { YTDL_VideoInfo } from './types/Ytdl';
 import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';

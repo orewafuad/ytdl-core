@@ -14,7 +14,7 @@ const Utils_1 = __importDefault(require("./Utils"));
 const AUDIO_ENCODING_RANKS = ['mp4a', 'mp3', 'vorbis', 'aac', 'opus', 'flac'], VIDEO_ENCODING_RANKS = ['mp4v', 'avc1', 'Sorenson H.283', 'MPEG-4 Visual', 'VP8', 'VP9', 'H.264'];
 /* Private Functions */
 function getEncodingRank(ranks, format) {
-    return ranks.findIndex((enc) => format.codecs && format.codecs.includes(enc));
+    return ranks.findIndex((enc) => format.codec.text && format.codec.text.includes(enc));
 }
 function getVideoBitrate(format) {
     return format.bitrate || 0;
@@ -40,7 +40,7 @@ function sortFormatsBy(a, b, sortBy) {
     return res;
 }
 function getQualityLabel(format) {
-    return parseInt(format.qualityLabel) || 0;
+    return parseInt(format.quality.label) || 0;
 }
 function sortFormatsByVideo(a, b) {
     return sortFormatsBy(a, b, [getQualityLabel, getVideoBitrate, getVideoEncodingRank]);
@@ -71,7 +71,7 @@ function sortFormats(a, b) {
         (format) => +(parseInt(format.contentLength) > 0),
         (format) => +(format.hasVideo && format.hasAudio),
         (format) => +format.hasVideo,
-        (format) => parseInt(format.qualityLabel) || 0,
+        (format) => parseInt(format.quality.label) || 0,
         getVideoBitrate,
         getAudioBitrate,
         getVideoEncodingRank,
@@ -142,8 +142,8 @@ function chooseFormat(formats, options) {
             formats.sort(sortFormatsByAudio);
             const BEST_AUDIO_FORMAT = formats[0];
             formats = formats.filter((format) => sortFormatsByAudio(BEST_AUDIO_FORMAT, format) === 0);
-            const WORST_VIDEO_QUALITY = formats.map((format) => parseInt(format.qualityLabel) || 0).sort((a, b) => a - b)[0];
-            format = formats.find((format) => (parseInt(format.qualityLabel) || 0) === WORST_VIDEO_QUALITY);
+            const WORST_VIDEO_QUALITY = formats.map((format) => parseInt(format.quality.label) || 0).sort((a, b) => a - b)[0];
+            format = formats.find((format) => (parseInt(format.quality.label) || 0) === WORST_VIDEO_QUALITY);
             break;
         }
         case 'lowestaudio': {
@@ -177,22 +177,68 @@ function chooseFormat(formats, options) {
     }
     return format;
 }
-function addFormatMeta(format) {
-    format = Object.assign({}, formats_1.default[format.itag] || {}, format);
-    format.hasVideo = !!format.qualityLabel;
-    format.hasAudio = !!format.audioBitrate;
-    const CONTAINER = format.mimeType && format.mimeType.split(';')[0].split('/')[1];
-    format.container = CONTAINER || null;
-    const CODECS = format.mimeType && Utils_1.default.between(format.mimeType, 'codecs="', '"');
-    format.codecs = CODECS || null;
-    const VIDEO_CODEC = format.hasVideo && format.codecs && format.codecs.split(', ')[0];
-    format.videoCodec = VIDEO_CODEC || null;
-    const AUDIO_CODEC = format.hasAudio && format.codecs && format.codecs.split(', ')[0];
-    format.audioCodec = AUDIO_CODEC || null;
-    format.isLive = /\bsource[/=]yt_live_broadcast\b/.test(format.url);
-    format.isHLS = /\/manifest\/hls_(variant|playlist)\//.test(format.url);
-    format.isDashMPD = /\/manifest\/dash\//.test(format.url);
-    return format;
+function getClientName(url) {
+    try {
+        const C = new URL(url).searchParams.get('c');
+        switch (C) {
+            case 'WEB': {
+                return 'web';
+            }
+            case 'MWEB': {
+                return 'mweb';
+            }
+            case 'WEB_CREATOR': {
+                return 'webCreator';
+            }
+            case 'IOS': {
+                return 'ios';
+            }
+            case 'ANDROID': {
+                return 'android';
+            }
+            case 'TVHTML5_SIMPLY_EMBEDDED_PLAYER': {
+                return 'tvEmbedded';
+            }
+            default: {
+                return 'unknown';
+            }
+        }
+    }
+    catch (err) {
+        return 'unknown';
+    }
+}
+function addFormatMeta(adaptiveFormat, includesOriginalFormatData) {
+    const ITAG = adaptiveFormat.itag, ADDITIONAL_FORMAT_DATA = formats_1.default[ITAG] || null, CODEC = adaptiveFormat.mimeType && Utils_1.default.between(adaptiveFormat.mimeType, 'codecs="', '"'), FORMAT = {
+        itag: ITAG,
+        url: adaptiveFormat.url,
+        mimeType: adaptiveFormat.mimeType || 'video/mp4',
+        codec: {
+            text: CODEC || 'h264',
+            video: null,
+            audio: null,
+        },
+        quality: {
+            text: adaptiveFormat.quality,
+            label: adaptiveFormat.qualityLabel || 'audio',
+        },
+        bitrate: adaptiveFormat.bitrate || ADDITIONAL_FORMAT_DATA?.bitrate || NaN,
+        audioBitrate: ADDITIONAL_FORMAT_DATA?.audioBitrate || NaN,
+        contentLength: adaptiveFormat.contentLength,
+        container: adaptiveFormat.mimeType?.split(';')[0].split('/')[1] || null,
+        hasVideo: !!adaptiveFormat.qualityLabel || !!!adaptiveFormat.audioQuality,
+        hasAudio: !!adaptiveFormat.audioQuality,
+        isLive: /\bsource[/=]yt_live_broadcast\b/.test(adaptiveFormat.url),
+        isHLS: /\/manifest\/hls_(variant|playlist)\//.test(adaptiveFormat.url),
+        isDashMPD: /\/manifest\/dash\//.test(adaptiveFormat.url),
+        sourceClientName: getClientName(adaptiveFormat.url) || 'unknown',
+    };
+    if (includesOriginalFormatData) {
+        FORMAT.originalData = adaptiveFormat;
+    }
+    FORMAT.codec.video = FORMAT.hasVideo ? FORMAT.codec.text.split(', ')[0] : null;
+    FORMAT.codec.audio = FORMAT.hasAudio ? FORMAT.codec.text.split(', ')[0] : null;
+    return FORMAT;
 }
 exports.default = { sortFormats, filterFormats, chooseFormat, addFormatMeta };
 //# sourceMappingURL=Format.js.map

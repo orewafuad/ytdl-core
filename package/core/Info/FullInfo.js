@@ -29,21 +29,16 @@ async function _getFullInfo(id, options) {
             FUNCTIONS.push(...Formats_1.default.parseAdditionalManifests(RESPONSE, options));
         }
     }
-    catch (err) {
-        Log_1.Logger.warning('Error in player API; falling back to web-scraping');
-        FUNCTIONS.push(Signature_1.default.decipherFormats(Formats_1.default.parseFormats(INFO._watchPageInfo.player_response), INFO.html5Player, options));
-        FUNCTIONS.push(...Formats_1.default.parseAdditionalManifests(INFO._watchPageInfo.player_response, options));
-    }
-    const RESULTS = await Promise.all(FUNCTIONS);
-    INFO.formats = Object.values(Object.assign({}, ...RESULTS));
-    INFO.formats = INFO.formats.map(Format_1.default.addFormatMeta);
+    catch (err) { }
+    const RESULTS = Object.values(Object.assign({}, ...await Promise.all(FUNCTIONS)));
+    INFO.formats = RESULTS.map((format) => Format_1.default.addFormatMeta(format, options.includesOriginalFormatData ?? false));
     INFO.formats.sort(Format_1.default.sortFormats);
     INFO.full = true;
-    if (!options.includesWatchPageInfo) {
-        delete INFO._watchPageInfo;
-    }
     if (!options.includesPlayerAPIResponse) {
-        delete INFO._playerResponses;
+        delete INFO._playerApiResponses;
+    }
+    if (!options.includesNextAPIResponse) {
+        delete INFO._nextApiResponses;
     }
     return INFO;
 }

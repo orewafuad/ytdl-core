@@ -3,10 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.INNERTUBE_CLIENTS = exports.INNERTUBE_PLAYER_API_URL = exports.Clients = void 0;
+exports.INNERTUBE_CLIENTS = exports.INNERTUBE_BASE_API_URL = exports.Clients = void 0;
 const Utils_1 = __importDefault(require("../utils/Utils"));
 const UserAgents_1 = __importDefault(require("../utils/UserAgents"));
-const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player', INNERTUBE_CLIENTS = Object.freeze({
+const INNERTUBE_BASE_API_URL = 'https://www.youtube.com/youtubei/v1', INNERTUBE_CLIENTS = Object.freeze({
     web: {
         context: {
             client: {
@@ -20,7 +20,7 @@ const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player', I
             key: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
         },
     },
-    web_creator: {
+    webCreator: {
         context: {
             client: {
                 clientName: 'WEB_CREATOR',
@@ -88,7 +88,7 @@ const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player', I
         clientName: 7,
         apiInfo: {},
     },
-    tv_embedded: {
+    tvEmbedded: {
         context: {
             client: {
                 clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
@@ -135,17 +135,18 @@ const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player', I
         },
     },
 };
-exports.INNERTUBE_PLAYER_API_URL = INNERTUBE_PLAYER_API_URL;
+exports.INNERTUBE_BASE_API_URL = INNERTUBE_BASE_API_URL;
 exports.INNERTUBE_CLIENTS = INNERTUBE_CLIENTS;
 class Clients {
     static getAuthorizationHeader(oauth2) {
         return oauth2 ? { authorization: 'Bearer ' + oauth2.getAccessToken() } : {};
     }
-    static web({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+    static web({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }) {
         const CLIENT = INNERTUBE_CLIENTS.web, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
         }
@@ -156,7 +157,7 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -167,11 +168,11 @@ class Clients {
             },
         };
     }
-    static webCreator({ videoId, signatureTimestamp, options: { poToken, visitorData } }) {
-        const CLIENT = INNERTUBE_CLIENTS.web_creator, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+    static web_nextApi({ videoId, options: { poToken, visitorData, oauth2 } }) {
+        const CLIENT = INNERTUBE_CLIENTS.web, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD, autonavState: 'STATE_OFF', playbackContext: { vis: 0, lactMilliseconds: '-1' }, captionsRequested: false };
         PAYLOAD.videoId = videoId;
-        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = 'en';
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
         }
@@ -182,7 +183,34 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL + '/next'}?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+                ...Clients.getAuthorizationHeader(oauth2),
+            },
+        };
+    }
+    static webCreator({ videoId, signatureTimestamp, options: { poToken, visitorData, lang } }) {
+        const CLIENT = INNERTUBE_CLIENTS.webCreator, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -192,11 +220,12 @@ class Clients {
             },
         };
     }
-    static android({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+    static android({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }) {
         const CLIENT = INNERTUBE_CLIENTS.android, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
         }
@@ -207,7 +236,7 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${Utils_1.default.generateClientPlaybackNonce(12)}`,
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${Utils_1.default.generateClientPlaybackNonce(12)}`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -218,11 +247,12 @@ class Clients {
             },
         };
     }
-    static ios({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+    static ios({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }) {
         const CLIENT = INNERTUBE_CLIENTS.ios, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
         }
@@ -233,7 +263,7 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${Utils_1.default.generateClientPlaybackNonce(12)}`,
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${Utils_1.default.generateClientPlaybackNonce(12)}`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -244,11 +274,12 @@ class Clients {
             },
         };
     }
-    static mweb({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+    static mweb({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }) {
         const CLIENT = INNERTUBE_CLIENTS.mweb, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
         }
@@ -259,7 +290,7 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL}/player?prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -270,11 +301,12 @@ class Clients {
             },
         };
     }
-    static tv({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
+    static tv({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }) {
         const CLIENT = INNERTUBE_CLIENTS.web, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
         }
@@ -285,7 +317,7 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL}/player?prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -296,11 +328,12 @@ class Clients {
             },
         };
     }
-    static tvEmbedded({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }) {
-        const CLIENT = INNERTUBE_CLIENTS.web, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+    static tvEmbedded({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }) {
+        const CLIENT = INNERTUBE_CLIENTS.tvEmbedded, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
         }
@@ -311,7 +344,7 @@ class Clients {
             PAYLOAD.context.client.visitorData = visitorData;
         }
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL}/player?prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,

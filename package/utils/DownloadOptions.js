@@ -7,6 +7,7 @@ const Agent_1 = __importDefault(require("../core/Agent"));
 const Log_1 = require("./Log");
 const UserAgents_1 = __importDefault(require("./UserAgents"));
 const Utils_1 = require("./Utils");
+const IP_1 = __importDefault(require("./IP"));
 let oldCookieWarning = true, oldDispatcherWarning = true, oldLocalAddressWarning = true, oldIpRotationsWarning = true;
 class DownloadOptionsUtils {
     static applyDefaultAgent(options) {
@@ -43,7 +44,7 @@ class DownloadOptionsUtils {
     static applyIPv6Rotations(options) {
         if (options.IPv6Block) {
             options.requestOptions = Object.assign({}, options.requestOptions, {
-                localAddress: (0, Utils_1.getRandomIPv6)(options.IPv6Block),
+                localAddress: IP_1.default.getRandomIPv6(options.IPv6Block),
             });
             if (oldIpRotationsWarning) {
                 oldIpRotationsWarning = false;

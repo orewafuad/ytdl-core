@@ -1,10 +1,10 @@
-import type { YTDL_GetInfoOptions } from '@/types/options';
+import type { YTDL_GetInfoOptions } from '@/types/Options';
 
+import Fetcher from '@/core/Fetcher';
 import { Cache } from '@/core/Cache';
 
 import Url from '@/utils/Url';
 import UserAgent from '@/utils/UserAgents';
-import utils from '@/utils/Utils';
 
 const WATCH_PAGE_CACHE = new Cache();
 
@@ -22,12 +22,12 @@ export default class YouTubePageExtractor {
             ...options.requestOptions.headers,
         };
 
-        return WATCH_PAGE_CACHE.getOrSet(WATCH_PAGE_URL, () => utils.request(WATCH_PAGE_URL, options)) || Promise.resolve('');
+        return WATCH_PAGE_CACHE.getOrSet(WATCH_PAGE_URL, () => Fetcher.request(WATCH_PAGE_URL, options)) || Promise.resolve('');
     }
 
     static getEmbedPageBody(id: string, options: YTDL_GetInfoOptions): Promise<string> {
         const EMBED_PAGE_URL = `${Url.getEmbedUrl(id)}?hl=${options.lang || 'en'}`;
 
-        return utils.request(EMBED_PAGE_URL, options);
+        return Fetcher.request(EMBED_PAGE_URL, options);
     }
 }

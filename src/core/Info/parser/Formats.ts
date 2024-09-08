@@ -12,14 +12,16 @@ type YTDL_DashManifestData = {
 
 import sax from 'sax';
 
-import { YTDL_RequestOptions } from '@/types/options';
-import { YT_StreamingFormat, YT_YTInitialPlayerResponse } from '@/types/youtube';
-import utils from '@/utils/Utils';
+import { YTDL_RequestOptions } from '@/types/Options';
+import { YT_StreamingAdaptiveFormat, YT_PlayerApiResponse } from '@/types/youtube';
+
+import Fetcher from '@/core/Fetcher';
+
 import Url from '@/utils/Url';
 
 export default class Formats {
-    static parseFormats(playerResponse: YT_YTInitialPlayerResponse | null): Array<YT_StreamingFormat> {
-        let formats: Array<YT_StreamingFormat> = [];
+    static parseFormats(playerResponse: YT_PlayerApiResponse | null): Array<YT_StreamingAdaptiveFormat> {
+        let formats: Array<YT_StreamingAdaptiveFormat> = [];
 
         if (playerResponse && playerResponse.streamingData) {
             formats = formats.concat(playerResponse.streamingData.formats).concat(playerResponse.streamingData.adaptiveFormats);
@@ -30,7 +32,7 @@ export default class Formats {
 
     static async getM3U8(url: string, options: YTDL_RequestOptions): Promise<Record<string, YTDL_M3U8Data>> {
         const _URL = new URL(url, Url.getBaseUrl()),
-            BODY = await utils.request<string>(_URL.toString(), options),
+            BODY = await Fetcher.request<string>(_URL.toString(), options),
             FORMATS: Record<string, YTDL_M3U8Data> = {};
 
         BODY.split('\n')
@@ -94,8 +96,7 @@ export default class Formats {
                 resolve(FORMATS);
             };
 
-            utils
-                .request(new URL(url, Url.getBaseUrl()).toString(), options)
+            Fetcher.request(new URL(url, Url.getBaseUrl()).toString(), options)
                 .then((res: any) => {
                     PARSER.write(res);
                     PARSER.close();
@@ -104,7 +105,7 @@ export default class Formats {
         });
     }
 
-    static parseAdditionalManifests(playerResponse: YT_YTInitialPlayerResponse | null, options: YTDL_RequestOptions): Array<Promise<Record<string, YTDL_M3U8Data | YTDL_DashManifestData>>> {
+    static parseAdditionalManifests(playerResponse: YT_PlayerApiResponse | null, options: YTDL_RequestOptions): Array<Promise<Record<string, YTDL_M3U8Data | YTDL_DashManifestData>>> {
         const STREAMING_DATA = playerResponse && playerResponse.streamingData,
             MANIFESTS: Array<Promise<Record<string, YTDL_M3U8Data | YTDL_DashManifestData>>> = [];
 

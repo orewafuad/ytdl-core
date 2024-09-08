@@ -47,6 +47,7 @@ Object.defineProperty(exports, "chooseFormat", { enumerable: true, get: function
 Object.defineProperty(exports, "filterFormats", { enumerable: true, get: function () { return Format_1.filterFormats; } });
 const constants_1 = require("./utils/constants");
 Object.defineProperty(exports, "VERSION", { enumerable: true, get: function () { return constants_1.VERSION; } });
+const IP_1 = __importDefault(require("./utils/IP"));
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
 /* Private Functions */
@@ -93,7 +94,7 @@ function downloadFromInfoCallback(stream, info, options) {
     DownloadOptions_1.default.applyDefaultHeaders(options);
     if (options.IPv6Block) {
         options.requestOptions = Object.assign({}, options.requestOptions, {
-            localAddress: Utils_1.default.getRandomIPv6(options.IPv6Block),
+            localAddress: IP_1.default.getRandomIPv6(options.IPv6Block),
         });
     }
     if (options.agent) {

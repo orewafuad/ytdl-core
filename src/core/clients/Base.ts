@@ -1,11 +1,31 @@
-import { PlayerRequestError } from '@/core/errors';
+import type { YTDL_GetInfoOptions } from '@/types/Options';
+import { YT_PlayerApiResponse } from '@/types/youtube';
+
+import { PlayerRequestError, UnrecoverableError } from '@/core/errors';
+import Fetcher from '@/core/Fetcher';
+
 import type { YTDL_ClientsParams } from '@/meta/Clients';
-import type { YTDL_GetInfoOptions } from '@/types/options';
-import { YT_YTInitialPlayerResponse } from '@/types/youtube';
-import utils from '@/utils/Utils';
 
 export default class Base {
-    static request(url: string, requestOptions: { payload: string; headers: Record<string, any> }, params: YTDL_ClientsParams): Promise<{ isError: boolean; error: PlayerRequestError | null; contents: YT_YTInitialPlayerResponse }> {
+    private static playError(playerResponse: YT_PlayerApiResponse | null): Error | null {
+        const PLAYABILITY = playerResponse && playerResponse.playabilityStatus;
+
+        if (!PLAYABILITY) {
+            return null;
+        }
+
+        if (PLAYABILITY.status === 'ERROR' || PLAYABILITY.status === 'LOGIN_REQUIRED') {
+            return new UnrecoverableError(PLAYABILITY.reason || (PLAYABILITY.messages && PLAYABILITY.messages[0]));
+        } else if (PLAYABILITY.status === 'LIVE_STREAM_OFFLINE') {
+            return new UnrecoverableError(PLAYABILITY.reason || 'The live stream is offline.');
+        } else if (PLAYABILITY.status === 'UNPLAYABLE') {
+            return new UnrecoverableError(PLAYABILITY.reason || 'This video is unavailable.');
+        }
+
+        return null;
+    }
+
+    static request<T = YT_PlayerApiResponse>(url: string, requestOptions: { payload: string; headers: Record<string, any> }, params: YTDL_ClientsParams): Promise<{ isError: boolean; error: PlayerRequestError | null; contents: T }> {
         return new Promise(async (resolve, reject) => {
             const { jar, dispatcher } = params.options.agent || {},
                 HEADERS = {
@@ -22,8 +42,9 @@ export default class Base {
                         body: typeof requestOptions.payload === 'string' ? requestOptions.payload : JSON.stringify(requestOptions.payload),
                     },
                 },
-                RESPONSE = await utils.request<YT_YTInitialPlayerResponse>(url, OPTS),
-                PLAY_ERROR = utils.playError(RESPONSE);
+                RESPONSE = await Fetcher.request<YT_PlayerApiResponse>(url, OPTS),
+                IS_NEXT_API = url.includes('/next'),
+                PLAY_ERROR = this.playError(RESPONSE);
 
             if (PLAY_ERROR) {
                 return reject({
@@ -33,7 +54,7 @@ export default class Base {
                 });
             }
 
-            if (!RESPONSE.videoDetails || params.videoId !== RESPONSE.videoDetails.videoId) {
+            if (!IS_NEXT_API && (!RESPONSE.videoDetails || params.videoId !== RESPONSE.videoDetails.videoId)) {
                 const ERROR = new PlayerRequestError('Malformed response from YouTube');
                 ERROR.response = RESPONSE;
 
@@ -47,7 +68,7 @@ export default class Base {
             resolve({
                 isError: false,
                 error: null,
-                contents: RESPONSE,
+                contents: RESPONSE as T,
             });
         });
     }

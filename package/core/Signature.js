@@ -10,6 +10,7 @@ exports.setDownloadURL = setDownloadURL;
 exports.decipherFormats = decipherFormats;
 const querystring_1 = __importDefault(require("querystring"));
 const node_vm_1 = __importDefault(require("node:vm"));
+const Fetcher_1 = __importDefault(require("../core/Fetcher"));
 const Utils_1 = __importDefault(require("../utils/Utils"));
 const Log_1 = require("../utils/Log");
 const Cache_1 = require("./Cache");
@@ -149,7 +150,7 @@ function extractFunctions(body) {
 }
 function getFunctions(html5PlayerFile, options) {
     return CACHE.getOrSet(html5PlayerFile, async () => {
-        const BODY = await Utils_1.default.request(html5PlayerFile, options), FUNCTIONS = extractFunctions(BODY);
+        const BODY = await Fetcher_1.default.request(html5PlayerFile, options), FUNCTIONS = extractFunctions(BODY);
         CACHE.set(html5PlayerFile, FUNCTIONS);
         return FUNCTIONS;
     });
