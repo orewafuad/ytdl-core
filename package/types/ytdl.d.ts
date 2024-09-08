@@ -1,5 +1,6 @@
 import { YTDL_ClientTypes } from '../meta/Clients';
 import { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail, YT_VideoDetails } from './youtube';
+import { YTDL_GetInfoOptions } from './Options';
 export type YTDL_Author = {
     id: string;
     name: string;
@@ -96,9 +97,6 @@ export type YTDL_VideoInfo = {
     relatedVideos: Array<YTDL_RelatedVideo>;
     formats: Array<YTDL_VideoFormat>;
     full: boolean;
-    isMinimumMode: boolean;
-    clients: Array<YTDL_ClientTypes>;
-    html5Player: string;
     live_chunk_readahead?: number;
     _playerApiResponses: {
         webCreator: YT_PlayerApiResponse | null;
@@ -111,6 +109,13 @@ export type YTDL_VideoInfo = {
     };
     _nextApiResponses: {
         web: YT_NextApiResponse | null;
+    };
+    _metadata: {
+        isMinimumMode: boolean;
+        clients: Array<YTDL_ClientTypes>;
+        html5Player: string;
+        id: string;
+        options: YTDL_GetInfoOptions;
     };
     _ytdl: {
         version: string;

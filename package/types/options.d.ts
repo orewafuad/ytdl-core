@@ -41,6 +41,10 @@ export type YTDL_GetInfoOptions = {
      * @default false
      */
     includesOriginalFormatData?: boolean;
+    /** You can specify whether to include related videos.
+     * @default true
+     */
+    includesRelatedVideo?: boolean;
     /** You can specify the client from which you want to retrieve video information.
      * @note To stabilize functionality, web, webCreator, tvEmbedded, IOS, and android are always included. To disable it, specify `disableDefaultClients`. (If clients is not specified, it will be included.)
      * @default ["web", "webCreator", "tvEmbedded", "ios", "android"]

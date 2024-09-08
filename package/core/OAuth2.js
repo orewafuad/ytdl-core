@@ -27,6 +27,12 @@ class OAuth2 {
         this.expiryDate = credentials.expiryDate;
         this.clientId = credentials.clientData?.clientId;
         this.clientSecret = credentials.clientData?.clientSecret;
+        if (this.shouldRefreshToken()) {
+            try {
+                this.refreshAccessToken();
+            }
+            catch (err) { }
+        }
     }
     async getClientData() {
         const YT_TV_RESPONSE = await (0, undici_1.fetch)(Url_1.default.getTvUrl(), {

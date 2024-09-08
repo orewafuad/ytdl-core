@@ -36,11 +36,12 @@ declare class YtdlCore {
     includesPlayerAPIResponse: boolean;
     includesNextAPIResponse: boolean;
     includesOriginalFormatData: boolean;
+    includesRelatedVideo: boolean;
     clients: Array<YTDL_ClientTypes> | undefined;
     disableDefaultClients: boolean;
     oauth2: OAuth2 | undefined;
     version: string;
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, clients, disableDefaultClients, oauth2, debug }?: YTDL_Constructor);
+    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug }?: YTDL_Constructor);
     private setupOptions;
     download(link: string, options?: YTDL_DownloadOptions): PassThrough;
     downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;

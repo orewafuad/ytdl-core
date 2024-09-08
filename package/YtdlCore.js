@@ -224,11 +224,12 @@ class YtdlCore {
     includesPlayerAPIResponse = false;
     includesNextAPIResponse = false;
     includesOriginalFormatData = false;
+    includesRelatedVideo = true;
     clients = undefined;
     disableDefaultClients = false;
     oauth2;
     version = constants_1.VERSION;
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, clients, disableDefaultClients, oauth2, debug } = {}) {
+    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug } = {}) {
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
         this.agent = agent || undefined;
@@ -237,6 +238,7 @@ class YtdlCore {
         this.includesPlayerAPIResponse = includesPlayerAPIResponse ?? false;
         this.includesNextAPIResponse = includesNextAPIResponse ?? false;
         this.includesOriginalFormatData = includesOriginalFormatData ?? false;
+        this.includesRelatedVideo = includesRelatedVideo ?? true;
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
         this.oauth2 = oauth2 || undefined;
@@ -259,6 +261,8 @@ class YtdlCore {
         options.visitorData ??= this.visitorData;
         options.includesPlayerAPIResponse ??= this.includesPlayerAPIResponse;
         options.includesNextAPIResponse ??= this.includesNextAPIResponse;
+        options.includesOriginalFormatData ??= this.includesOriginalFormatData;
+        options.includesRelatedVideo ??= this.includesRelatedVideo;
         options.clients ??= this.clients;
         options.disableDefaultClients ??= this.disableDefaultClients;
         options.oauth2 ??= this.oauth2;

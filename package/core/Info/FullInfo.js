@@ -24,7 +24,7 @@ async function _getFullInfo(id, options) {
     const INFO = await (0, BasicInfo_1._getBasicInfo)(id, options, true), FUNCTIONS = [];
     try {
         const FORMATS = INFO.formats;
-        FUNCTIONS.push(Signature_1.default.decipherFormats(FORMATS, INFO.html5Player, options));
+        FUNCTIONS.push(Signature_1.default.decipherFormats(FORMATS, INFO._metadata.html5Player, options));
         for (const RESPONSE of FORMATS) {
             FUNCTIONS.push(...Formats_1.default.parseAdditionalManifests(RESPONSE, options));
         }

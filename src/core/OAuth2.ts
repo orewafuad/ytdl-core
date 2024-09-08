@@ -36,6 +36,12 @@ export class OAuth2 {
         this.expiryDate = credentials.expiryDate;
         this.clientId = credentials.clientData?.clientId;
         this.clientSecret = credentials.clientData?.clientSecret;
+
+        if (this.shouldRefreshToken()) {
+            try {
+                this.refreshAccessToken();
+            } catch (err) {}
+        }
     }
 
     private async getClientData(): Promise<YTDL_OAuth2ClientData> {

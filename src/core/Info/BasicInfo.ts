@@ -144,10 +144,14 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             videoDetails: {},
             relatedVideos: [],
             formats: [],
-            html5Player: null,
-            clients: options.clients,
             full: false,
-            isMinimumMode: false,
+            _metadata: {
+                html5Player: null,
+                clients: options.clients,
+                isMinimumMode: false,
+                id,
+                options,
+            },
             _ytdl: {
                 version: VERSION,
             },
@@ -206,8 +210,8 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         Logger.info('Only minimal information is available, as information from the Player API is not available.');
     }
 
-    VIDEO_INFO.isMinimumMode = IS_MINIMUM_MODE;
-    VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
+    VIDEO_INFO._metadata.isMinimumMode = IS_MINIMUM_MODE;
+    VIDEO_INFO._metadata.html5Player = HTML5_PLAYER_URL;
 
     if (isFromGetInfo) {
         VIDEO_INFO._playerApiResponses = PLAYER_RESPONSES;
@@ -238,10 +242,10 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         VIDEO_INFO.videoDetails = InfoExtras.cleanVideoDetails(errorDetails.contents.videoDetails as any, null);
     }
 
-    VIDEO_INFO.relatedVideos = InfoExtras.getRelatedVideos(NEXT_RESPONSES.web);
-    VIDEO_INFO.formats = PLAYER_RESPONSE_ARRAY.reduce((items: Array<YT_StreamingAdaptiveFormat>, playerResponse) => {
+    VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? InfoExtras.getRelatedVideos(NEXT_RESPONSES.web) : [];
+    VIDEO_INFO.formats = isFromGetInfo ? PLAYER_RESPONSE_ARRAY.reduce((items: Array<YT_StreamingAdaptiveFormat>, playerResponse) => {
         return [...items, ...Formats.parseFormats(playerResponse)];
-    }, []) as any;
+    }, []) as any : [];
 
     return VIDEO_INFO;
 }

@@ -246,12 +246,13 @@ class YtdlCore {
     public includesPlayerAPIResponse: boolean = false;
     public includesNextAPIResponse: boolean = false;
     public includesOriginalFormatData: boolean = false;
+    public includesRelatedVideo: boolean = true;
     public clients: Array<YTDL_ClientTypes> | undefined = undefined;
     public disableDefaultClients: boolean = false;
     public oauth2: OAuth2 | undefined;
     public version = VERSION;
 
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, clients, disableDefaultClients, oauth2, debug }: YTDL_Constructor = {}) {
+    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug }: YTDL_Constructor = {}) {
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
         this.agent = agent || undefined;
@@ -260,6 +261,7 @@ class YtdlCore {
         this.includesPlayerAPIResponse = includesPlayerAPIResponse ?? false;
         this.includesNextAPIResponse = includesNextAPIResponse ?? false;
         this.includesOriginalFormatData = includesOriginalFormatData ?? false;
+        this.includesRelatedVideo = includesRelatedVideo ?? true;
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
         this.oauth2 = oauth2 || undefined;
@@ -286,6 +288,8 @@ class YtdlCore {
         options.visitorData ??= this.visitorData;
         options.includesPlayerAPIResponse ??= this.includesPlayerAPIResponse;
         options.includesNextAPIResponse ??= this.includesNextAPIResponse;
+        options.includesOriginalFormatData ??= this.includesOriginalFormatData;
+        options.includesRelatedVideo ??= this.includesRelatedVideo;
         options.clients ??= this.clients;
         options.disableDefaultClients ??= this.disableDefaultClients;
         options.oauth2 ??= this.oauth2;

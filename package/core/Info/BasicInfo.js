@@ -93,10 +93,14 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         videoDetails: {},
         relatedVideos: [],
         formats: [],
-        html5Player: null,
-        clients: options.clients,
         full: false,
-        isMinimumMode: false,
+        _metadata: {
+            html5Player: null,
+            clients: options.clients,
+            isMinimumMode: false,
+            id,
+            options,
+        },
         _ytdl: {
             version: constants_1.VERSION,
         },
@@ -145,8 +149,8 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         Log_1.Logger.error(ERROR_TEXT);
         Log_1.Logger.info('Only minimal information is available, as information from the Player API is not available.');
     }
-    VIDEO_INFO.isMinimumMode = IS_MINIMUM_MODE;
-    VIDEO_INFO.html5Player = HTML5_PLAYER_URL;
+    VIDEO_INFO._metadata.isMinimumMode = IS_MINIMUM_MODE;
+    VIDEO_INFO._metadata.html5Player = HTML5_PLAYER_URL;
     if (isFromGetInfo) {
         VIDEO_INFO._playerApiResponses = PLAYER_RESPONSES;
         VIDEO_INFO._nextApiResponses = NEXT_RESPONSES;
@@ -168,10 +172,10 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     else {
         VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(errorDetails.contents.videoDetails, null);
     }
-    VIDEO_INFO.relatedVideos = Extras_1.default.getRelatedVideos(NEXT_RESPONSES.web);
-    VIDEO_INFO.formats = PLAYER_RESPONSE_ARRAY.reduce((items, playerResponse) => {
+    VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? Extras_1.default.getRelatedVideos(NEXT_RESPONSES.web) : [];
+    VIDEO_INFO.formats = isFromGetInfo ? PLAYER_RESPONSE_ARRAY.reduce((items, playerResponse) => {
         return [...items, ...Formats_1.default.parseFormats(playerResponse)];
-    }, []);
+    }, []) : [];
     return VIDEO_INFO;
 }
 async function getBasicInfo(link, options = {}) {
