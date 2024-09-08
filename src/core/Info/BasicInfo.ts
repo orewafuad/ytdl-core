@@ -213,8 +213,11 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
     VIDEO_INFO._metadata.isMinimumMode = IS_MINIMUM_MODE;
     VIDEO_INFO._metadata.html5Player = HTML5_PLAYER_URL;
 
-    if (isFromGetInfo) {
+    if (options.includesPlayerAPIResponse) {
         VIDEO_INFO._playerApiResponses = PLAYER_RESPONSES;
+    }
+
+    if (options.includesNextAPIResponse) {
         VIDEO_INFO._nextApiResponses = NEXT_RESPONSES;
     }
 

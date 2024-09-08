@@ -45,14 +45,6 @@ async function _getFullInfo(id: string, options: YTDL_GetInfoOptions): Promise<Y
 
     INFO.full = true;
 
-    if (!options.includesPlayerAPIResponse) {
-        delete (INFO as any)._playerApiResponses;
-    }
-
-    if (!options.includesNextAPIResponse) {
-        delete (INFO as any)._nextApiResponses;
-    }
-
     return INFO;
 }
 

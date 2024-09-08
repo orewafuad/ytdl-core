@@ -146,6 +146,10 @@ function chooseFormat(formats: Array<YTDL_VideoFormat>, options: YTDL_ChooseForm
         formats = filterFormats(formats, options.filter);
     }
 
+    if (options.client) {
+        formats = formats.filter((format) => format.sourceClientName === options.client);
+    }
+
     if (formats.some((format) => format.isHLS)) {
         formats = formats.filter((format) => format.isHLS || !format.isLive);
     }
