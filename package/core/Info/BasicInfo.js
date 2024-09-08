@@ -172,7 +172,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     else {
         VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(errorDetails.contents.videoDetails, null);
     }
-    VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? Extras_1.default.getRelatedVideos(NEXT_RESPONSES.web) : [];
+    VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? Extras_1.default.getRelatedVideos(NEXT_RESPONSES.web, options.lang || 'en') : [];
     VIDEO_INFO.formats = isFromGetInfo ? PLAYER_RESPONSE_ARRAY.reduce((items, playerResponse) => {
         return [...items, ...Formats_1.default.parseFormats(playerResponse)];
     }, []) : [];

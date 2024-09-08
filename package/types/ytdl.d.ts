@@ -64,7 +64,7 @@ export type YTDL_RelatedVideo = {
     isLive: boolean;
     published?: string;
     shortViewCountText?: string;
-    viewCount?: string;
+    viewCount?: number;
     lengthSeconds?: number;
 };
 export type YTDL_VideoFormat = {

@@ -17,13 +17,12 @@ import UserAgent from '@/utils/UserAgents';
 const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') };
 
 export class OAuth2 {
-    isEnabled: boolean = false;
-    accessToken: string = '';
-    refreshToken: string = '';
-    expiryDate: string = '';
-
-    clientId?: string;
-    clientSecret?: string;
+    public isEnabled: boolean = false;
+    public accessToken: string = '';
+    public refreshToken: string = '';
+    public expiryDate: string = '';
+    private clientId?: string;
+    private clientSecret?: string;
 
     constructor(credentials?: YTDL_OAuth2Credentials) {
         if (!credentials) {
@@ -111,33 +110,36 @@ export class OAuth2 {
             throw new Error('Refresh token is missing, make sure it is specified.');
         }
 
-        const PAYLOAD = {
-                client_id: this.clientId,
-                client_secret: this.clientSecret,
-                refresh_token: this.refreshToken,
-                grant_type: 'refresh_token',
-            },
-            REFRESH_API_RESPONSE = await fetch(Url.getRefreshTokenApiUrl(), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+        try {
+            const PAYLOAD = {
+                    client_id: this.clientId,
+                    client_secret: this.clientSecret,
+                    refresh_token: this.refreshToken,
+                    grant_type: 'refresh_token',
                 },
-                body: JSON.stringify(PAYLOAD),
-            });
+                REFRESH_API_RESPONSE = await fetch(Url.getRefreshTokenApiUrl(), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(PAYLOAD),
+                });
 
-        if (!REFRESH_API_RESPONSE.ok) {
-            throw new Error(`Failed to refresh access token: ${REFRESH_API_RESPONSE.status}`);
+            if (!REFRESH_API_RESPONSE.ok) {
+                throw new Error(`Failed to refresh access token: ${REFRESH_API_RESPONSE.status}`);
+            }
+
+            const REFRESH_API_DATA = (await REFRESH_API_RESPONSE.json()) as RefreshApiResponse;
+
+            if (REFRESH_API_DATA.error_code) {
+                throw new Error('Authorization server returned an error: ' + JSON.stringify(REFRESH_API_DATA));
+            }
+
+            this.expiryDate = new Date(Date.now() + REFRESH_API_DATA.expires_in * 1000).toISOString();
+            this.accessToken = REFRESH_API_DATA.access_token;
+        } catch (err) {
+            throw err;
         }
-
-        const REFRESH_API_DATA = (await REFRESH_API_RESPONSE.json()) as RefreshApiResponse;
-
-        if (REFRESH_API_DATA.error_code) {
-            throw new Error('Authorization server returned an error: ' + JSON.stringify(REFRESH_API_DATA));
-        }
-
-        this.accessToken = REFRESH_API_DATA.access_token;
-        this.refreshToken = REFRESH_API_DATA.refresh_token;
-        this.expiryDate = new Date(Date.now() + REFRESH_API_DATA.expires_in * 1000).toISOString();
     }
 
     getAccessToken(): string {

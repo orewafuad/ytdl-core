@@ -283,3 +283,7 @@ declare module 'tough-cookie' {
 declare module 'youtube-po-token-generator' {
     export function generate(): Promise<{ visitorData: any; poToken: any }>;
 }
+
+declare module 'chrono-node' {
+    export function parseDate(date: string): Date;
+}

@@ -1,7 +1,10 @@
 import { parseTimestamp } from 'm3u8stream';
+import * as chrono from 'chrono-node';
 
 import { YT_CompactVideoRenderer, YT_PlayerApiResponse, YT_NextApiResponse, YT_MicroformatRenderer, YT_VideoSecondaryInfoRenderer, YT_VideoOwnerRenderer, YT_VideoPrimaryInfoRenderer } from '@/types/youtube';
 import { YTDL_Media, YTDL_Author, YTDL_RelatedVideo, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails } from '@/types/Ytdl';
+import { YTDL_Hreflang } from '@/types/Language';
+
 import utils from '@/utils/Utils';
 import Url from '@/utils/Url';
 
@@ -19,7 +22,28 @@ function isVerified(badges: YT_VideoOwnerRenderer['badges']): boolean {
     return !!(badges && badges.find((b) => b.metadataBadgeRenderer.tooltip === 'Verified'));
 }
 
-function parseRelatedVideo(details: YT_CompactVideoRenderer): YTDL_RelatedVideo | null {
+function getRelativeTime(date: Date, locale = 'en') {
+    const now = new Date();
+    const secondsAgo = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'always' });
+
+    if (secondsAgo < 60) {
+        return rtf.format(-secondsAgo, 'second');
+    } else if (secondsAgo < 3600) {
+        return rtf.format(-Math.floor(secondsAgo / 60), 'minute');
+    } else if (secondsAgo < 86400) {
+        return rtf.format(-Math.floor(secondsAgo / 3600), 'hour');
+    } else if (secondsAgo < 2592000) {
+        return rtf.format(-Math.floor(secondsAgo / 86400), 'day');
+    } else if (secondsAgo < 31536000) {
+        return rtf.format(-Math.floor(secondsAgo / 2592000), 'month');
+    } else {
+        return rtf.format(-Math.floor(secondsAgo / 31536000), 'year');
+    }
+}
+
+function parseRelatedVideo(details: YT_CompactVideoRenderer, lang: YTDL_Hreflang): YTDL_RelatedVideo | null {
     if (!details) {
         return null;
     }
@@ -34,14 +58,19 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer): YTDL_RelatedVideo 
 
         viewCount = (/^\d/.test(viewCount) ? viewCount : shortViewCount).split(' ')[0];
 
-        const BROWSE_ENDPOINT = details.shortBylineText.runs[0].navigationEndpoint.browseEndpoint,
+        const FORMATTER = new Intl.NumberFormat(lang, {
+                notation: 'compact',
+            }),
+            BROWSE_ENDPOINT = details.shortBylineText.runs[0].navigationEndpoint.browseEndpoint,
             CHANNEL_ID = BROWSE_ENDPOINT.browseId,
             NAME = getText(details.shortBylineText),
             USER = (BROWSE_ENDPOINT.canonicalBaseUrl || '').split('/').slice(-1)[0],
+            PUBLISHED_TEXT = getText(details.publishedTimeText),
+            SHORT_VIEW_COUNT_TEXT = shortViewCount.split(' ')[0],
             VIDEO: YTDL_RelatedVideo = {
                 id: details.videoId,
                 title: getText(details.title),
-                published: getText(details.publishedTimeText),
+                published: lang === 'en' ? PUBLISHED_TEXT : getRelativeTime(chrono.parseDate(PUBLISHED_TEXT), lang),
                 author: {
                     id: CHANNEL_ID,
                     name: NAME,
@@ -55,8 +84,8 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer): YTDL_RelatedVideo 
                     subscriberCount: null,
                     verified: isVerified(details.ownerBadges || []),
                 },
-                shortViewCountText: shortViewCount.split(' ')[0],
-                viewCount: viewCount.replace(/,/g, ''),
+                shortViewCountText: lang === 'en' ? SHORT_VIEW_COUNT_TEXT : FORMATTER.format(parseStringToNumber(SHORT_VIEW_COUNT_TEXT)),
+                viewCount: parseInt(viewCount.replace(/,/g, '')),
                 lengthSeconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1000) : undefined,
                 thumbnails: details.thumbnail.thumbnails || [],
                 richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails.thumbnails : [],
@@ -148,7 +177,7 @@ export default class InfoExtras {
             const VIDEO_OWNER_RENDERER = videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
             channelName = VIDEO_OWNER_RENDERER.title.runs[0].text || null;
             channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId || null;
-            user = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.canonicalBaseUrl || null;
+            user = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.canonicalBaseUrl.replace('/', '') || null;
             thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails || [];
             subscriberCount = Math.floor(parseStringToNumber(VIDEO_OWNER_RENDERER.subscriberCountText.simpleText.split(' ')[0])) || null;
             verified = isVerified(VIDEO_OWNER_RENDERER.badges || []);
@@ -254,7 +283,7 @@ export default class InfoExtras {
         }
     }
 
-    static getRelatedVideos(info: YT_NextApiResponse | null): Array<YTDL_RelatedVideo> {
+    static getRelatedVideos(info: YT_NextApiResponse | null, lang: YTDL_Hreflang): Array<YTDL_RelatedVideo> {
         if (!info) {
             return [];
         }
@@ -271,7 +300,7 @@ export default class InfoExtras {
             const DETAILS = RESULT.compactVideoRenderer as YT_CompactVideoRenderer;
 
             if (DETAILS) {
-                const VIDEO = parseRelatedVideo(DETAILS);
+                const VIDEO = parseRelatedVideo(DETAILS, lang);
                 if (VIDEO) {
                     VIDEOS.push(VIDEO);
                 }
@@ -283,7 +312,7 @@ export default class InfoExtras {
                 }
 
                 for (const CONTENT of AUTOPLAY.contents) {
-                    const VIDEO = parseRelatedVideo(CONTENT.compactVideoRenderer);
+                    const VIDEO = parseRelatedVideo(CONTENT.compactVideoRenderer, lang);
                     if (VIDEO) {
                         VIDEOS.push(VIDEO);
                     }

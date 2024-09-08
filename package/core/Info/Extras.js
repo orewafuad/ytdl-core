@@ -1,9 +1,33 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const m3u8stream_1 = require("m3u8stream");
+const chrono = __importStar(require("chrono-node"));
 const Utils_1 = __importDefault(require("../../utils/Utils"));
 const Url_1 = __importDefault(require("../../utils/Url"));
 function getText(obj) {
@@ -18,7 +42,30 @@ function getText(obj) {
 function isVerified(badges) {
     return !!(badges && badges.find((b) => b.metadataBadgeRenderer.tooltip === 'Verified'));
 }
-function parseRelatedVideo(details) {
+function getRelativeTime(date, locale = 'en') {
+    const now = new Date();
+    const secondsAgo = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'always' });
+    if (secondsAgo < 60) {
+        return rtf.format(-secondsAgo, 'second');
+    }
+    else if (secondsAgo < 3600) {
+        return rtf.format(-Math.floor(secondsAgo / 60), 'minute');
+    }
+    else if (secondsAgo < 86400) {
+        return rtf.format(-Math.floor(secondsAgo / 3600), 'hour');
+    }
+    else if (secondsAgo < 2592000) {
+        return rtf.format(-Math.floor(secondsAgo / 86400), 'day');
+    }
+    else if (secondsAgo < 31536000) {
+        return rtf.format(-Math.floor(secondsAgo / 2592000), 'month');
+    }
+    else {
+        return rtf.format(-Math.floor(secondsAgo / 31536000), 'year');
+    }
+}
+function parseRelatedVideo(details, lang) {
     if (!details) {
         return null;
     }
@@ -28,10 +75,12 @@ function parseRelatedVideo(details) {
             shortViewCount = '';
         }
         viewCount = (/^\d/.test(viewCount) ? viewCount : shortViewCount).split(' ')[0];
-        const BROWSE_ENDPOINT = details.shortBylineText.runs[0].navigationEndpoint.browseEndpoint, CHANNEL_ID = BROWSE_ENDPOINT.browseId, NAME = getText(details.shortBylineText), USER = (BROWSE_ENDPOINT.canonicalBaseUrl || '').split('/').slice(-1)[0], VIDEO = {
+        const FORMATTER = new Intl.NumberFormat(lang, {
+            notation: 'compact',
+        }), BROWSE_ENDPOINT = details.shortBylineText.runs[0].navigationEndpoint.browseEndpoint, CHANNEL_ID = BROWSE_ENDPOINT.browseId, NAME = getText(details.shortBylineText), USER = (BROWSE_ENDPOINT.canonicalBaseUrl || '').split('/').slice(-1)[0], PUBLISHED_TEXT = getText(details.publishedTimeText), SHORT_VIEW_COUNT_TEXT = shortViewCount.split(' ')[0], VIDEO = {
             id: details.videoId,
             title: getText(details.title),
-            published: getText(details.publishedTimeText),
+            published: lang === 'en' ? PUBLISHED_TEXT : getRelativeTime(chrono.parseDate(PUBLISHED_TEXT), lang),
             author: {
                 id: CHANNEL_ID,
                 name: NAME,
@@ -45,8 +94,8 @@ function parseRelatedVideo(details) {
                 subscriberCount: null,
                 verified: isVerified(details.ownerBadges || []),
             },
-            shortViewCountText: shortViewCount.split(' ')[0],
-            viewCount: viewCount.replace(/,/g, ''),
+            shortViewCountText: lang === 'en' ? SHORT_VIEW_COUNT_TEXT : FORMATTER.format(parseStringToNumber(SHORT_VIEW_COUNT_TEXT)),
+            viewCount: parseInt(viewCount.replace(/,/g, '')),
             lengthSeconds: details.lengthText ? Math.floor((0, m3u8stream_1.parseTimestamp)(getText(details.lengthText)) / 1000) : undefined,
             thumbnails: details.thumbnail.thumbnails || [],
             richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails.thumbnails : [],
@@ -120,7 +169,7 @@ class InfoExtras {
             const VIDEO_OWNER_RENDERER = videoSecondaryInfoRenderer.owner.videoOwnerRenderer;
             channelName = VIDEO_OWNER_RENDERER.title.runs[0].text || null;
             channelId = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.browseId || null;
-            user = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.canonicalBaseUrl || null;
+            user = VIDEO_OWNER_RENDERER.navigationEndpoint.browseEndpoint.canonicalBaseUrl.replace('/', '') || null;
             thumbnails = VIDEO_OWNER_RENDERER.thumbnail.thumbnails || [];
             subscriberCount = Math.floor(parseStringToNumber(VIDEO_OWNER_RENDERER.subscriberCountText.simpleText.split(' ')[0])) || null;
             verified = isVerified(VIDEO_OWNER_RENDERER.badges || []);
@@ -206,7 +255,7 @@ class InfoExtras {
             return null;
         }
     }
-    static getRelatedVideos(info) {
+    static getRelatedVideos(info, lang) {
         if (!info) {
             return [];
         }
@@ -219,7 +268,7 @@ class InfoExtras {
         for (const RESULT of secondaryResults) {
             const DETAILS = RESULT.compactVideoRenderer;
             if (DETAILS) {
-                const VIDEO = parseRelatedVideo(DETAILS);
+                const VIDEO = parseRelatedVideo(DETAILS, lang);
                 if (VIDEO) {
                     VIDEOS.push(VIDEO);
                 }
@@ -230,7 +279,7 @@ class InfoExtras {
                     continue;
                 }
                 for (const CONTENT of AUTOPLAY.contents) {
-                    const VIDEO = parseRelatedVideo(CONTENT.compactVideoRenderer);
+                    const VIDEO = parseRelatedVideo(CONTENT.compactVideoRenderer, lang);
                     if (VIDEO) {
                         VIDEOS.push(VIDEO);
                     }

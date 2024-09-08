@@ -242,7 +242,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
         VIDEO_INFO.videoDetails = InfoExtras.cleanVideoDetails(errorDetails.contents.videoDetails as any, null);
     }
 
-    VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? InfoExtras.getRelatedVideos(NEXT_RESPONSES.web) : [];
+    VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? InfoExtras.getRelatedVideos(NEXT_RESPONSES.web, options.lang || 'en') : [];
     VIDEO_INFO.formats = isFromGetInfo ? PLAYER_RESPONSE_ARRAY.reduce((items: Array<YT_StreamingAdaptiveFormat>, playerResponse) => {
         return [...items, ...Formats.parseFormats(playerResponse)];
     }, []) as any : [];
