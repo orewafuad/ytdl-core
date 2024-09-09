@@ -57,6 +57,7 @@ Make sure you're installing the latest version of `@ybd-project/ytdl-core` to ke
 For more detailed information on how to use and specify options, please see the Wiki.
 
 ```ts
+import fs from 'fs';
 import { YtdlCore } from '@ybd-project/ytdl-core';
 // JavaScript: const { YtdlCore } = require('@ybd-project/ytdl-core');
 
@@ -65,7 +66,7 @@ const ytdl = new YtdlCore({
 });
 
 // Download a video
-ytdl.download('https://www.youtube.com/watch?v=dQw4w9WgXcQ').pipe(require('fs').createWriteStream('video.mp4'));
+ytdl.download('https://www.youtube.com/watch?v=dQw4w9WgXcQ').pipe(fs.createWriteStream('video.mp4'));
 
 // Get video info
 ytdl.getBasicInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((info) => {
