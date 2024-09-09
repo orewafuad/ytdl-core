@@ -10,7 +10,7 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
    <li>
       <a href="#usage">Usage</a>
       <ul>
-         <li><a href="#usage-before-v5.1.0">Usage before v5.1.0</a></li>
+         <li><a href="#usage-before-v5-1-0">Usage before v5.1.0</a></li>
          <li><a href="#oauth2-support">OAuth2 Support</a></li>
          <li><a href="#potoken-support">PoToken Support</a></li>
          <li><a href="#cookies-support">Cookies Support</a></li>
