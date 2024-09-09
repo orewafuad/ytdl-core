@@ -54,7 +54,7 @@ Make sure you're installing the latest version of `@ybd-project/ytdl-core` to ke
 
 ## Usage
 
-For more detailed information on how to use and specify options, please see the Wiki.
+For more detailed information on how to use and specify options, please see the [Wiki](https://github.com/ybd-project/ytdl-core/wiki).
 
 ```ts
 import fs from 'fs';
@@ -218,7 +218,7 @@ If you wish to use rotation, please create a new issue.
 
 ## API Documentation
 
-For API documentation, see the Wiki.
+For API documentation, see the [Wiki](https://github.com/ybd-project/ytdl-core/wiki).
 
 ## Limitations
 
