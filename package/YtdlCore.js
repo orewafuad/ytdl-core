@@ -80,7 +80,7 @@ function downloadFromInfoCallback(stream, info, options) {
         return;
     }
     let contentLength, downloaded = 0;
-    const ondata = (chunk) => {
+    const onData = (chunk) => {
         downloaded += chunk.length;
         stream.emit('progress', chunk.length, downloaded, contentLength);
     };
@@ -141,7 +141,7 @@ function downloadFromInfoCallback(stream, info, options) {
                     Range: `bytes=${start}-${end || ''}`,
                 });
                 req = (0, miniget_1.default)(format.url, requestOptions);
-                req.on('data', ondata);
+                req.on('data', onData);
                 req.on('end', () => {
                     if (stream.destroyed)
                         return;
@@ -171,7 +171,7 @@ function downloadFromInfoCallback(stream, info, options) {
                     return;
                 contentLength = contentLength || parseInt(res.headers['content-length']);
             });
-            req.on('data', ondata);
+            req.on('data', onData);
             pipeAndSetEvents(req, stream, shouldEnd);
         }
     }
@@ -218,6 +218,7 @@ class YtdlCore {
     static OAuth2 = OAuth2_1.OAuth2;
     lang = 'en';
     requestOptions = {};
+    rewriteRequest;
     agent;
     poToken;
     visitorData;
@@ -229,9 +230,10 @@ class YtdlCore {
     disableDefaultClients = false;
     oauth2;
     version = constants_1.VERSION;
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug } = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug } = {}) {
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
+        this.rewriteRequest = rewriteRequest || undefined;
         this.agent = agent || undefined;
         this.poToken = poToken || undefined;
         this.visitorData = visitorData || undefined;
@@ -256,6 +258,7 @@ class YtdlCore {
     setupOptions(options) {
         options.lang ??= this.lang;
         options.requestOptions ??= this.requestOptions;
+        options.rewriteRequest ??= this.rewriteRequest;
         options.agent ??= this.agent;
         options.poToken ??= this.poToken;
         options.visitorData ??= this.visitorData;

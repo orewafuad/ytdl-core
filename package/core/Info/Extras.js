@@ -304,6 +304,9 @@ class InfoExtras {
         if (microformat) {
             DETAILS.lengthSeconds = parseInt(microformat.lengthSeconds || videoDetails.lengthSeconds);
         }
+        if (DETAILS.lengthSeconds) {
+            DETAILS.lengthSeconds = parseInt(DETAILS.lengthSeconds);
+        }
         if (DETAILS.viewCount) {
             DETAILS.viewCount = parseInt(DETAILS.viewCount);
         }

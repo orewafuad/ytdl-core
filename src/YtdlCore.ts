@@ -77,7 +77,7 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
     let contentLength: number,
         downloaded = 0;
 
-    const ondata = (chunk: Buffer) => {
+    const onData = (chunk: Buffer) => {
         downloaded += chunk.length;
         stream.emit('progress', chunk.length, downloaded, contentLength);
     };
@@ -146,7 +146,7 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
                     Range: `bytes=${start}-${end || ''}`,
                 });
                 req = miniget(format.url, requestOptions as any);
-                req.on('data', ondata);
+                req.on('data', onData);
                 req.on('end', () => {
                     if (stream.destroyed) return;
                     if (end && end !== rangeEnd) {
@@ -177,7 +177,7 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
                 contentLength = contentLength || parseInt(res.headers['content-length']);
             });
 
-            req.on('data', ondata);
+            req.on('data', onData);
 
             pipeAndSetEvents(req, stream, shouldEnd);
         }
@@ -240,6 +240,7 @@ class YtdlCore {
 
     public lang: YTDL_Hreflang = 'en';
     public requestOptions: any = {};
+    public rewriteRequest: YTDL_GetInfoOptions['rewriteRequest'];
     public agent: YTDL_Agent | undefined;
     public poToken: string | undefined;
     public visitorData: string | undefined;
@@ -252,9 +253,10 @@ class YtdlCore {
     public oauth2: OAuth2 | undefined;
     public version = VERSION;
 
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug }: YTDL_Constructor = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug }: YTDL_Constructor = {}) {
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
+        this.rewriteRequest = rewriteRequest || undefined;
         this.agent = agent || undefined;
         this.poToken = poToken || undefined;
         this.visitorData = visitorData || undefined;
@@ -283,6 +285,7 @@ class YtdlCore {
     private setupOptions(options: YTDL_DownloadOptions) {
         options.lang ??= this.lang;
         options.requestOptions ??= this.requestOptions;
+        options.rewriteRequest ??= this.rewriteRequest;
         options.agent ??= this.agent;
         options.poToken ??= this.poToken;
         options.visitorData ??= this.visitorData;

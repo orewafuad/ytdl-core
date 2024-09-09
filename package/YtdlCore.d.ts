@@ -30,6 +30,7 @@ declare class YtdlCore {
     static OAuth2: typeof OAuth2;
     lang: YTDL_Hreflang;
     requestOptions: any;
+    rewriteRequest: YTDL_GetInfoOptions['rewriteRequest'];
     agent: YTDL_Agent | undefined;
     poToken: string | undefined;
     visitorData: string | undefined;
@@ -41,7 +42,7 @@ declare class YtdlCore {
     disableDefaultClients: boolean;
     oauth2: OAuth2 | undefined;
     version: string;
-    constructor({ lang, requestOptions, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug }?: YTDL_Constructor);
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug }?: YTDL_Constructor);
     private setupOptions;
     download(link: string, options?: YTDL_DownloadOptions): PassThrough;
     downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;

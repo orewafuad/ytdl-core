@@ -136,7 +136,7 @@ function filterFormats(formats: Array<YTDL_VideoFormat>, filter?: YTDL_ChooseFor
 function chooseFormat(formats: Array<YTDL_VideoFormat>, options: YTDL_ChooseFormatOptions): YTDL_VideoFormat {
     if (typeof options.format === 'object') {
         if (!options.format.url) {
-            throw new Error('Invalid format given, did you use `ytdl.getInfo()`?');
+            throw new Error('Invalid format given, did you use `ytdl.getFullInfo()`?');
         }
 
         return options.format;
@@ -146,8 +146,8 @@ function chooseFormat(formats: Array<YTDL_VideoFormat>, options: YTDL_ChooseForm
         formats = filterFormats(formats, options.filter);
     }
 
-    if (options.client) {
-        formats = formats.filter((format) => format.sourceClientName === options.client);
+    if (options.clients) {
+        formats = formats.filter((format) => options.clients?.includes(format.sourceClientName as any));
     }
 
     if (formats.some((format) => format.isHLS)) {
@@ -287,7 +287,7 @@ function addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOrigi
     }
 
     FORMAT.codec.video = FORMAT.hasVideo ? FORMAT.codec.text.split(', ')[0] : null;
-    FORMAT.codec.audio = FORMAT.hasAudio ? FORMAT.codec.text.split(', ')[0] : null;
+    FORMAT.codec.audio = FORMAT.hasAudio ? FORMAT.codec.text.split(', ')[1] : null;
 
     return FORMAT;
 }

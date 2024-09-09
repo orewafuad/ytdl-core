@@ -7,6 +7,7 @@ import { OAuth2 } from './core/OAuth2';
 import Url from './utils/Url';
 import { chooseFormat, filterFormats } from './utils/Format';
 import { VERSION } from './utils/constants';
+/** @deprecated */
 declare const ytdl: {
     (link: string, options?: YTDL_DownloadOptions): PassThrough;
     downloadFromInfo: typeof downloadFromInfo;
@@ -25,7 +26,7 @@ declare const ytdl: {
     version: string;
 };
 /** Can be used to download video after its `info` is gotten through
- * `ytdl.getInfo()`. In case the user might want to look at the
+ * `ytdl.getFullInfo()`. In case the user might want to look at the
  * `info` object before deciding to download. */
 declare function downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;
 export { downloadFromInfo, getBasicInfo, getInfo, chooseFormat, filterFormats, createAgent, createProxyAgent, OAuth2, VERSION };

@@ -36,6 +36,7 @@ class Base {
                     headers: HEADERS,
                     body: typeof requestOptions.payload === 'string' ? requestOptions.payload : JSON.stringify(requestOptions.payload),
                 },
+                rewriteRequest: params.options.rewriteRequest,
             }, RESPONSE = await Fetcher_1.default.request(url, OPTS), IS_NEXT_API = url.includes('/next'), PLAY_ERROR = this.playError(RESPONSE);
             if (PLAY_ERROR) {
                 return reject({

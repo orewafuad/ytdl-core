@@ -183,6 +183,8 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
 }
 
 /* Public Functions */
+
+/** @deprecated */
 const ytdl = (link: string, options: YTDL_DownloadOptions = {}) => {
     const STREAM = createStream(options);
 
@@ -194,7 +196,7 @@ const ytdl = (link: string, options: YTDL_DownloadOptions = {}) => {
 };
 
 /** Can be used to download video after its `info` is gotten through
- * `ytdl.getInfo()`. In case the user might want to look at the
+ * `ytdl.getFullInfo()`. In case the user might want to look at the
  * `info` object before deciding to download. */
 function downloadFromInfo(info: YTDL_VideoInfo, options: YTDL_DownloadOptions = {}) {
     const STREAM = createStream(options);

@@ -116,15 +116,15 @@ function filterFormats(formats, filter) {
 function chooseFormat(formats, options) {
     if (typeof options.format === 'object') {
         if (!options.format.url) {
-            throw new Error('Invalid format given, did you use `ytdl.getInfo()`?');
+            throw new Error('Invalid format given, did you use `ytdl.getFullInfo()`?');
         }
         return options.format;
     }
     if (options.filter) {
         formats = filterFormats(formats, options.filter);
     }
-    if (options.client) {
-        formats = formats.filter((format) => format.sourceClientName === options.client);
+    if (options.clients) {
+        formats = formats.filter((format) => options.clients?.includes(format.sourceClientName));
     }
     if (formats.some((format) => format.isHLS)) {
         formats = formats.filter((format) => format.isHLS || !format.isLive);
@@ -240,7 +240,7 @@ function addFormatMeta(adaptiveFormat, includesOriginalFormatData) {
         FORMAT.originalData = adaptiveFormat;
     }
     FORMAT.codec.video = FORMAT.hasVideo ? FORMAT.codec.text.split(', ')[0] : null;
-    FORMAT.codec.audio = FORMAT.hasAudio ? FORMAT.codec.text.split(', ')[0] : null;
+    FORMAT.codec.audio = FORMAT.hasAudio ? FORMAT.codec.text.split(', ')[1] : null;
     return FORMAT;
 }
 exports.default = { sortFormats, filterFormats, chooseFormat, addFormatMeta };

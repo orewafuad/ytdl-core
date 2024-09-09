@@ -1,5 +1,25 @@
 # Changelog
 
+## v5.1.0 (2024/09/10)
+
+### Features
+* **Operation:** Next API (/youtubei/v1/next) to stabilize the operation.
+* **Request:** Refer to (https://github.com/distubejs/ytdl-core/pull/105)[https://github.com/distubejs/ytdl-core/pull/105] and add the `rewriteRequest` option
+
+### Changes
+* **YtdlCore:** YtdlCore is now a class so that options can be specified in a unified manner.
+
+### Bug Fixes
+* **OAuth2:** Fixed problem with updating OAuth2 tokens
+* **Info:** Fixed to be able to retrieve channel subscribers and whether the channel is verified.
+
+### Improvement
+* **Performance:** Improved operating performance
+* **Types:** Improved TypeScript type specification
+
+### Deprecated
+* **Traditional Use:** Traditional usage has been deprecated. Please use the new usage, YtdlCore class. See the API documentation for details.
+
 ## v5.0.17 (2024/09/07)
 
 ### Features

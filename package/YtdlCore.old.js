@@ -191,6 +191,7 @@ function downloadFromInfoCallback(stream, info, options) {
     };
 }
 /* Public Functions */
+/** @deprecated */
 const ytdl = (link, options = {}) => {
     const STREAM = createStream(options);
     (0, Info_1.getFullInfo)(link, options).then((info) => {
@@ -199,7 +200,7 @@ const ytdl = (link, options = {}) => {
     return STREAM;
 };
 /** Can be used to download video after its `info` is gotten through
- * `ytdl.getInfo()`. In case the user might want to look at the
+ * `ytdl.getFullInfo()`. In case the user might want to look at the
  * `info` object before deciding to download. */
 function downloadFromInfo(info, options = {}) {
     const STREAM = createStream(options);

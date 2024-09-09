@@ -5,9 +5,14 @@ import { YTDL_RequestOptions } from '@/types/Options';
 import { RequestError } from './errors';
 
 export default class Fetcher {
-    static async request<T = unknown>(url: string, options: YTDL_RequestOptions = {}): Promise<T> {
-        const { requestOptions } = options,
-            REQUEST_RESULTS = await undiciRequest(url, requestOptions),
+    static async request<T = unknown>(url: string, { requestOptions, rewriteRequest }: YTDL_RequestOptions = {}): Promise<T> {
+        if (typeof rewriteRequest === 'function') {
+            const WROTE_REQUEST = rewriteRequest(url, requestOptions);
+            requestOptions = WROTE_REQUEST.options;
+            url = WROTE_REQUEST.url;
+        }
+
+        const REQUEST_RESULTS = await undiciRequest(url, requestOptions),
             STATUS_CODE = REQUEST_RESULTS.statusCode.toString(),
             LOCATION = REQUEST_RESULTS.headers['location'] || null;
 
@@ -20,7 +25,7 @@ export default class Fetcher {
 
             return REQUEST_RESULTS.body.text() as T;
         } else if (STATUS_CODE.startsWith('3') && LOCATION) {
-            return this.request(LOCATION.toString(), options);
+            return this.request(LOCATION.toString(), { requestOptions, rewriteRequest });
         }
 
         const ERROR = new RequestError(`Status Code: ${STATUS_CODE}`);

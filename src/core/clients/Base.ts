@@ -1,5 +1,5 @@
 import type { YTDL_GetInfoOptions } from '@/types/Options';
-import { YT_PlayerApiResponse } from '@/types/youtube';
+import { YT_PlayerApiResponse, YTDL_InnertubeResponseInfo } from '@/types/youtube';
 
 import { PlayerRequestError, UnrecoverableError } from '@/core/errors';
 import Fetcher from '@/core/Fetcher';
@@ -25,7 +25,7 @@ export default class Base {
         return null;
     }
 
-    static request<T = YT_PlayerApiResponse>(url: string, requestOptions: { payload: string; headers: Record<string, any> }, params: YTDL_ClientsParams): Promise<{ isError: boolean; error: PlayerRequestError | null; contents: T }> {
+    static request<T = YT_PlayerApiResponse>(url: string, requestOptions: { payload: string; headers: Record<string, any> }, params: YTDL_ClientsParams): Promise<YTDL_InnertubeResponseInfo<T>> {
         return new Promise(async (resolve, reject) => {
             const { jar, dispatcher } = params.options.agent || {},
                 HEADERS = {
@@ -41,6 +41,7 @@ export default class Base {
                         headers: HEADERS,
                         body: typeof requestOptions.payload === 'string' ? requestOptions.payload : JSON.stringify(requestOptions.payload),
                     },
+                    rewriteRequest: params.options.rewriteRequest,
                 },
                 RESPONSE = await Fetcher.request<YT_PlayerApiResponse>(url, OPTS),
                 IS_NEXT_API = url.includes('/next'),
