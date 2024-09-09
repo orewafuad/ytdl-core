@@ -10,7 +10,7 @@ assignees: ""
 <!-- A clear and concise description of what the bug is. -->
 
 ## Error Details (Log)
-<!-- Provide details (logs) about the error. -->
+<!-- Provide details (logs) about the error. (Please specify YTDL_DEBUG=true as an environment variable.) -->
 
 ## Environment
 
