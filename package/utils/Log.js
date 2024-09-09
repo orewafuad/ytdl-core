@@ -12,7 +12,7 @@ class Logger {
         console.info('\x1b[34m[  INFO!  ]:\x1B[0m', ...messages);
     }
     static success(...messages) {
-        console.log('\x1b[32m[  SUCCESS  ]:\x1B[0m', ...messages);
+        console.log('\x1b[32m[ SUCCESS ]:\x1B[0m', ...messages);
     }
     static warning(...messages) {
         console.warn('\x1b[33m[ WARNING ]:\x1B[0m', ...messages);

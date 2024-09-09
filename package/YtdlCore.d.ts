@@ -1,8 +1,8 @@
-type YTDL_Constructor = YTDL_GetInfoOptions & {
+type YTDL_Constructor = YTDL_DownloadOptions & {
     debug?: boolean;
 };
 import { PassThrough } from 'stream';
-import { YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/Options';
+import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/Options';
 import { YTDL_VideoInfo } from './types/Ytdl';
 import { YTDL_Agent } from './types/Agent';
 import { YTDL_Hreflang } from './types/Language';
@@ -41,8 +41,17 @@ declare class YtdlCore {
     clients: Array<YTDL_ClientTypes> | undefined;
     disableDefaultClients: boolean;
     oauth2: OAuth2 | undefined;
+    quality: YTDL_ChooseFormatOptions['quality'] | undefined;
+    filter: YTDL_ChooseFormatOptions['filter'] | undefined;
+    filteringClients: Array<YTDL_ClientTypes | 'unknown'>;
+    range: YTDL_DownloadOptions['range'] | undefined;
+    begin: YTDL_DownloadOptions['begin'] | undefined;
+    liveBuffer: YTDL_DownloadOptions['liveBuffer'] | undefined;
+    highWaterMark: YTDL_DownloadOptions['highWaterMark'] | undefined;
+    IPv6Block: YTDL_DownloadOptions['IPv6Block'] | undefined;
+    dlChunkSize: YTDL_DownloadOptions['dlChunkSize'] | undefined;
     version: string;
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug }?: YTDL_Constructor);
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, quality, filter, filteringClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug }?: YTDL_Constructor);
     private setupOptions;
     download(link: string, options?: YTDL_DownloadOptions): PassThrough;
     downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;

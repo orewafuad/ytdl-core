@@ -1,6 +1,18 @@
 # Changelog
 
-## v5.1.0 (2024/09/10)
+## v5.1.1 (2024/09/09)
+
+### Features
+* **Format Selection:** Added option `filteringClients` to filter format data by client name
+
+### Bug Fixes
+* **Log:** Fixed problem with incorrect indentation in success log
+
+### Improvement
+* **YtdlCore:** Improved option specification for YtdlCore classes
+* **Format Selection:** Improved to exclude video URLs (audio URLs) from web clients unless specified with the `filteringClients` option since they return 403
+
+## v5.1.0 (2024/09/09)
 
 ### Features
 * **Operation:** Next API (/youtubei/v1/next) to stabilize the operation.

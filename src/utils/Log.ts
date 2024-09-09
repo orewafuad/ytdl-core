@@ -12,7 +12,7 @@ export class Logger {
     }
 
     public static success(...messages: Array<any>) {
-        console.log('\x1b[32m[  SUCCESS  ]:\x1B[0m', ...messages);
+        console.log('\x1b[32m[ SUCCESS ]:\x1B[0m', ...messages);
     }
 
     public static warning(...messages: Array<any>) {

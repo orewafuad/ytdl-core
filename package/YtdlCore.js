@@ -216,6 +216,7 @@ class YtdlCore {
     static createAgent = Agent_1.createAgent;
     static createProxyAgent = Agent_1.createProxyAgent;
     static OAuth2 = OAuth2_1.OAuth2;
+    /* Get Info Options */
     lang = 'en';
     requestOptions = {};
     rewriteRequest;
@@ -229,8 +230,21 @@ class YtdlCore {
     clients = undefined;
     disableDefaultClients = false;
     oauth2;
+    /* Format Selection Options */
+    quality = undefined;
+    filter = undefined;
+    filteringClients = ['webCreator', 'ios', 'android'];
+    /* Download Options */
+    range = undefined;
+    begin = undefined;
+    liveBuffer = undefined;
+    highWaterMark = undefined;
+    IPv6Block = undefined;
+    dlChunkSize = undefined;
+    /* Metadata */
     version = constants_1.VERSION;
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug } = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, quality, filter, filteringClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug } = {}) {
+        /* Get Info Options */
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
         this.rewriteRequest = rewriteRequest || undefined;
@@ -244,6 +258,18 @@ class YtdlCore {
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
         this.oauth2 = oauth2 || undefined;
+        /* Format Selection Options */
+        this.quality = quality || undefined;
+        this.filter = filter || undefined;
+        this.filteringClients = filteringClients || ['webCreator', 'ios', 'android'];
+        /* Download Options */
+        this.range = range || undefined;
+        this.begin = begin || undefined;
+        this.liveBuffer = liveBuffer || undefined;
+        this.highWaterMark = highWaterMark || undefined;
+        this.IPv6Block = IPv6Block || undefined;
+        this.dlChunkSize = dlChunkSize || undefined;
+        /* Debug Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
         if (!this.poToken && !this.visitorData) {
             Log_1.Logger.info('Since PoToken and VisitorData are not specified, they are generated automatically.');

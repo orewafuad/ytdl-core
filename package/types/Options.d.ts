@@ -9,7 +9,7 @@ export type YTDL_ChooseFormatOptions = {
     quality?: 'lowest' | 'highest' | 'highestaudio' | 'lowestaudio' | 'highestvideo' | 'lowestvideo' | (string & {}) | number | string[] | number[];
     filter?: YTDL_Filter;
     /** You can specify the client from which you are acquiring the data. */
-    clients?: Array<YTDL_ClientTypes>;
+    filteringClients?: Array<YTDL_ClientTypes>;
     format?: YTDL_VideoFormat;
 };
 export interface YTDL_OAuth2ClientData {

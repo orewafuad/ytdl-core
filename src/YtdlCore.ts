@@ -1,4 +1,4 @@
-type YTDL_Constructor = YTDL_GetInfoOptions & {
+type YTDL_Constructor = YTDL_DownloadOptions & {
     debug?: boolean;
 };
 
@@ -6,7 +6,7 @@ import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
 
-import { YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/Options';
+import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/Options';
 import { YTDL_VideoInfo } from './types/Ytdl';
 import { YTDL_Agent } from './types/Agent';
 import { YTDL_Hreflang } from './types/Language';
@@ -238,6 +238,7 @@ class YtdlCore {
 
     public static OAuth2 = OAuth2;
 
+    /* Get Info Options */
     public lang: YTDL_Hreflang = 'en';
     public requestOptions: any = {};
     public rewriteRequest: YTDL_GetInfoOptions['rewriteRequest'];
@@ -251,9 +252,25 @@ class YtdlCore {
     public clients: Array<YTDL_ClientTypes> | undefined = undefined;
     public disableDefaultClients: boolean = false;
     public oauth2: OAuth2 | undefined;
+
+    /* Format Selection Options */
+    public quality: YTDL_ChooseFormatOptions['quality'] | undefined = undefined;
+    public filter: YTDL_ChooseFormatOptions['filter'] | undefined = undefined;
+    public filteringClients: Array<YTDL_ClientTypes | 'unknown'> = ['webCreator', 'ios', 'android'];
+
+    /* Download Options */
+    public range: YTDL_DownloadOptions['range'] | undefined = undefined;
+    public begin: YTDL_DownloadOptions['begin'] | undefined = undefined;
+    public liveBuffer: YTDL_DownloadOptions['liveBuffer'] | undefined = undefined;
+    public highWaterMark: YTDL_DownloadOptions['highWaterMark'] | undefined = undefined;
+    public IPv6Block: YTDL_DownloadOptions['IPv6Block'] | undefined = undefined;
+    public dlChunkSize: YTDL_DownloadOptions['dlChunkSize'] | undefined = undefined;
+
+    /* Metadata */
     public version = VERSION;
 
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, debug }: YTDL_Constructor = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, quality, filter, filteringClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug }: YTDL_Constructor = {}) {
+        /* Get Info Options */
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
         this.rewriteRequest = rewriteRequest || undefined;
@@ -268,6 +285,20 @@ class YtdlCore {
         this.disableDefaultClients = disableDefaultClients ?? false;
         this.oauth2 = oauth2 || undefined;
 
+        /* Format Selection Options */
+        this.quality = quality || undefined;
+        this.filter = filter || undefined;
+        this.filteringClients = filteringClients || ['webCreator', 'ios', 'android'];
+
+        /* Download Options */
+        this.range = range || undefined;
+        this.begin = begin || undefined;
+        this.liveBuffer = liveBuffer || undefined;
+        this.highWaterMark = highWaterMark || undefined;
+        this.IPv6Block = IPv6Block || undefined;
+        this.dlChunkSize = dlChunkSize || undefined;
+
+        /* Debug Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
 
         if (!this.poToken && !this.visitorData) {

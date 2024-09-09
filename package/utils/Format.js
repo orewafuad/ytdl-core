@@ -123,8 +123,11 @@ function chooseFormat(formats, options) {
     if (options.filter) {
         formats = filterFormats(formats, options.filter);
     }
-    if (options.clients) {
-        formats = formats.filter((format) => options.clients?.includes(format.sourceClientName));
+    if (!options.filteringClients?.includes('web')) {
+        formats = formats.filter((format) => format.sourceClientName !== 'web');
+    }
+    if (options.filteringClients) {
+        formats = formats.filter((format) => options.filteringClients?.includes(format.sourceClientName));
     }
     if (formats.some((format) => format.isHLS)) {
         formats = formats.filter((format) => format.isHLS || !format.isLive);
