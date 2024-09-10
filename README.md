@@ -27,7 +27,10 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 
 ## ℹ️Announcements at this timeℹ️
 
-There are no announcements at this time.
+> [!NOTE]
+> We are investigating a problem where the video URL can be retrieved but the download fails with a 403.
+
+<!-- There are no announcements at this time. -->
 
 <!-- > [!NOTE]
 > As of v5.0.5, related videos cannot be retrieved. This will be fixed later.
