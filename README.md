@@ -208,7 +208,7 @@ The use of cookies is deprecated. Use `PoToken`, `OAuth2`, or both.
 import { YtdlCore } from '@ybd-project/ytdl-core';
 
 const ytdl = new YtdlCore({
-    agent: ytdl.createProxyAgent({ uri: 'my.proxy.server' }),
+    agent: YtdlCore.createProxyAgent({ uri: 'my.proxy.server' }),
 });
 
 ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
