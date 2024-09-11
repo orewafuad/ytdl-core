@@ -30,6 +30,9 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 > [!NOTE]
 > We are investigating a problem where the video URL can be retrieved but the download fails with a 403.
 
+> [!NOTE]
+> We are investigating a problem with syntax errors in Ubuntu (Node.js: v20.17.0) environment. (See https://github.com/ybd-project/ytdl-core/issues/19 for more information.)
+
 <!-- There are no announcements at this time. -->
 
 <!-- > [!NOTE]
