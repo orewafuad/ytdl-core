@@ -98,7 +98,8 @@ const ytdlCore = require('@ybd-project/ytdl-core/old');
 
 These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
 
-> [!IMPORTANT] > **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
+> [!IMPORTANT]
+> **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
 
 > [!NOTE]
 > The specified OAuth2 token is automatically updated by ytdl-core, so you do not need to update it yourself.
