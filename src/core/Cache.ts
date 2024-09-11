@@ -93,7 +93,7 @@ export class FileCache {
     static set(cacheName: AvailableCacheFileNames, data: string, options: FileCacheOptions = { ttl: 60 * 60 * 24 }): boolean {
         try {
             fs.writeFileSync(
-                path.resolve(__dirname, '../../CacheFiles/' + cacheName + '.txt'),
+                path.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'),
                 JSON.stringify({
                     date: Date.now() + options.ttl * 1000,
                     contents: data,
@@ -110,7 +110,7 @@ export class FileCache {
 
     static get<T = unknown>(cacheName: AvailableCacheFileNames): T | null {
         try {
-            const PARSED_DATA = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../CacheFiles/' + cacheName + '.txt'), 'utf8'));
+            const PARSED_DATA = JSON.parse(fs.readFileSync(path.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), 'utf8'));
 
             if (Date.now() > PARSED_DATA.date) {
                 return null;

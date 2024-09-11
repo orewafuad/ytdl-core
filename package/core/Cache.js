@@ -73,7 +73,7 @@ exports.Cache = Cache;
 class FileCache {
     static set(cacheName, data, options = { ttl: 60 * 60 * 24 }) {
         try {
-            node_fs_1.default.writeFileSync(node_path_1.default.resolve(__dirname, '../../CacheFiles/' + cacheName + '.txt'), JSON.stringify({
+            node_fs_1.default.writeFileSync(node_path_1.default.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), JSON.stringify({
                 date: Date.now() + options.ttl * 1000,
                 contents: data,
             }));
@@ -86,7 +86,7 @@ class FileCache {
     }
     static get(cacheName) {
         try {
-            const PARSED_DATA = JSON.parse(node_fs_1.default.readFileSync(node_path_1.default.resolve(__dirname, '../../CacheFiles/' + cacheName + '.txt'), 'utf8'));
+            const PARSED_DATA = JSON.parse(node_fs_1.default.readFileSync(node_path_1.default.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), 'utf8'));
             if (Date.now() > PARSED_DATA.date) {
                 return null;
             }
