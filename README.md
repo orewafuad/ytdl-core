@@ -98,8 +98,7 @@ const ytdlCore = require('@ybd-project/ytdl-core/old');
 
 These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
 
-> [!IMPORTANT]
-> **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
+> [!IMPORTANT] > **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
 
 > [!NOTE]
 > The specified OAuth2 token is automatically updated by ytdl-core, so you do not need to update it yourself.
@@ -184,6 +183,7 @@ The `poToken` can be used to avoid bot errors and must be specified with `visito
 import { YtdlCore } from '@ybd-project/ytdl-core';
 // JavaScript: const { YtdlCore } = require('@ybd-project/ytdl-core');
 
+/* Basic Method */
 const ytdl = new YtdlCore({ poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
 
 // PoToken, etc. specified at the time of class instantiation will be used.
@@ -193,6 +193,10 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 // Specified as function arguments take precedence over those specified at the time of class instantiation.
 // PoToken used: OVERRIDE_PO_TOKEN
 ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { poToken: 'OVERRIDE_PO_TOKEN', visitorData: 'OVERRIDE_VISITOR_DATA' });
+
+/* Using static method */
+YtdlCore.createProxyAgent({ uri: 'my.proxy.server' });
+YtdlCore.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
 ```
 
 ### Cookies Support
@@ -257,4 +261,5 @@ env YTDL_NO_UPDATE=1 node myapp.js
 ```
 
 ## License
+
 Distributed under the [MIT](https://choosealicense.com/licenses/mit/) License.
