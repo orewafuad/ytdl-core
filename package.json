@@ -31,6 +31,7 @@
     "scripts": {
         "test": "npx jest ./test/main.test.ts",
         "build": "rmdir /s /q package && tsc && tsc-alias",
+        "clear-cache": "rmdir /s /q CacheFiles && mkdir CacheFiles",
         "update": "ncu && ncu -u && npm i",
         "publish:github": "npm publish --registry=https://npm.pkg.github.com",
         "publish:npm": "npm publish --registry=https://registry.npmjs.org/",

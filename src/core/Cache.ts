@@ -1,4 +1,23 @@
-import { setTimeout } from 'timers';
+type FileCacheOptions = {
+    /** Seconds
+     * @default 60 * 60 * 24
+     */
+    ttl: number;
+};
+
+type AvailableCacheFileNames = 'poToken' | 'visitorData' | 'oauth2' | 'html5Player' | (string & {});
+
+import { setTimeout } from 'node:timers';
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { Logger } from '@/utils/Log';
+
+const CACHE_DIR_PATH = path.resolve(__dirname, '../../CacheFiles');
+
+if (!fs.existsSync(CACHE_DIR_PATH)) {
+    fs.mkdirSync(CACHE_DIR_PATH);
+}
 
 export class Cache extends Map {
     private timeout: number;
@@ -67,5 +86,45 @@ export class Cache extends Map {
         }
 
         super.clear();
+    }
+}
+
+export class FileCache {
+    static set(cacheName: AvailableCacheFileNames, data: string, options: FileCacheOptions = { ttl: 60 * 60 * 24 }): boolean {
+        try {
+            fs.writeFileSync(
+                path.resolve(__dirname, '../../CacheFiles/' + cacheName + '.txt'),
+                JSON.stringify({
+                    date: Date.now() + options.ttl * 1000,
+                    contents: data,
+                }),
+            );
+
+            return true;
+        } catch (err) {
+            Logger.error(`Failed to cache ${cacheName}.\nDetails: `, err);
+
+            return false;
+        }
+    }
+
+    static get<T = unknown>(cacheName: AvailableCacheFileNames): T | null {
+        try {
+            const PARSED_DATA = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../CacheFiles/' + cacheName + '.txt'), 'utf8'));
+
+            if (Date.now() > PARSED_DATA.date) {
+                return null;
+            }
+
+            Logger.debug(`[ FileCache ]: Cache key "${cacheName}" was available.`);
+
+            try {
+                return JSON.parse(PARSED_DATA.contents);
+            } catch {
+                return PARSED_DATA.contents;
+            }
+        } catch (err) {
+            return null;
+        }
     }
 }

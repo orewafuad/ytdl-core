@@ -1,5 +1,17 @@
 # Changelog
 
+## v5.1.2 (2024/09/11)
+
+## Features
+* **Cache:** Cache PoToken, VisitorData, OAuth2 credentials, and htm5player data. (Data is stored in the CacheFiles directory of the package directory.)
+* **Download:** Send a HEAD request to the download URL to determine if it is available.
+
+### Changes
+* **Format Selection:** Rename `filteringClients` to `excludingClients`
+
+### Improvement
+* **Log:** Improved log output
+
 ## v5.1.1 (2024/09/09)
 
 ### Features

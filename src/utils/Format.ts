@@ -1,3 +1,5 @@
+import { fetch } from 'undici';
+
 import { YTDL_VideoFormat } from '@/types/Ytdl';
 import { YTDL_ChooseFormatOptions } from '@/types/Options';
 
@@ -6,6 +8,7 @@ import FORMATS from '@/meta/formats';
 import utils from './Utils';
 import { YT_StreamingAdaptiveFormat } from '@/types/youtube';
 import { YTDL_ClientTypes } from '@/meta/Clients';
+import { Logger } from './Log';
 
 /* Private Constants */
 // Use these to help sort formats, higher index is better.
@@ -146,12 +149,18 @@ function chooseFormat(formats: Array<YTDL_VideoFormat>, options: YTDL_ChooseForm
         formats = filterFormats(formats, options.filter);
     }
 
-    if (!options.filteringClients?.includes('web')) {
+    if (!options.includingClients?.includes('web')) {
         formats = formats.filter((format) => format.sourceClientName !== 'web');
+    } else {
+        Logger.info('The web client format is deprecated for downloads as it often returns 403.');
     }
 
-    if (options.filteringClients) {
-        formats = formats.filter((format) => options.filteringClients?.includes(format.sourceClientName as any));
+    if (options.excludingClients) {
+        formats = formats.filter((format) => !options.excludingClients?.includes(format.sourceClientName as any));
+    }
+
+    if (options.includingClients && options.includingClients !== 'all') {
+        formats = formats.filter((format) => options.includingClients?.includes(format.sourceClientName as any));
     }
 
     if (formats.some((format) => format.isHLS)) {
@@ -284,14 +293,15 @@ function addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOrigi
             isHLS: /\/manifest\/hls_(variant|playlist)\//.test(adaptiveFormat.url),
             isDashMPD: /\/manifest\/dash\//.test(adaptiveFormat.url),
             sourceClientName: getClientName(adaptiveFormat.url) || 'unknown',
-        };
+        },
+        SPLITTED_CODEC = FORMAT.codec.text.split(', ');
 
     if (includesOriginalFormatData) {
         FORMAT.originalData = adaptiveFormat;
     }
 
-    FORMAT.codec.video = FORMAT.hasVideo ? FORMAT.codec.text.split(', ')[0] : null;
-    FORMAT.codec.audio = FORMAT.hasAudio ? FORMAT.codec.text.split(', ')[1] : null;
+    FORMAT.codec.video = FORMAT.hasVideo ? SPLITTED_CODEC[0] : null;
+    FORMAT.codec.audio = FORMAT.hasAudio ? SPLITTED_CODEC[1] || SPLITTED_CODEC[0] : null;
 
     return FORMAT;
 }

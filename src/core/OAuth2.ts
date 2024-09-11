@@ -13,6 +13,8 @@ import { Logger } from '@/utils/Log';
 import Url from '@/utils/Url';
 import UserAgent from '@/utils/UserAgents';
 
+import { FileCache } from './Cache';
+
 /* Reference: LuanRT/YouTube.js */
 const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') };
 
@@ -21,8 +23,8 @@ export class OAuth2 {
     public accessToken: string = '';
     public refreshToken: string = '';
     public expiryDate: string = '';
-    private clientId?: string;
-    private clientSecret?: string;
+    public clientId?: string;
+    public clientSecret?: string;
 
     constructor(credentials?: YTDL_OAuth2Credentials) {
         if (!credentials) {
@@ -41,9 +43,20 @@ export class OAuth2 {
                 this.refreshAccessToken();
             } catch (err) {}
         }
+
+        FileCache.set('oauth2', JSON.stringify(credentials));
     }
 
     private async getClientData(): Promise<YTDL_OAuth2ClientData> {
+        const OAUTH2_CACHE = FileCache.get<YTDL_OAuth2Credentials>('oauth2') || ({} as any);
+
+        if (OAUTH2_CACHE.clientData?.clientId && OAUTH2_CACHE.clientData?.clientSecret) {
+            return {
+                clientId: OAUTH2_CACHE.clientData.clientId,
+                clientSecret: OAUTH2_CACHE.clientData.clientSecret,
+            };
+        }
+
         const YT_TV_RESPONSE = await fetch(Url.getTvUrl(), {
             headers: {
                 'User-Agent': UserAgent.tv,
@@ -79,6 +92,8 @@ export class OAuth2 {
 
             Logger.debug('Found client ID: ' + CLIENT_ID);
             Logger.debug('Found client secret: ' + CLIENT_SECRET);
+            FileCache.set('oauth2', JSON.stringify({ ...OAUTH2_CACHE, clientData: { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET } }));
+
             return { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET };
         }
 

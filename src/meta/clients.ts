@@ -1,4 +1,4 @@
-type YTDL_ClientTypes = 'web' | 'web_creator' | 'android' | 'ios' | 'mweb' | 'tv' | 'tv_embedded';
+type YTDL_ClientTypes = 'web' | 'webCreator' | 'android' | 'ios' | 'mweb' | 'tv' | 'tvEmbedded';
 type YTDL_ClientData = {
     context: {
         client: {
@@ -6,6 +6,7 @@ type YTDL_ClientData = {
             clientVersion: string;
             userAgent: string;
             visitorData?: string;
+            hl?: string;
             osName?: string;
             osVersion?: string;
             deviceMake?: string;
@@ -31,11 +32,11 @@ type YTDL_ClientsParams = {
 };
 
 import type { OAuth2 } from '@/core/OAuth2';
-import { YTDL_GetInfoOptions } from '@/types/options';
+import { YTDL_GetInfoOptions } from '@/types/Options';
 import utils from '@/utils/Utils';
 import UserAgent from '@/utils/UserAgents';
 
-const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player',
+const INNERTUBE_BASE_API_URL = 'https://www.youtube.com/youtubei/v1',
     INNERTUBE_CLIENTS: Record<YTDL_ClientTypes, YTDL_ClientData> = Object.freeze({
         web: {
             context: {
@@ -50,7 +51,7 @@ const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player',
                 key: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
             },
         },
-        web_creator: {
+        webCreator: {
             context: {
                 client: {
                     clientName: 'WEB_CREATOR',
@@ -118,7 +119,7 @@ const INNERTUBE_PLAYER_API_URL = 'https://www.youtube.com/youtubei/v1/player',
             clientName: 7,
             apiInfo: {},
         },
-        tv_embedded: {
+        tvEmbedded: {
             context: {
                 client: {
                     clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
@@ -172,13 +173,14 @@ class Clients {
         return oauth2 ? { authorization: 'Bearer ' + oauth2.getAccessToken() } : {};
     }
 
-    static web({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }: YTDL_ClientsParams) {
+    static web({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }: YTDL_ClientsParams) {
         const CLIENT = INNERTUBE_CLIENTS.web,
             PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
 
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
 
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
@@ -191,7 +193,7 @@ class Clients {
         }
 
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -203,13 +205,13 @@ class Clients {
         };
     }
 
-    static webCreator({ videoId, signatureTimestamp, options: { poToken, visitorData } }: YTDL_ClientsParams) {
-        const CLIENT = INNERTUBE_CLIENTS.web_creator,
-            PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+    static web_nextApi({ videoId, options: { poToken, visitorData, oauth2 } }: YTDL_ClientsParams) {
+        const CLIENT = INNERTUBE_CLIENTS.web,
+            PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD, autonavState: 'STATE_OFF', playbackContext: { vis: 0, lactMilliseconds: '-1' }, captionsRequested: false };
 
         PAYLOAD.videoId = videoId;
-        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = 'en';
 
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
@@ -222,7 +224,39 @@ class Clients {
         }
 
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL + '/next'}?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+                ...Clients.getAuthorizationHeader(oauth2),
+            },
+        };
+    }
+
+    static webCreator({ videoId, signatureTimestamp, options: { poToken, visitorData, lang } }: YTDL_ClientsParams) {
+        const CLIENT = INNERTUBE_CLIENTS.webCreator,
+            PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
+
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        } else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+
+        return {
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -233,13 +267,14 @@ class Clients {
         };
     }
 
-    static android({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }: YTDL_ClientsParams) {
+    static android({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }: YTDL_ClientsParams) {
         const CLIENT = INNERTUBE_CLIENTS.android,
             PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
 
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
 
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
@@ -252,7 +287,7 @@ class Clients {
         }
 
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${utils.generateClientPlaybackNonce(12)}`,
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${utils.generateClientPlaybackNonce(12)}`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -264,13 +299,14 @@ class Clients {
         };
     }
 
-    static ios({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }: YTDL_ClientsParams) {
+    static ios({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }: YTDL_ClientsParams) {
         const CLIENT = INNERTUBE_CLIENTS.ios,
             PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
 
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
 
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
@@ -283,7 +319,7 @@ class Clients {
         }
 
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${utils.generateClientPlaybackNonce(12)}`,
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false&id=${videoId}&t=${utils.generateClientPlaybackNonce(12)}`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -295,13 +331,14 @@ class Clients {
         };
     }
 
-    static mweb({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }: YTDL_ClientsParams) {
+    static mweb({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }: YTDL_ClientsParams) {
         const CLIENT = INNERTUBE_CLIENTS.mweb,
             PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
 
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
 
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
@@ -314,7 +351,7 @@ class Clients {
         }
 
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL}/player?prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -326,13 +363,14 @@ class Clients {
         };
     }
 
-    static tv({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }: YTDL_ClientsParams) {
+    static tv({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }: YTDL_ClientsParams) {
         const CLIENT = INNERTUBE_CLIENTS.web,
             PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
 
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
 
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
@@ -345,7 +383,7 @@ class Clients {
         }
 
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL}/player?prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -357,13 +395,14 @@ class Clients {
         };
     }
 
-    static tvEmbedded({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2 } }: YTDL_ClientsParams) {
-        const CLIENT = INNERTUBE_CLIENTS.web,
+    static tvEmbedded({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }: YTDL_ClientsParams) {
+        const CLIENT = INNERTUBE_CLIENTS.tvEmbedded,
             PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
 
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
 
         if (poToken) {
             PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
@@ -376,7 +415,7 @@ class Clients {
         }
 
         return {
-            url: `${INNERTUBE_PLAYER_API_URL}?prettyPrint=false`,
+            url: `${INNERTUBE_BASE_API_URL}/player?prettyPrint=false`,
             payload: PAYLOAD,
             headers: {
                 'X-YouTube-Client-Name': CLIENT.clientName,
@@ -389,5 +428,5 @@ class Clients {
     }
 }
 
-export { Clients, INNERTUBE_PLAYER_API_URL, INNERTUBE_CLIENTS, YTDL_ClientTypes, YTDL_ClientsParams };
+export { Clients, INNERTUBE_BASE_API_URL, INNERTUBE_CLIENTS, YTDL_ClientTypes, YTDL_ClientsParams };
 export default Clients;

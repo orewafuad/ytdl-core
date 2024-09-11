@@ -40,7 +40,7 @@ const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', '
 
 /* ----------- */
 
-/* Private FUnctions */
+/* Private Functions */
 function setupClients(clients: Array<YTDL_ClientTypes>, disableDefaultClients: boolean): Array<YTDL_ClientTypes> {
     if (clients && clients.length === 0) {
         Logger.warning('At least one client must be specified.');
@@ -103,21 +103,24 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
 
     options.clients = setupClients(options.clients || BASE_CLIENTS, options.disableDefaultClients ?? false);
 
-    const HTML5_PLAYER_URL = (await HTML5_PLAYER_PROMISE).playerUrl;
+    const HTML5_PLAYER_RESPONSE = await HTML5_PLAYER_PROMISE,
+        HTML5_PLAYER_URL = HTML5_PLAYER_RESPONSE.playerUrl;
 
     if (!HTML5_PLAYER_URL) {
         throw new Error('Unable to find html5player file');
     }
 
-    const SIGNATURE_TIMESTAMP = parseInt((await getSignatureTimestamp(HTML5_PLAYER_URL, options)) || ''),
+    const SIGNATURE_TIMESTAMP = parseInt(HTML5_PLAYER_RESPONSE.signatureTimestamp || ''),
         PLAYER_API_PARAMS = {
             videoId: id,
             signatureTimestamp: SIGNATURE_TIMESTAMP,
             options,
         },
-        { isMinimalMode, responses: PLAYER_RESPONSES } = await PlayerApi.getApiResponses(PLAYER_API_PARAMS, options.clients),
+        PLAYER_API_PROMISE = PlayerApi.getApiResponses(PLAYER_API_PARAMS, options.clients),
+        NEXT_API_PROMISE = NextApi.getApiResponses(PLAYER_API_PARAMS),
+        { isMinimalMode, responses: PLAYER_RESPONSES } = await PLAYER_API_PROMISE,
+        NEXT_RESPONSES = await NEXT_API_PROMISE,
         PLAYER_RESPONSE_ARRAY = Object.values(PLAYER_RESPONSES) || [],
-        NEXT_RESPONSES = await NextApi.getApiResponses(PLAYER_API_PARAMS),
         VIDEO_INFO: YTDL_VideoInfo = {
             videoDetails: {},
             relatedVideos: [],

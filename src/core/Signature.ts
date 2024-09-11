@@ -1,7 +1,7 @@
 import querystring from 'querystring';
 import vm from 'node:vm';
 
-import { YTDL_RequestOptions } from '@/types/Options';
+import { YTDL_GetInfoOptions, YTDL_RequestOptions } from '@/types/Options';
 
 import Fetcher from '@/core/Fetcher';
 
@@ -262,5 +262,12 @@ async function decipherFormats(formats: any, html5PlayerFile: string, options: Y
     return DECIPHERED_FORMATS;
 }
 
-export { CACHE, extractFunctions, getFunctions, setDownloadURL, decipherFormats };
-export default { CACHE, extractFunctions, getFunctions, setDownloadURL, decipherFormats };
+async function getSignatureTimestamp(html5PlayerUrl: string, options: YTDL_GetInfoOptions) {
+    const BODY = await Fetcher.request<string>(html5PlayerUrl, options),
+        MO = BODY.match(/signatureTimestamp:(\d+)/);
+
+    return MO ? MO[1] : undefined;
+}
+
+export { CACHE, extractFunctions, getFunctions, setDownloadURL, decipherFormats, getSignatureTimestamp };
+export default { CACHE, extractFunctions, getFunctions, setDownloadURL, decipherFormats, getSignatureTimestamp };

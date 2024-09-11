@@ -6,7 +6,7 @@ import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
 
-import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/Options';
+import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_OAuth2Credentials } from './types/Options';
 import { YTDL_VideoInfo } from './types/Ytdl';
 import { YTDL_Agent } from './types/Agent';
 import { YTDL_Hreflang } from './types/Language';
@@ -15,6 +15,9 @@ import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
 import PoToken from './core/PoToken';
+import { FileCache } from './core/Cache';
+import getHtml5Player from './core/Info/parser/Html5Player';
+import { getSignatureTimestamp } from './core/Signature';
 
 import { YTDL_ClientTypes } from './meta/Clients';
 
@@ -51,7 +54,7 @@ function pipeAndSetEvents(req: m3u8stream.Stream, stream: PassThrough, end: bool
     req.pipe(stream, { end });
 }
 
-function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, options: YTDL_DownloadOptions) {
+async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, options: YTDL_DownloadOptions) {
     options ??= {};
 
     options.requestOptions ??= {};
@@ -67,6 +70,34 @@ function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, opt
     } catch (e) {
         stream.emit('error', e);
         return;
+    }
+
+    const FETCH_RES = await fetch(format.url, {
+        method: 'HEAD',
+    });
+
+    if (!FETCH_RES.ok) {
+        if (info._metadata.clients.every((client) => client === 'web')) {
+            Logger.warning('<warning>The web client format is deprecated for downloads as it often returns 403.</warning> Include non-WEB clients in the `clients` option. (Example: webCreator, ios, android)');
+        } else {
+            Logger.debug(`[ ${format.sourceClientName} ]: The URL for the video <error>did not return a successful response</error>. Got another format.`);
+        }
+
+        try {
+            format = chooseFormat(info.formats, {
+                excludingClients: ['web'],
+                includingClients: 'all',
+                quality: options.quality,
+                filter: options.filter,
+            });
+        } catch (e) {
+            stream.emit('error', e);
+            return;
+        }
+
+        Logger.debug(`[ ${format.sourceClientName} ]: This format data is newly selected.`);
+    } else {
+        Logger.debug(`[ ${format.sourceClientName} ]: <success>Video URL is normal.</success> The response was received with status code <success>"${FETCH_RES.status}"</success>.`);
     }
 
     stream.emit('info', info, format);
@@ -219,6 +250,7 @@ function download(link: string, options: YTDL_DownloadOptions = {}) {
 /* Public CLass */
 class YtdlCore {
     public static download = download;
+    public static downloadFromInfo = downloadFromInfo;
 
     public static getBasicInfo = getBasicInfo;
     /** @deprecated */
@@ -256,7 +288,8 @@ class YtdlCore {
     /* Format Selection Options */
     public quality: YTDL_ChooseFormatOptions['quality'] | undefined = undefined;
     public filter: YTDL_ChooseFormatOptions['filter'] | undefined = undefined;
-    public filteringClients: Array<YTDL_ClientTypes | 'unknown'> = ['webCreator', 'ios', 'android'];
+    public excludingClients: Array<YTDL_ClientTypes> = [];
+    public includingClients: Array<YTDL_ClientTypes> | 'all' = 'all';
 
     /* Download Options */
     public range: YTDL_DownloadOptions['range'] | undefined = undefined;
@@ -269,26 +302,105 @@ class YtdlCore {
     /* Metadata */
     public version = VERSION;
 
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, quality, filter, filteringClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug }: YTDL_Constructor = {}) {
+    /* Setup */
+    private setPoToken(poToken?: string) {
+        const PO_TOKEN_CACHE = FileCache.get<string>('poToken');
+
+        if (poToken) {
+            this.poToken = poToken;
+        } else if (PO_TOKEN_CACHE) {
+            Logger.debug('PoToken loaded from cache.');
+            this.poToken = PO_TOKEN_CACHE || undefined;
+        }
+
+        FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
+    }
+
+    private setVisitorData(visitorData?: string) {
+        const VISITOR_DATA_CACHE = FileCache.get<string>('visitorData');
+
+        if (visitorData) {
+            this.visitorData = visitorData;
+        } else if (VISITOR_DATA_CACHE) {
+            Logger.debug('VisitorData loaded from cache.');
+            this.visitorData = VISITOR_DATA_CACHE || undefined;
+        }
+
+        FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
+    }
+
+    private setOAuth2(oauth2?: OAuth2) {
+        const OAUTH2_CACHE = FileCache.get<YTDL_OAuth2Credentials>('oauth2') || undefined;
+
+        try {
+            this.oauth2 = oauth2 || new OAuth2(OAUTH2_CACHE) || undefined;
+        } catch {
+            this.oauth2 = undefined;
+        }
+    }
+
+    private automaticallyGeneratePoToken() {
+        if (!this.poToken && !this.visitorData) {
+            Logger.info('Since PoToken and VisitorData are not specified, they are generated automatically.');
+
+            PoToken.generatePoToken()
+                .then(({ poToken, visitorData }) => {
+                    this.poToken = poToken;
+                    this.visitorData = visitorData;
+
+                    FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
+                    FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
+                })
+                .catch(() => {});
+        }
+    }
+
+    private initializeHtml5PlayerCache() {
+        const HTML5_PLAYER = FileCache.get<{ playerUrl: string }>('html5Player');
+
+        if (!HTML5_PLAYER) {
+            Logger.debug('To speed up processing, html5Player and signatureTimestamp are pre-fetched and cached.');
+            getHtml5Player('dQw4w9WgXcQ', {}).then(async ({ playerUrl, path }) => {
+                if (!playerUrl) {
+                    return;
+                }
+
+                const SIG_TIMESTAMP = (await getSignatureTimestamp(playerUrl, {})) || '0';
+
+                FileCache.set(
+                    'html5Player',
+                    JSON.stringify({
+                        playerUrl,
+                        path,
+                        signatureTimestamp: SIG_TIMESTAMP,
+                    }),
+                    { ttl: 60 * 60 * 24 * 3 },
+                );
+            });
+        }
+    }
+
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug }: YTDL_Constructor = {}) {
         /* Get Info Options */
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
         this.rewriteRequest = rewriteRequest || undefined;
         this.agent = agent || undefined;
-        this.poToken = poToken || undefined;
-        this.visitorData = visitorData || undefined;
         this.includesPlayerAPIResponse = includesPlayerAPIResponse ?? false;
         this.includesNextAPIResponse = includesNextAPIResponse ?? false;
         this.includesOriginalFormatData = includesOriginalFormatData ?? false;
         this.includesRelatedVideo = includesRelatedVideo ?? true;
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
-        this.oauth2 = oauth2 || undefined;
+        this.setPoToken(poToken);
+        this.setVisitorData(visitorData);
+        this.setOAuth2(oauth2);
 
         /* Format Selection Options */
         this.quality = quality || undefined;
         this.filter = filter || undefined;
-        this.filteringClients = filteringClients || ['webCreator', 'ios', 'android'];
+        this.excludingClients = excludingClients || [];
+        this.includingClients = includingClients || 'all';
 
         /* Download Options */
         this.range = range || undefined;
@@ -301,16 +413,8 @@ class YtdlCore {
         /* Debug Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
 
-        if (!this.poToken && !this.visitorData) {
-            Logger.info('Since PoToken and VisitorData are not specified, they are generated automatically.');
-
-            PoToken.generatePoToken()
-                .then(({ poToken, visitorData }) => {
-                    this.poToken = poToken;
-                    this.visitorData = visitorData;
-                })
-                .catch(() => {});
-        }
+        this.automaticallyGeneratePoToken();
+        this.initializeHtml5PlayerCache();
     }
 
     private setupOptions(options: YTDL_DownloadOptions) {
@@ -327,6 +431,20 @@ class YtdlCore {
         options.clients ??= this.clients;
         options.disableDefaultClients ??= this.disableDefaultClients;
         options.oauth2 ??= this.oauth2;
+
+        /* Format Selection Options */
+        options.quality ??= this.quality || undefined;
+        options.filter ??= this.filter || undefined;
+        options.excludingClients ??= this.excludingClients || [];
+        options.includingClients ??= this.includingClients || 'all';
+
+        /* Download Options */
+        options.range ??= this.range || undefined;
+        options.begin ??= this.begin || undefined;
+        options.liveBuffer ??= this.liveBuffer || undefined;
+        options.highWaterMark ??= this.highWaterMark || undefined;
+        options.IPv6Block ??= this.IPv6Block || undefined;
+        options.dlChunkSize ??= this.dlChunkSize || undefined;
 
         if (!this.oauth2 && options.oauth2) {
             Logger.warning('The OAuth2 token should be specified when instantiating the YtdlCore class, not as a function argument.');

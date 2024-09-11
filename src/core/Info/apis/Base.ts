@@ -10,12 +10,12 @@ export default class ApiBase {
                     return null;
                 }
 
-                Logger.debug(`[ ${client} ]: Success`);
+                Logger.debug(`[ ${client} ]: <success>Success</success>`);
 
                 return Object.assign({}, res.value) as YTDL_InnertubeResponseInfo<T>;
             } else {
                 const REASON = res.reason as YTDL_InnertubeResponseInfo<T> || {};
-                Logger.debug(`[ ${client} ]: Error\nReason: ${REASON.error?.message || REASON.error?.toString()}`);
+                Logger.debug(`[ ${client} ]: <error>Error</error>\nReason: ${REASON.error?.message || REASON.error?.toString()}`);
 
                 return REASON;
             }
