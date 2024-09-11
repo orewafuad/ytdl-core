@@ -13,7 +13,7 @@ import path from 'node:path';
 
 import { Logger } from '@/utils/Log';
 
-const CACHE_DIR_PATH = path.resolve(__dirname, '../../CacheFiles');
+const CACHE_DIR_PATH = path.resolve(__dirname, './CacheFiles');
 
 if (!fs.existsSync(CACHE_DIR_PATH)) {
     fs.mkdirSync(CACHE_DIR_PATH);

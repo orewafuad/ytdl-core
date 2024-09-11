@@ -2,6 +2,7 @@ node_modules
 reference
 test
 src
+package/core/CacheFiles
 .github
 .*
 publish.txt

@@ -1,5 +1,6 @@
 node_modules
 src/core/CacheFiles
+package/core/CacheFiles
 package-lock.json
 .TODO
 ._npmrc

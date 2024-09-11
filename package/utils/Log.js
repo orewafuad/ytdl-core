@@ -12,26 +12,29 @@ const OUTPUT_CONTROL_CHARACTER = {
 };
 class Logger {
     static replaceColorTags(message) {
-        message = message.replace(/<magenta>/g, OUTPUT_CONTROL_CHARACTER.magenta);
-        message = message.replace(/<\/magenta>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<debug>/g, OUTPUT_CONTROL_CHARACTER.magenta);
-        message = message.replace(/<\/debug>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<blue>/g, OUTPUT_CONTROL_CHARACTER.blue);
-        message = message.replace(/<\/blue>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<info>/g, OUTPUT_CONTROL_CHARACTER.blue);
-        message = message.replace(/<\/info>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<green>/g, OUTPUT_CONTROL_CHARACTER.green);
-        message = message.replace(/<\/green>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<success>/g, OUTPUT_CONTROL_CHARACTER.green);
-        message = message.replace(/<\/success>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<yellow>/g, OUTPUT_CONTROL_CHARACTER.yellow);
-        message = message.replace(/<\/yellow>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<warning>/g, OUTPUT_CONTROL_CHARACTER.yellow);
-        message = message.replace(/<\/warning>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<red>/g, OUTPUT_CONTROL_CHARACTER.red);
-        message = message.replace(/<\/red>/g, OUTPUT_CONTROL_CHARACTER.reset);
-        message = message.replace(/<error>/g, OUTPUT_CONTROL_CHARACTER.red);
-        message = message.replace(/<\/error>/g, OUTPUT_CONTROL_CHARACTER.reset);
+        try {
+            message = message.replace(/<magenta>/g, OUTPUT_CONTROL_CHARACTER.magenta);
+            message = message.replace(/<\/magenta>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<debug>/g, OUTPUT_CONTROL_CHARACTER.magenta);
+            message = message.replace(/<\/debug>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<blue>/g, OUTPUT_CONTROL_CHARACTER.blue);
+            message = message.replace(/<\/blue>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<info>/g, OUTPUT_CONTROL_CHARACTER.blue);
+            message = message.replace(/<\/info>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<green>/g, OUTPUT_CONTROL_CHARACTER.green);
+            message = message.replace(/<\/green>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<success>/g, OUTPUT_CONTROL_CHARACTER.green);
+            message = message.replace(/<\/success>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<yellow>/g, OUTPUT_CONTROL_CHARACTER.yellow);
+            message = message.replace(/<\/yellow>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<warning>/g, OUTPUT_CONTROL_CHARACTER.yellow);
+            message = message.replace(/<\/warning>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<red>/g, OUTPUT_CONTROL_CHARACTER.red);
+            message = message.replace(/<\/red>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<error>/g, OUTPUT_CONTROL_CHARACTER.red);
+            message = message.replace(/<\/error>/g, OUTPUT_CONTROL_CHARACTER.reset);
+        }
+        catch { }
         return message;
     }
     static convertMessage(message) {

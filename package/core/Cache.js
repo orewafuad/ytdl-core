@@ -8,7 +8,7 @@ const node_timers_1 = require("node:timers");
 const node_fs_1 = __importDefault(require("node:fs"));
 const node_path_1 = __importDefault(require("node:path"));
 const Log_1 = require("../utils/Log");
-const CACHE_DIR_PATH = node_path_1.default.resolve(__dirname, '../../CacheFiles');
+const CACHE_DIR_PATH = node_path_1.default.resolve(__dirname, './CacheFiles');
 if (!node_fs_1.default.existsSync(CACHE_DIR_PATH)) {
     node_fs_1.default.mkdirSync(CACHE_DIR_PATH);
 }
