@@ -5,10 +5,10 @@
     "main": "convertToMp3.js",
     "license": "MIT",
     "scripts": {
-        "start": "node convertToMp3.js"
+        "start": "node ./src/convertToMp3.js"
     },
     "dependencies": {
-        "@ybd-project/ytdl-core": "^5.1.1",
+        "@ybd-project/ytdl-core": "latest",
         "fluent-ffmpeg": "^2.1.3",
         "readline": "^1.3.0"
     },

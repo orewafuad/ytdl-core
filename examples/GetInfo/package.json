@@ -5,9 +5,9 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "start": "node index.js"
+        "start": "node ./src/index.js"
     },
     "dependencies": {
-        "@ybd-project/ytdl-core": "latest"
+        "@ybd-project/ytdl-core": "^5.1.2"
     }
 }

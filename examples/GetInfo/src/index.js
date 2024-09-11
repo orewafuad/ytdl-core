@@ -1,12 +1,13 @@
-import ytdl from '@ybd-project/ytdl-core';
+const { YtdlCore } = require('@ybd-project/ytdl-core'),
+    ytdl = new YtdlCore({
+        lang: 'en',
+    });
 
 // Video: Never Gonna give you up
 const VIDEO_ID = 'dQw4w9WgXcQ';
 
 /* Normal usage (Basic Info) */
-ytdl.getBasicInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
-    lang: 'LANG',
-})
+ytdl.getBasicInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`)
     .then((results) => {
         // ...
     })
@@ -15,13 +16,11 @@ ytdl.getBasicInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
     });
 
 /* Normal usage (Full Info) */
-ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
-    lang: 'LANG',
-});
+ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`);
 
 /* Specify the client (player) to use */
 ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
-    clients: ['web', 'mweb', 'web_creator', 'android', 'ios', 'tv', 'tv_embedded'] // <- All available clients
+    clients: ['web', 'mweb', 'webCreator', 'android', 'ios', 'tv', 'tvEmbedded'], // <- All available clients
 });
 
 /* Specify PoToken and VisitorData */
@@ -33,7 +32,7 @@ ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
 /* Specify OAuth2 Access Token */
 
 //TIP: When using OAuth2, be sure to assign it to a variable before specifying it as an argument.
-const OAUTH2 = new ytdl.OAuth2({
+const OAUTH2 = new YtdlCore.OAuth2({
     accessToken: 'ACCESS_TOKEN',
     refreshToken: 'REFRESH_TOKEN',
     expiryDate: 'EXPIRY_DATE',
@@ -44,14 +43,14 @@ ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
 });
 
 /* Specify OAuth2 Access Token with your own client */
-const YOUR_OWN_OAUTH2 = new ytdl.OAuth2({
+const YOUR_OWN_OAUTH2 = new YtdlCore.OAuth2({
     accessToken: 'ACCESS_TOKEN',
     refreshToken: 'REFRESH_TOKEN',
     expiryDate: 'EXPIRY_DATE',
     clientData: {
         clientId: 'CLIENT_ID',
         clientSecret: 'CLIENT_SECRET',
-    }
+    },
 });
 
 ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {

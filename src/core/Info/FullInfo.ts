@@ -31,6 +31,7 @@ async function _getFullInfo(id: string, options: YTDL_GetInfoOptions): Promise<Y
     try {
         const FORMATS = INFO.formats as any as Array<YT_PlayerApiResponse>;
 
+        console.log(FORMATS[0])
         FUNCTIONS.push(sig.decipherFormats(FORMATS, INFO._metadata.html5Player, options));
 
         for (const RESPONSE of FORMATS) {
