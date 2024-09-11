@@ -37,6 +37,7 @@
         "publish:all": "npm run publish:github && npm run publish:npm"
     },
     "dependencies": {
+        "@ybd-project/ytdl-core": "^5.1.2",
         "chrono-node": "^2.7.6",
         "http-cookie-agent": "^6.0.5",
         "m3u8stream": "^0.8.6",

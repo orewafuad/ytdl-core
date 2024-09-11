@@ -1,7 +1,7 @@
 {
-    "name": "streaming-codes",
+    "name": "download",
     "version": "1.0.0",
-    "description": "Stream video",
+    "description": "Download video",
     "main": "streamMp3.js",
     "license": "MIT",
     "scripts": {
