@@ -40,10 +40,10 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     DownloadOptions_1.default.applyDefaultHeaders(options);
     DownloadOptions_1.default.applyDefaultAgent(options);
     DownloadOptions_1.default.applyOldLocalAddress(options);
-    options.requestOptions ??= {};
+    options.requestOptions = options.requestOptions || {};
     const { jar, dispatcher } = options.agent || {};
     Utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
-    options.requestOptions.dispatcher ??= dispatcher;
+    options.requestOptions.dispatcher = options.requestOptions.dispatcher || dispatcher;
     const HTML5_PLAYER_PROMISE = (0, Html5Player_1.default)(id, options);
     if (options.oauth2 && options.oauth2.shouldRefreshToken()) {
         Log_1.Logger.info('The specified OAuth2 token has expired and will be renewed automatically.');

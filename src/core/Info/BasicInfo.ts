@@ -56,12 +56,12 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
     DownloadOptionsUtils.applyDefaultAgent(options);
     DownloadOptionsUtils.applyOldLocalAddress(options);
 
-    options.requestOptions ??= {};
+    options.requestOptions = options.requestOptions || {};
 
     const { jar, dispatcher } = options.agent || {};
 
     utils.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
-    options.requestOptions.dispatcher ??= dispatcher;
+    options.requestOptions.dispatcher = options.requestOptions.dispatcher || dispatcher;
 
     const HTML5_PLAYER_PROMISE = getHtml5Player(id, options);
 

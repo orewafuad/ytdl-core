@@ -65,8 +65,8 @@ function pipeAndSetEvents(req, stream, end) {
     req.pipe(stream, { end });
 }
 async function downloadFromInfoCallback(stream, info, options) {
-    options ??= {};
-    options.requestOptions ??= {};
+    options = options || {};
+    options.requestOptions = options.requestOptions || {};
     if (!info.formats.length) {
         stream.emit('error', Error('This video is unavailable'));
         return;

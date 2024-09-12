@@ -56,9 +56,8 @@ function pipeAndSetEvents(req: m3u8stream.Stream, stream: PassThrough, end: bool
 }
 
 async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInfo, options: YTDL_DownloadOptions) {
-    options ??= {};
-
-    options.requestOptions ??= {};
+    options = options || {};
+    options.requestOptions = options.requestOptions || {};
 
     if (!info.formats.length) {
         stream.emit('error', Error('This video is unavailable'));
