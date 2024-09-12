@@ -1,5 +1,10 @@
 # Changelog
 
+## v5.1.4 (2024/09/12)
+
+### Bug Fixes
+* **Syntax:** Fixed problem with "??=" still remaining.
+
 ## v5.1.3 (2024/09/12)
 
 ## Features
@@ -8,7 +13,7 @@
 * **M3U8:** Add `notParsingHLSFormat` option. (do not parse HLS format)
 
 ### Bug Fixes
-* **Log:** Fixed a problem in which the "??=" syntax caused errors in certain environments.
+* **Syntax:** Fixed a problem in which the "??=" syntax caused errors in certain environments.
 * **Fetch:** Fixed "ReferenceError: fetch is not defined" problem in certain environments
 
 ## v5.1.2 (2024/09/11)
