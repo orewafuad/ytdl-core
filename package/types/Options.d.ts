@@ -74,6 +74,10 @@ export type YTDL_GetInfoOptions = {
      * @default null
      */
     oauth2?: OAuth2;
+    /** You can specify that the HLS format should not be parsed from IOS clients. */
+    notParsingHLSFormat?: boolean;
+    /** If errors occur in the file cache, set this to true. */
+    disableFileCache?: boolean;
 };
 export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFormatOptions {
     range?: {

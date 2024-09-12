@@ -4,19 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._getBasicInfo = _getBasicInfo;
-var CLIENTS_NUMBER;
-(function (CLIENTS_NUMBER) {
-    CLIENTS_NUMBER[CLIENTS_NUMBER["WEBCREATOR"] = 0] = "WEBCREATOR";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["TVEMBEDDED"] = 1] = "TVEMBEDDED";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["IOS"] = 2] = "IOS";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["ANDROID"] = 3] = "ANDROID";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["WEB"] = 4] = "WEB";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["MWEB"] = 5] = "MWEB";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["TV"] = 6] = "TV";
-})(CLIENTS_NUMBER || (CLIENTS_NUMBER = {}));
 const Cache_1 = require("../../core/Cache");
 const PoToken_1 = __importDefault(require("../../core/PoToken"));
-const Fetcher_1 = __importDefault(require("../../core/Fetcher"));
 const Log_1 = require("../../utils/Log");
 const Url_1 = __importDefault(require("../../utils/Url"));
 const constants_1 = require("../../utils/constants");
@@ -42,14 +31,11 @@ function setupClients(clients, disableDefaultClients) {
     }
     return [...new Set([...BASE_CLIENTS, ...clients])];
 }
-async function getSignatureTimestamp(html5player, options) {
-    const BODY = await Fetcher_1.default.request(html5player, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
-    return MO ? MO[1] : undefined;
-}
 /* ----------- */
 /* Public Functions */
 /** Gets info from a video without getting additional formats. */
 async function _getBasicInfo(id, options, isFromGetInfo) {
+    process.env._YTDL_DISABLE_FILE_CACHE = options.disableFileCache?.toString() || 'false';
     DownloadOptions_1.default.applyIPv6Rotations(options);
     DownloadOptions_1.default.applyDefaultHeaders(options);
     DownloadOptions_1.default.applyDefaultAgent(options);
@@ -100,10 +86,10 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     };
     VIDEO_INFO._metadata.isMinimumMode = isMinimalMode;
     VIDEO_INFO._metadata.html5Player = HTML5_PLAYER_URL;
-    if (options.includesPlayerAPIResponse) {
+    if (options.includesPlayerAPIResponse || isFromGetInfo) {
         VIDEO_INFO._playerApiResponses = PLAYER_RESPONSES;
     }
-    if (options.includesNextAPIResponse) {
+    if (options.includesNextAPIResponse || isFromGetInfo) {
         VIDEO_INFO._nextApiResponses = NEXT_RESPONSES;
     }
     /* Filtered */

@@ -24,18 +24,22 @@ async function _getFullInfo(id, options) {
     const INFO = await (0, BasicInfo_1._getBasicInfo)(id, options, true), FUNCTIONS = [];
     try {
         const FORMATS = INFO.formats;
-        console.log(FORMATS[0]);
         FUNCTIONS.push(Signature_1.default.decipherFormats(FORMATS, INFO._metadata.html5Player, options));
-        for (const RESPONSE of FORMATS) {
-            console.log(RESPONSE);
-            FUNCTIONS.push(...Formats_1.default.parseAdditionalManifests(RESPONSE, options));
+        if (INFO._playerApiResponses?.ios) {
+            FUNCTIONS.push(...Formats_1.default.parseAdditionalManifests(INFO._playerApiResponses.ios, options));
         }
     }
     catch (err) { }
-    const RESULTS = Object.values(Object.assign({}, ...await Promise.all(FUNCTIONS)));
+    const RESULTS = Object.values(Object.assign({}, ...(await Promise.all(FUNCTIONS))));
     INFO.formats = RESULTS.map((format) => Format_1.default.addFormatMeta(format, options.includesOriginalFormatData ?? false));
     INFO.formats.sort(Format_1.default.sortFormats);
     INFO.full = true;
+    if (!options.includesPlayerAPIResponse) {
+        delete INFO._playerApiResponses;
+    }
+    if (!options.includesNextAPIResponse) {
+        delete INFO._nextApiResponses;
+    }
     return INFO;
 }
 /** @deprecated */

@@ -31,20 +31,26 @@ async function _getFullInfo(id: string, options: YTDL_GetInfoOptions): Promise<Y
     try {
         const FORMATS = INFO.formats as any as Array<YT_PlayerApiResponse>;
 
-        console.log(FORMATS[0])
         FUNCTIONS.push(sig.decipherFormats(FORMATS, INFO._metadata.html5Player, options));
-
-        for (const RESPONSE of FORMATS) {
-            FUNCTIONS.push(...Formats.parseAdditionalManifests(RESPONSE, options));
+        if (INFO._playerApiResponses?.ios) {
+            FUNCTIONS.push(...Formats.parseAdditionalManifests(INFO._playerApiResponses.ios, options));
         }
     } catch (err) {}
 
-    const RESULTS: Array<YT_StreamingAdaptiveFormat> = Object.values(Object.assign({}, ...await Promise.all(FUNCTIONS)));
+    const RESULTS: Array<YT_StreamingAdaptiveFormat> = Object.values(Object.assign({}, ...(await Promise.all(FUNCTIONS))));
 
     INFO.formats = RESULTS.map((format) => formatUtils.addFormatMeta(format, options.includesOriginalFormatData ?? false));
     INFO.formats.sort(formatUtils.sortFormats);
 
     INFO.full = true;
+
+    if (!options.includesPlayerAPIResponse) {
+        delete INFO._playerApiResponses;
+    }
+
+    if (!options.includesNextAPIResponse) {
+        delete INFO._nextApiResponses;
+    }
 
     return INFO;
 }

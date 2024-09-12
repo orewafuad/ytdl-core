@@ -1,22 +1,9 @@
-enum CLIENTS_NUMBER {
-    WEBCREATOR = 0,
-    TVEMBEDDED = 1,
-    IOS = 2,
-    ANDROID = 3,
-    WEB = 4,
-    MWEB = 5,
-    TV = 6,
-}
-
 import { YTDL_GetInfoOptions } from '@/types/Options';
-import { YT_NextApiResponse, YT_PlayerApiResponse, YT_StreamingAdaptiveFormat } from '@/types/youtube';
+import { YT_StreamingAdaptiveFormat } from '@/types/youtube';
 import { YTDL_VideoDetailsAdditions, YTDL_VideoInfo } from '@/types/Ytdl';
 
-import { WebCreator, TvEmbedded, Ios, Android, Web, MWeb, Tv } from '@/core/clients';
-import { UnrecoverableError } from '@/core/errors';
 import { Cache } from '@/core/Cache';
 import PoToken from '@/core/PoToken';
-import Fetcher from '@/core/Fetcher';
 
 import { YTDL_ClientTypes } from '@/meta/Clients';
 
@@ -56,19 +43,14 @@ function setupClients(clients: Array<YTDL_ClientTypes>, disableDefaultClients: b
     return [...new Set([...BASE_CLIENTS, ...clients])];
 }
 
-async function getSignatureTimestamp(html5player: string, options: YTDL_GetInfoOptions) {
-    const BODY = await Fetcher.request<string>(html5player, options),
-        MO = BODY.match(/signatureTimestamp:(\d+)/);
-
-    return MO ? MO[1] : undefined;
-}
-
 /* ----------- */
 
 /* Public Functions */
 
 /** Gets info from a video without getting additional formats. */
 async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGetInfo?: boolean): Promise<YTDL_VideoInfo> {
+    process.env._YTDL_DISABLE_FILE_CACHE = options.disableFileCache?.toString() || 'false';
+
     DownloadOptionsUtils.applyIPv6Rotations(options);
     DownloadOptionsUtils.applyDefaultHeaders(options);
     DownloadOptionsUtils.applyDefaultAgent(options);
@@ -141,11 +123,11 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
     VIDEO_INFO._metadata.isMinimumMode = isMinimalMode;
     VIDEO_INFO._metadata.html5Player = HTML5_PLAYER_URL;
 
-    if (options.includesPlayerAPIResponse) {
+    if (options.includesPlayerAPIResponse || isFromGetInfo) {
         VIDEO_INFO._playerApiResponses = PLAYER_RESPONSES;
     }
 
-    if (options.includesNextAPIResponse) {
+    if (options.includesNextAPIResponse || isFromGetInfo) {
         VIDEO_INFO._nextApiResponses = NEXT_RESPONSES;
     }
 

@@ -98,7 +98,7 @@ export type YTDL_VideoInfo = {
     formats: Array<YTDL_VideoFormat>;
     full: boolean;
     live_chunk_readahead?: number;
-    _playerApiResponses: {
+    _playerApiResponses?: {
         webCreator: YT_PlayerApiResponse | null;
         tvEmbedded: YT_PlayerApiResponse | null;
         ios: YT_PlayerApiResponse | null;
@@ -107,7 +107,7 @@ export type YTDL_VideoInfo = {
         mweb?: YT_PlayerApiResponse | null;
         tv?: YT_PlayerApiResponse | null;
     };
-    _nextApiResponses: {
+    _nextApiResponses?: {
         web: YT_NextApiResponse | null;
     };
     _metadata: {

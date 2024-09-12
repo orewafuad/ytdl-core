@@ -9,8 +9,13 @@ const node_fs_1 = __importDefault(require("node:fs"));
 const node_path_1 = __importDefault(require("node:path"));
 const Log_1 = require("../utils/Log");
 const CACHE_DIR_PATH = node_path_1.default.resolve(__dirname, './CacheFiles');
-if (!node_fs_1.default.existsSync(CACHE_DIR_PATH)) {
-    node_fs_1.default.mkdirSync(CACHE_DIR_PATH);
+try {
+    if (!node_fs_1.default.existsSync(CACHE_DIR_PATH)) {
+        node_fs_1.default.mkdirSync(CACHE_DIR_PATH);
+    }
+}
+catch {
+    process.env._YTDL_DISABLE_HTML5_PLAYER_CACHE = 'true';
 }
 class Cache extends Map {
     timeout;
@@ -72,6 +77,9 @@ class Cache extends Map {
 exports.Cache = Cache;
 class FileCache {
     static set(cacheName, data, options = { ttl: 60 * 60 * 24 }) {
+        if (process.env._YTDL_DISABLE_FILE_CACHE) {
+            return false;
+        }
         try {
             node_fs_1.default.writeFileSync(node_path_1.default.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), JSON.stringify({
                 date: Date.now() + options.ttl * 1000,
@@ -85,6 +93,9 @@ class FileCache {
         }
     }
     static get(cacheName) {
+        if (process.env._YTDL_DISABLE_FILE_CACHE) {
+            return null;
+        }
         try {
             const PARSED_DATA = JSON.parse(node_fs_1.default.readFileSync(node_path_1.default.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), 'utf8'));
             if (Date.now() > PARSED_DATA.date) {

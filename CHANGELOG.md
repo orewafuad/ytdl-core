@@ -1,5 +1,16 @@
 # Changelog
 
+## v5.1.3 (2024/09/12)
+
+## Features
+* **Cache:** Add `disableFileCache` option. (Specify if an error occurs in the file cache.)
+* **M3U8:** Supports HLS formats that can be retrieved from IOS clients.
+* **M3U8:** Add `notParsingHLSFormat` option. (do not parse HLS format)
+
+### Bug Fixes
+* **Log:** Fixed a problem in which the "??=" syntax caused errors in certain environments.
+* **Fetch:** Fixed "ReferenceError: fetch is not defined" problem in certain environments
+
 ## v5.1.2 (2024/09/11)
 
 ## Features

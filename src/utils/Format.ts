@@ -270,6 +270,7 @@ function addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOrigi
     const ITAG = adaptiveFormat.itag,
         ADDITIONAL_FORMAT_DATA = FORMATS[ITAG] || null,
         CODEC = adaptiveFormat.mimeType && utils.between(adaptiveFormat.mimeType, 'codecs="', '"'),
+        IS_HLS = /\/manifest\/hls_(variant|playlist)\//.test(adaptiveFormat.url),
         FORMAT: YTDL_VideoFormat = {
             itag: ITAG,
             url: adaptiveFormat.url,
@@ -281,7 +282,7 @@ function addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOrigi
             },
             quality: {
                 text: adaptiveFormat.quality,
-                label: adaptiveFormat.qualityLabel || 'audio',
+                label: adaptiveFormat.qualityLabel || (IS_HLS ? 'video' : 'audio'),
             },
             bitrate: adaptiveFormat.bitrate || ADDITIONAL_FORMAT_DATA?.bitrate || NaN,
             audioBitrate: ADDITIONAL_FORMAT_DATA?.audioBitrate || NaN,
@@ -290,9 +291,9 @@ function addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOrigi
             hasVideo: !!adaptiveFormat.qualityLabel || !!!adaptiveFormat.audioQuality,
             hasAudio: !!adaptiveFormat.audioQuality,
             isLive: /\bsource[/=]yt_live_broadcast\b/.test(adaptiveFormat.url),
-            isHLS: /\/manifest\/hls_(variant|playlist)\//.test(adaptiveFormat.url),
+            isHLS: IS_HLS,
             isDashMPD: /\/manifest\/dash\//.test(adaptiveFormat.url),
-            sourceClientName: getClientName(adaptiveFormat.url) || 'unknown',
+            sourceClientName: IS_HLS ? 'ios' : getClientName(adaptiveFormat.url) || 'unknown',
         },
         SPLITTED_CODEC = FORMAT.codec.text.split(', ');
 

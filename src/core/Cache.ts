@@ -15,8 +15,12 @@ import { Logger } from '@/utils/Log';
 
 const CACHE_DIR_PATH = path.resolve(__dirname, './CacheFiles');
 
-if (!fs.existsSync(CACHE_DIR_PATH)) {
-    fs.mkdirSync(CACHE_DIR_PATH);
+try {
+    if (!fs.existsSync(CACHE_DIR_PATH)) {
+        fs.mkdirSync(CACHE_DIR_PATH);
+    }
+} catch {
+    process.env._YTDL_DISABLE_HTML5_PLAYER_CACHE = 'true';
 }
 
 export class Cache extends Map {
@@ -91,6 +95,10 @@ export class Cache extends Map {
 
 export class FileCache {
     static set(cacheName: AvailableCacheFileNames, data: string, options: FileCacheOptions = { ttl: 60 * 60 * 24 }): boolean {
+        if (process.env._YTDL_DISABLE_FILE_CACHE) {
+            return false;
+        }
+
         try {
             fs.writeFileSync(
                 path.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'),
@@ -109,6 +117,10 @@ export class FileCache {
     }
 
     static get<T = unknown>(cacheName: AvailableCacheFileNames): T | null {
+        if (process.env._YTDL_DISABLE_FILE_CACHE) {
+            return null;
+        }
+
         try {
             const PARSED_DATA = JSON.parse(fs.readFileSync(path.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), 'utf8'));
 

@@ -27,6 +27,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.YtdlCore = void 0;
+const undici_1 = require("undici");
 const stream_1 = require("stream");
 const miniget_1 = __importDefault(require("miniget"));
 const m3u8stream_1 = __importStar(require("m3u8stream"));
@@ -78,7 +79,7 @@ async function downloadFromInfoCallback(stream, info, options) {
         stream.emit('error', e);
         return;
     }
-    const FETCH_RES = await fetch(format.url, {
+    const FETCH_RES = await (0, undici_1.fetch)(format.url, {
         method: 'HEAD',
     });
     if (!FETCH_RES.ok) {
@@ -261,6 +262,7 @@ class YtdlCore {
     clients = undefined;
     disableDefaultClients = false;
     oauth2;
+    notParsingHLSFormat = false;
     /* Format Selection Options */
     quality = undefined;
     filter = undefined;
@@ -322,7 +324,7 @@ class YtdlCore {
     }
     initializeHtml5PlayerCache() {
         const HTML5_PLAYER = Cache_1.FileCache.get('html5Player');
-        if (!HTML5_PLAYER) {
+        if (!HTML5_PLAYER && !process.env._YTDL_DISABLE_HTML5_PLAYER_CACHE) {
             Log_1.Logger.debug('To speed up processing, html5Player and signatureTimestamp are pre-fetched and cached.');
             (0, Html5Player_1.default)('dQw4w9WgXcQ', {}).then(async ({ playerUrl, path }) => {
                 if (!playerUrl) {
@@ -337,7 +339,10 @@ class YtdlCore {
             });
         }
     }
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug } = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, notParsingHLSFormat, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache } = {}) {
+        /* Other Options */
+        process.env.YTDL_DEBUG = (debug ?? false).toString();
+        process.env._YTDL_DISABLE_FILE_CACHE = (disableFileCache ?? false).toString();
         /* Get Info Options */
         this.lang = lang || 'en';
         this.requestOptions = requestOptions || {};
@@ -349,6 +354,7 @@ class YtdlCore {
         this.includesRelatedVideo = includesRelatedVideo ?? true;
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
+        this.notParsingHLSFormat = notParsingHLSFormat ?? false;
         this.setPoToken(poToken);
         this.setVisitorData(visitorData);
         this.setOAuth2(oauth2);
@@ -364,37 +370,36 @@ class YtdlCore {
         this.highWaterMark = highWaterMark || undefined;
         this.IPv6Block = IPv6Block || undefined;
         this.dlChunkSize = dlChunkSize || undefined;
-        /* Debug Options */
-        process.env.YTDL_DEBUG = (debug ?? false).toString();
         this.automaticallyGeneratePoToken();
         this.initializeHtml5PlayerCache();
     }
     setupOptions(options) {
-        options.lang ??= this.lang;
-        options.requestOptions ??= this.requestOptions;
-        options.rewriteRequest ??= this.rewriteRequest;
-        options.agent ??= this.agent;
-        options.poToken ??= this.poToken;
-        options.visitorData ??= this.visitorData;
-        options.includesPlayerAPIResponse ??= this.includesPlayerAPIResponse;
-        options.includesNextAPIResponse ??= this.includesNextAPIResponse;
-        options.includesOriginalFormatData ??= this.includesOriginalFormatData;
-        options.includesRelatedVideo ??= this.includesRelatedVideo;
-        options.clients ??= this.clients;
-        options.disableDefaultClients ??= this.disableDefaultClients;
-        options.oauth2 ??= this.oauth2;
+        options.lang = options.lang || this.lang;
+        options.requestOptions = options.requestOptions || this.requestOptions;
+        options.rewriteRequest = options.rewriteRequest || this.rewriteRequest;
+        options.agent = options.agent || this.agent;
+        options.poToken = options.poToken || this.poToken;
+        options.visitorData = options.visitorData || this.visitorData;
+        options.includesPlayerAPIResponse = options.includesPlayerAPIResponse || this.includesPlayerAPIResponse;
+        options.includesNextAPIResponse = options.includesNextAPIResponse || this.includesNextAPIResponse;
+        options.includesOriginalFormatData = options.includesOriginalFormatData || this.includesOriginalFormatData;
+        options.includesRelatedVideo = options.includesRelatedVideo || this.includesRelatedVideo;
+        options.clients = options.clients || this.clients;
+        options.disableDefaultClients = options.disableDefaultClients || this.disableDefaultClients;
+        options.oauth2 = options.oauth2 || this.oauth2;
+        options.notParsingHLSFormat = options.notParsingHLSFormat || this.notParsingHLSFormat;
         /* Format Selection Options */
-        options.quality ??= this.quality || undefined;
-        options.filter ??= this.filter || undefined;
-        options.excludingClients ??= this.excludingClients || [];
-        options.includingClients ??= this.includingClients || 'all';
+        options.quality = options.quality || this.quality || undefined;
+        options.filter = options.filter || this.filter || undefined;
+        options.excludingClients = options.excludingClients || this.excludingClients || [];
+        options.includingClients = options.includingClients || this.includingClients || 'all';
         /* Download Options */
-        options.range ??= this.range || undefined;
-        options.begin ??= this.begin || undefined;
-        options.liveBuffer ??= this.liveBuffer || undefined;
-        options.highWaterMark ??= this.highWaterMark || undefined;
-        options.IPv6Block ??= this.IPv6Block || undefined;
-        options.dlChunkSize ??= this.dlChunkSize || undefined;
+        options.range = options.range || this.range || undefined;
+        options.begin = options.begin || this.begin || undefined;
+        options.liveBuffer = options.liveBuffer || this.liveBuffer || undefined;
+        options.highWaterMark = options.highWaterMark || this.highWaterMark || undefined;
+        options.IPv6Block = options.IPv6Block || this.IPv6Block || undefined;
+        options.dlChunkSize = options.dlChunkSize || this.dlChunkSize || undefined;
         if (!this.oauth2 && options.oauth2) {
             Log_1.Logger.warning('The OAuth2 token should be specified when instantiating the YtdlCore class, not as a function argument.');
         }
