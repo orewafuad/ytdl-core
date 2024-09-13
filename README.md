@@ -6,6 +6,7 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 
 <ol>
    <li><a href="#ℹ️announcements-at-this-timeℹ️">ℹ️Announcements at this timeℹ️</a></li>
+   <li><a href="#prerequisite">Prerequisite</a></li>
    <li><a href="#installation">Installation</a></li>
    <li>
       <a href="#usage">Usage</a>
@@ -46,6 +47,13 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 
 > [!CAUTION]
 > Negative potential consequences of an action. -->
+
+## Prerequisite
+
+To use `@ybd-project/ytdl-core` without problems, **use Node.js 16 or higher.** (Recommended is Node.js 18 or higher.)
+
+> [!IMPORTANT]
+> Use with Node.js 16 is not recommended, but will be supported as much as possible.
 
 ## Installation
 
