@@ -48,6 +48,9 @@ const IP_1 = __importDefault(require("./utils/IP"));
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
 /* Private Functions */
+function isNodeVersionOk(version) {
+    return parseInt(version.replace('v', '').split('.')[0]) >= 16;
+}
 function createStream(options = {}) {
     const STREAM = new stream_1.PassThrough({
         highWaterMark: (options && options.highWaterMark) || 1024 * 512,
@@ -372,6 +375,10 @@ class YtdlCore {
         this.dlChunkSize = dlChunkSize || undefined;
         this.automaticallyGeneratePoToken();
         this.initializeHtml5PlayerCache();
+        /* Version Check */
+        if (!isNodeVersionOk(process.version)) {
+            throw new Error(`You are using Node.js ${process.version} which is not supported. Minimum version required is v16.`);
+        }
     }
     setupOptions(options) {
         options.lang = options.lang || this.lang;

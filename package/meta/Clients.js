@@ -139,7 +139,7 @@ exports.INNERTUBE_BASE_API_URL = INNERTUBE_BASE_API_URL;
 exports.INNERTUBE_CLIENTS = INNERTUBE_CLIENTS;
 class Clients {
     static getAuthorizationHeader(oauth2) {
-        return oauth2 ? { authorization: 'Bearer ' + oauth2.getAccessToken() } : {};
+        return oauth2 && oauth2.isEnabled ? { authorization: 'Bearer ' + oauth2.getAccessToken() } : {};
     }
     static web({ videoId, signatureTimestamp, options: { poToken, visitorData, oauth2, lang } }) {
         const CLIENT = INNERTUBE_CLIENTS.web, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };

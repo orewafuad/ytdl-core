@@ -7,9 +7,9 @@ type FileCacheOptions = {
 
 type AvailableCacheFileNames = 'poToken' | 'visitorData' | 'oauth2' | 'html5Player' | (string & {});
 
-import { setTimeout } from 'node:timers';
-import fs from 'node:fs';
-import path from 'node:path';
+import { setTimeout } from 'timers';
+import fs from 'fs';
+import path from 'path';
 
 import { Logger } from '@/utils/Log';
 

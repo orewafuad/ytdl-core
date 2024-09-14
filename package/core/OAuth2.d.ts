@@ -7,6 +7,8 @@ export declare class OAuth2 {
     clientId?: string;
     clientSecret?: string;
     constructor(credentials?: YTDL_OAuth2Credentials);
+    private availableTokenCheck;
+    private error;
     private getClientData;
     shouldRefreshToken(): boolean;
     refreshAccessToken(): Promise<void>;

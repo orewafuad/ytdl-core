@@ -10,7 +10,7 @@ exports.setDownloadURL = setDownloadURL;
 exports.decipherFormats = decipherFormats;
 exports.getSignatureTimestamp = getSignatureTimestamp;
 const querystring_1 = __importDefault(require("querystring"));
-const node_vm_1 = __importDefault(require("node:vm"));
+const vm_1 = __importDefault(require("vm"));
 const Fetcher_1 = __importDefault(require("../core/Fetcher"));
 const Utils_1 = __importDefault(require("../utils/Utils"));
 const Log_1 = require("../utils/Log");
@@ -76,7 +76,7 @@ function getExtractFunctions(extractFunctions, body) {
             const FUNC = extractFunction(body);
             if (!FUNC)
                 continue;
-            return new node_vm_1.default.Script(FUNC);
+            return new vm_1.default.Script(FUNC);
         }
         catch (err) {
             continue;

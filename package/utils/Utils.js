@@ -14,7 +14,7 @@ exports.saveDebugFile = saveDebugFile;
 exports.getPropInsensitive = getPropInsensitive;
 exports.setPropInsensitive = setPropInsensitive;
 exports.generateClientPlaybackNonce = generateClientPlaybackNonce;
-const node_fs_1 = require("node:fs");
+const fs_1 = require("fs");
 const Fetcher_1 = __importDefault(require("../core/Fetcher"));
 const constants_1 = require("../utils/constants");
 const Log_1 = require("../utils/Log");
@@ -150,7 +150,7 @@ function deprecate(obj, prop, value, oldPath, newPath) {
 }
 function saveDebugFile(name, body) {
     const FILENAME = `${+new Date()}-${name}`;
-    (0, node_fs_1.writeFileSync)(FILENAME, body);
+    (0, fs_1.writeFileSync)(FILENAME, body);
     return FILENAME;
 }
 function getPropInsensitive(obj, prop) {

@@ -4,14 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileCache = exports.Cache = void 0;
-const node_timers_1 = require("node:timers");
-const node_fs_1 = __importDefault(require("node:fs"));
-const node_path_1 = __importDefault(require("node:path"));
+const timers_1 = require("timers");
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const Log_1 = require("../utils/Log");
-const CACHE_DIR_PATH = node_path_1.default.resolve(__dirname, './CacheFiles');
+const CACHE_DIR_PATH = path_1.default.resolve(__dirname, './CacheFiles');
 try {
-    if (!node_fs_1.default.existsSync(CACHE_DIR_PATH)) {
-        node_fs_1.default.mkdirSync(CACHE_DIR_PATH);
+    if (!fs_1.default.existsSync(CACHE_DIR_PATH)) {
+        fs_1.default.mkdirSync(CACHE_DIR_PATH);
     }
 }
 catch {
@@ -29,7 +29,7 @@ class Cache extends Map {
             clearTimeout(super.get(key).tid);
         }
         super.set(key, {
-            tid: (0, node_timers_1.setTimeout)(this.delete.bind(this, key), this.timeout).unref(),
+            tid: (0, timers_1.setTimeout)(this.delete.bind(this, key), this.timeout).unref(),
             value,
         });
         return this;
@@ -81,7 +81,7 @@ class FileCache {
             return false;
         }
         try {
-            node_fs_1.default.writeFileSync(node_path_1.default.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), JSON.stringify({
+            fs_1.default.writeFileSync(path_1.default.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), JSON.stringify({
                 date: Date.now() + options.ttl * 1000,
                 contents: data,
             }));
@@ -97,7 +97,7 @@ class FileCache {
             return null;
         }
         try {
-            const PARSED_DATA = JSON.parse(node_fs_1.default.readFileSync(node_path_1.default.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), 'utf8'));
+            const PARSED_DATA = JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(__dirname, './CacheFiles/' + cacheName + '.txt'), 'utf8'));
             if (Date.now() > PARSED_DATA.date) {
                 return null;
             }

@@ -1,4 +1,4 @@
-import vm from 'node:vm';
+import vm from 'vm';
 import { YTDL_GetInfoOptions, YTDL_RequestOptions } from '../types/Options';
 import { Cache } from './Cache';
 declare const CACHE: Cache;

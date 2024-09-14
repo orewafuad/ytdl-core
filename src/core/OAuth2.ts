@@ -13,6 +13,7 @@ import { Logger } from '@/utils/Log';
 import Url from '@/utils/Url';
 import UserAgent from '@/utils/UserAgents';
 
+import { Web } from './clients';
 import { FileCache } from './Cache';
 
 /* Reference: LuanRT/YouTube.js */
@@ -40,14 +41,42 @@ export class OAuth2 {
 
         if (this.shouldRefreshToken()) {
             try {
-                this.refreshAccessToken();
+                this.refreshAccessToken().finally(() => this.availableTokenCheck());
             } catch (err) {}
+        } else {
+            this.availableTokenCheck();
         }
 
         FileCache.set('oauth2', JSON.stringify(credentials));
     }
 
-    private async getClientData(): Promise<YTDL_OAuth2ClientData> {
+    private async availableTokenCheck() {
+        try {
+            Web.getPlayerResponse({
+                videoId: 'dQw4w9WgXcQ',
+                signatureTimestamp: parseInt(FileCache.get<{ signatureTimestamp: string }>('html5Player')?.signatureTimestamp || '0') || 0,
+                options: {
+                    oauth2: this,
+                },
+            }).then(() => Logger.debug('The specified OAuth2 token is successful.')).catch((err) => {
+                if (err.error.message.includes('401')) {
+                    this.error('Request using the specified token failed. (Web Client)');
+                }
+            });
+        } catch (err: any) {
+            if ((err.message || err.error.message).includes('401')) {
+                this.error('Request using the specified token failed. (Web Client)');
+            }
+        }
+    }
+
+    private error(message: string) {
+        Logger.error(message);
+        Logger.info('OAuth2 is disabled due to an error.');
+        this.isEnabled = false;
+    }
+
+    private async getClientData(): Promise<YTDL_OAuth2ClientData | null> {
         const OAUTH2_CACHE = FileCache.get<YTDL_OAuth2Credentials>('oauth2') || ({} as any);
 
         if (OAUTH2_CACHE.clientData?.clientId && OAUTH2_CACHE.clientData?.clientSecret) {
@@ -65,8 +94,8 @@ export class OAuth2 {
         });
 
         if (!YT_TV_RESPONSE.ok) {
-            this.isEnabled = false;
-            throw new Error('Failed to get client data: ' + YT_TV_RESPONSE.status);
+            this.error('Failed to get client data: ' + YT_TV_RESPONSE.status);
+            return null;
         }
 
         const YT_TV_HTML = await YT_TV_RESPONSE.text(),
@@ -77,8 +106,8 @@ export class OAuth2 {
 
             const SCRIPT_RESPONSE = await fetch(Url.getBaseUrl() + SCRIPT_PATH);
             if (!SCRIPT_RESPONSE.ok) {
-                this.isEnabled = false;
-                throw new Error('TV script request failed with status code: ' + SCRIPT_RESPONSE.status);
+                this.error('TV script request failed with status code: ' + SCRIPT_RESPONSE.status);
+                return null;
             }
 
             const SCRIPT_STRING = await SCRIPT_RESPONSE.text(),
@@ -86,8 +115,8 @@ export class OAuth2 {
                 CLIENT_SECRET = REGEX.clientIdentity.exec(SCRIPT_STRING)?.groups?.client_secret;
 
             if (!CLIENT_ID || !CLIENT_SECRET) {
-                this.isEnabled = false;
-                throw new Error("Could not obtain client ID. Please create an issue in the repository for possible specification changes on YouTube's side.");
+                this.error("Could not obtain client ID. Please create an issue in the repository for possible specification changes on YouTube's side.");
+                return null;
             }
 
             Logger.debug('Found client ID: ' + CLIENT_ID);
@@ -97,8 +126,8 @@ export class OAuth2 {
             return { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET };
         }
 
-        this.isEnabled = false;
-        throw new Error("Could not obtain script URL. Please create an issue in the repository for possible specification changes on YouTube's side.");
+        this.error("Could not obtain script URL. Please create an issue in the repository for possible specification changes on YouTube's side.");
+        return null;
     }
 
     shouldRefreshToken(): boolean {
@@ -115,14 +144,18 @@ export class OAuth2 {
         }
 
         if (!this.clientId || !this.clientSecret) {
-            const { clientId, clientSecret } = await this.getClientData();
+            const data = await this.getClientData();
 
-            this.clientId = clientId;
-            this.clientSecret = clientSecret;
+            if (!data) {
+                return;
+            }
+
+            this.clientId = data.clientId;
+            this.clientSecret = data.clientSecret;
         }
 
         if (!this.refreshToken) {
-            throw new Error('Refresh token is missing, make sure it is specified.');
+            return this.error('Refresh token is missing, make sure it is specified.');
         }
 
         try {
@@ -141,19 +174,19 @@ export class OAuth2 {
                 });
 
             if (!REFRESH_API_RESPONSE.ok) {
-                throw new Error(`Failed to refresh access token: ${REFRESH_API_RESPONSE.status}`);
+                return this.error(`Failed to refresh access token: ${REFRESH_API_RESPONSE.status}`);
             }
 
             const REFRESH_API_DATA = (await REFRESH_API_RESPONSE.json()) as RefreshApiResponse;
 
             if (REFRESH_API_DATA.error_code) {
-                throw new Error('Authorization server returned an error: ' + JSON.stringify(REFRESH_API_DATA));
+                return this.error('Authorization server returned an error: ' + JSON.stringify(REFRESH_API_DATA));
             }
 
             this.expiryDate = new Date(Date.now() + REFRESH_API_DATA.expires_in * 1000).toISOString();
             this.accessToken = REFRESH_API_DATA.access_token;
-        } catch (err) {
-            throw err;
+        } catch (err: any | Error) {
+            this.error(err.message);
         }
     }
 

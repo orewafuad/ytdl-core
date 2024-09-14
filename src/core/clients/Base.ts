@@ -43,34 +43,52 @@ export default class Base {
                     },
                     rewriteRequest: params.options.rewriteRequest,
                 },
-                RESPONSE = await Fetcher.request<YT_PlayerApiResponse>(url, OPTS),
-                IS_NEXT_API = url.includes('/next'),
-                PLAY_ERROR = this.playError(RESPONSE);
+                IS_NEXT_API = url.includes('/next');
 
-            if (PLAY_ERROR) {
-                return reject({
+            try {
+                Fetcher.request<YT_PlayerApiResponse>(url, OPTS)
+                    .then((response) => {
+                        const PLAY_ERROR = this.playError(response);
+
+                        if (PLAY_ERROR) {
+                            return reject({
+                                isError: true,
+                                error: PLAY_ERROR,
+                                contents: response,
+                            });
+                        }
+
+                        if (!IS_NEXT_API && (!response.videoDetails || params.videoId !== response.videoDetails.videoId)) {
+                            const ERROR = new PlayerRequestError('Malformed response from YouTube');
+                            ERROR.response = response;
+
+                            return reject({
+                                isError: true,
+                                error: ERROR,
+                                contents: response,
+                            });
+                        }
+
+                        resolve({
+                            isError: false,
+                            error: null,
+                            contents: response as T,
+                        });
+                    })
+                    .catch((err) => {
+                        reject({
+                            isError: true,
+                            error: err,
+                            contents: null,
+                        });
+                    });
+            } catch (err: any) {
+                reject({
                     isError: true,
-                    error: PLAY_ERROR,
-                    contents: RESPONSE,
+                    error: err,
+                    contents: null,
                 });
             }
-
-            if (!IS_NEXT_API && (!RESPONSE.videoDetails || params.videoId !== RESPONSE.videoDetails.videoId)) {
-                const ERROR = new PlayerRequestError('Malformed response from YouTube');
-                ERROR.response = RESPONSE;
-
-                return reject({
-                    isError: true,
-                    error: ERROR,
-                    contents: RESPONSE,
-                });
-            }
-
-            resolve({
-                isError: false,
-                error: null,
-                contents: RESPONSE as T,
-            });
         });
     }
 }

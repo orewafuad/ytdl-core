@@ -1,5 +1,14 @@
 # Changelog
 
+## v5.1.5 (2024/09/15)
+
+## Features
+* **OAuth2:** Changed OAuth2 to test whether tokens can be used successfully. If not, disable the token.
+* **Version:** Changed to check Node.js version; If Node.js is less than 16, the process will terminate due to an error.
+
+### Improvement
+* **Error:** Improved error handling, etc.
+
 ## v5.1.4 (2024/09/12)
 
 ### Bug Fixes

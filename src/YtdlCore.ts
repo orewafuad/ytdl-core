@@ -34,6 +34,10 @@ import IP from './utils/IP';
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
 
 /* Private Functions */
+function isNodeVersionOk(version: string): boolean {
+    return parseInt(version.replace('v', '').split('.')[0]) >= 16;
+}
+
 function createStream(options: YTDL_DownloadOptions = {}) {
     const STREAM = new PassThrough({
         highWaterMark: (options && options.highWaterMark) || 1024 * 512,
@@ -418,6 +422,11 @@ class YtdlCore {
 
         this.automaticallyGeneratePoToken();
         this.initializeHtml5PlayerCache();
+
+        /* Version Check */
+        if (!isNodeVersionOk(process.version)) {
+            throw new Error(`You are using Node.js ${process.version} which is not supported. Minimum version required is v16.`);
+        }
     }
 
     private setupOptions(options: YTDL_DownloadOptions) {

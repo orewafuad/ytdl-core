@@ -1,5 +1,5 @@
 import querystring from 'querystring';
-import vm from 'node:vm';
+import vm from 'vm';
 
 import { YTDL_GetInfoOptions, YTDL_RequestOptions } from '@/types/Options';
 
