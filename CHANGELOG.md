@@ -1,6 +1,6 @@
 # Changelog
 
-## v5.1.5 (2024/09/15)
+## v5.1.5 (2024/09/14)
 
 ## Features
 * **OAuth2:** Changed OAuth2 to test whether tokens can be used successfully. If not, disable the token.
