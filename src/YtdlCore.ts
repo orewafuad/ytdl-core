@@ -2,14 +2,13 @@ type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
     debug?: boolean;
 };
 
-import { fetch } from 'undici';
-import { IncomingHttpHeaders } from 'undici/types/header';
+import { fetch, Response } from 'undici';
 import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
 
 import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_OAuth2Credentials } from './types/Options';
-import { YTDL_VideoInfo } from './types/Ytdl';
+import { YTDL_VideoFormat, YTDL_VideoInfo } from './types/Ytdl';
 import { YTDL_Agent } from './types/Agent';
 import { YTDL_Hreflang } from './types/Language';
 
@@ -30,7 +29,6 @@ import { chooseFormat, filterFormats } from './utils/Format';
 import { VERSION } from './utils/constants';
 import { Logger } from './utils/Log';
 import IP from './utils/IP';
-import UserAgent from './utils/UserAgents';
 
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
@@ -38,6 +36,84 @@ const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'ret
 /* Private Functions */
 function isNodeVersionOk(version: string): boolean {
     return parseInt(version.replace('v', '').split('.')[0]) >= 16;
+}
+
+async function isDownloadUrlValid(format: YTDL_VideoFormat): Promise<{ valid: boolean; reason?: string }> {
+    return new Promise((resolve) => {
+        const successResponseHandler = (res: Response) => {
+                if (res.status === 200) {
+                    Logger.debug(`[ ${format.sourceClientName} ]: <success>Video URL is normal.</success> The response was received with status code <success>"${res.status}"</success>.`);
+                    resolve({ valid: true });
+                } else {
+                    errorResponseHandler(new Error(`Status code: ${res.status}`));
+                }
+            },
+            errorResponseHandler = (reason: Error) => {
+                Logger.debug(`[ ${format.sourceClientName} ]: The URL for the video <error>did not return a successful response</error>. Got another format.\nReason: ${reason.message}`);
+                resolve({ valid: false, reason: reason.message });
+            };
+
+        try {
+            fetch(format.url, {
+                method: 'HEAD',
+            }).then(
+                (res) => successResponseHandler(res),
+                (reason) => errorResponseHandler(reason),
+            );
+        } catch (err: any) {
+            errorResponseHandler(err);
+        }
+    });
+}
+
+function getValidDownloadUrl(stream: PassThrough, formats: YTDL_VideoInfo['formats'], options: YTDL_DownloadOptions): Promise<YTDL_VideoFormat> {
+    return new Promise(async (resolve, reject) => {
+        let excludingClients: Array<YTDL_ClientTypes> = ['web'],
+            format,
+            isOk = false;
+
+        try {
+            format = chooseFormat(formats, options);
+        } catch (e) {
+            stream.emit('error', e);
+            return reject(e);
+        }
+
+        if (!format) {
+            return reject(new Error('Failed to retrieve format data.'));
+        }
+
+        while (isOk === false) {
+            if (!format) {
+                reject(new Error('Failed to retrieve format data.'));
+                break;
+            }
+
+            const { valid, reason } = await isDownloadUrlValid(format);
+
+            if (valid) {
+                isOk = true;
+            } else {
+                if (format.sourceClientName !== 'unknown') {
+                    excludingClients.push(format.sourceClientName);
+                }
+
+                try {
+                    format = chooseFormat(formats, {
+                        excludingClients,
+                        includingClients: reason?.includes('403') ? ['ios', 'android'] : 'all',
+                        quality: options.quality,
+                        filter: options.filter,
+                    });
+                } catch (e) {
+                    stream.emit('error', e);
+                    return reject(e);
+                }
+            }
+        }
+
+        resolve(format);
+    });
 }
 
 function createStream(options: YTDL_DownloadOptions = {}) {
@@ -71,42 +147,15 @@ async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInf
     }
 
     let format;
+
     try {
-        format = chooseFormat(info.formats, options);
-    } catch (e) {
-        stream.emit('error', e);
+        format = await getValidDownloadUrl(stream, info.formats, options);
+    } catch {
         return;
     }
 
-    const FETCH_RES = await fetch(format.url, {
-        method: 'HEAD',
-        headers: {
-            'User-Agent': format.sourceClientName.includes('tv') ? UserAgent.tv : UserAgent.default,
-        },
-    });
-
-    if (!FETCH_RES.ok) {
-        if (info._metadata.clients.every((client) => client === 'web')) {
-            Logger.warning('<warning>The web client format is deprecated for downloads as it often returns 403.</warning> Include non-WEB clients in the `clients` option. (Example: webCreator, ios, android)');
-        } else {
-            Logger.debug(`[ ${format.sourceClientName} ]: The URL for the video <error>did not return a successful response</error>. Got another format.`);
-        }
-
-        try {
-            format = chooseFormat(info.formats, {
-                excludingClients: ['web', format.sourceClientName !== 'unknown' ? format.sourceClientName : 'webCreator'],
-                includingClients: 'all',
-                quality: options.quality,
-                filter: options.filter,
-            });
-        } catch (e) {
-            stream.emit('error', e);
-            return;
-        }
-
-        Logger.debug(`[ ${format.sourceClientName} ]: This format data is newly selected.`);
-    } else {
-        Logger.debug(`[ ${format.sourceClientName} ]: <success>Video URL is normal.</success> The response was received with status code <success>"${FETCH_RES.status}"</success>.`);
+    if (info._metadata.clients.every((client) => client === 'web')) {
+        Logger.warning('<warning>The web client format is deprecated for downloads as it often returns 403.</warning> Include non-WEB clients in the `clients` option. (Example: webCreator, ios, android)');
     }
 
     stream.emit('info', info, format);
@@ -209,11 +258,6 @@ async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInf
                     Range: `bytes=${options.range.start || '0'}-${options.range.end || ''}`,
                 });
             }
-
-            if (!requestOptions.headers) {
-                requestOptions.headers = {};
-            }
-            (requestOptions.headers as IncomingHttpHeaders).UserAgent = format.sourceClientName.includes('tv') ? UserAgent.tv : UserAgent.default;
 
             req = miniget(format.url, requestOptions as any);
 

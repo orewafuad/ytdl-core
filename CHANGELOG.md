@@ -1,5 +1,10 @@
 # Changelog
 
+## v5.1.6 (2024/09/15)
+
+## Features
+* **Format Selection:** Changed to determine if the download URL is correct. (To address https://github.com/ybd-project/ytdl-core/issues/21)
+
 ## v5.1.5 (2024/09/14)
 
 ## Features

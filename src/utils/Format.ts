@@ -149,12 +149,6 @@ function chooseFormat(formats: Array<YTDL_VideoFormat>, options: YTDL_ChooseForm
         formats = filterFormats(formats, options.filter);
     }
 
-    if (!options.includingClients?.includes('web')) {
-        formats = formats.filter((format) => format.sourceClientName !== 'web');
-    } else {
-        Logger.info('The web client format is deprecated for downloads as it often returns 403.');
-    }
-
     if (options.excludingClients) {
         formats = formats.filter((format) => !options.excludingClients?.includes(format.sourceClientName as any));
     }

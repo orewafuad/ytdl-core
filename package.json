@@ -1,6 +1,6 @@
 {
     "name": "@ybd-project/ytdl-core",
-    "version": "5.1.5-2",
+    "version": "5.1.6",
     "description": "YBD Project fork of ytdl-core.",
     "author": "YBD Project",
     "repository": {

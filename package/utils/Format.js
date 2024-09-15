@@ -9,7 +9,6 @@ exports.chooseFormat = chooseFormat;
 exports.addFormatMeta = addFormatMeta;
 const formats_1 = __importDefault(require("../meta/formats"));
 const Utils_1 = __importDefault(require("./Utils"));
-const Log_1 = require("./Log");
 /* Private Constants */
 // Use these to help sort formats, higher index is better.
 const AUDIO_ENCODING_RANKS = ['mp4a', 'mp3', 'vorbis', 'aac', 'opus', 'flac'], VIDEO_ENCODING_RANKS = ['mp4v', 'avc1', 'Sorenson H.283', 'MPEG-4 Visual', 'VP8', 'VP9', 'H.264'];
@@ -123,12 +122,6 @@ function chooseFormat(formats, options) {
     }
     if (options.filter) {
         formats = filterFormats(formats, options.filter);
-    }
-    if (!options.includingClients?.includes('web')) {
-        formats = formats.filter((format) => format.sourceClientName !== 'web');
-    }
-    else {
-        Log_1.Logger.info('The web client format is deprecated for downloads as it often returns 403.');
     }
     if (options.excludingClients) {
         formats = formats.filter((format) => !options.excludingClients?.includes(format.sourceClientName));

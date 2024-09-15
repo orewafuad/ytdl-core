@@ -58,14 +58,14 @@ export class OAuth2 {
                 options: {
                     oauth2: this,
                 },
-            }).then(() => Logger.debug('The specified OAuth2 token is successful.')).catch((err) => {
+            }).then(() => Logger.debug('The specified OAuth2 token is valid.')).catch((err) => {
                 if (err.error.message.includes('401')) {
-                    this.error('Request using the specified token failed. (Web Client)');
+                    this.error('Request using the specified token failed (Web Client). Generating the token again may fix the problem.');
                 }
             });
         } catch (err: any) {
             if ((err.message || err.error.message).includes('401')) {
-                this.error('Request using the specified token failed. (Web Client)');
+                this.error('Request using the specified token failed (Web Client). Generating the token again may fix the problem.');
             }
         }
     }

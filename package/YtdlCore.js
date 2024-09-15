@@ -45,12 +45,78 @@ const Format_1 = require("./utils/Format");
 const constants_1 = require("./utils/constants");
 const Log_1 = require("./utils/Log");
 const IP_1 = __importDefault(require("./utils/IP"));
-const UserAgents_1 = __importDefault(require("./utils/UserAgents"));
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
 /* Private Functions */
 function isNodeVersionOk(version) {
     return parseInt(version.replace('v', '').split('.')[0]) >= 16;
+}
+async function isDownloadUrlValid(format) {
+    return new Promise((resolve) => {
+        const successResponseHandler = (res) => {
+            if (res.status === 200) {
+                Log_1.Logger.debug(`[ ${format.sourceClientName} ]: <success>Video URL is normal.</success> The response was received with status code <success>"${res.status}"</success>.`);
+                resolve({ valid: true });
+            }
+            else {
+                errorResponseHandler(new Error(`Status code: ${res.status}`));
+            }
+        }, errorResponseHandler = (reason) => {
+            Log_1.Logger.debug(`[ ${format.sourceClientName} ]: The URL for the video <error>did not return a successful response</error>. Got another format.\nReason: ${reason.message}`);
+            resolve({ valid: false, reason: reason.message });
+        };
+        try {
+            (0, undici_1.fetch)(format.url, {
+                method: 'HEAD',
+            }).then((res) => successResponseHandler(res), (reason) => errorResponseHandler(reason));
+        }
+        catch (err) {
+            errorResponseHandler(err);
+        }
+    });
+}
+function getValidDownloadUrl(stream, formats, options) {
+    return new Promise(async (resolve, reject) => {
+        let excludingClients = ['web'], format, isOk = false;
+        try {
+            format = (0, Format_1.chooseFormat)(formats, options);
+        }
+        catch (e) {
+            stream.emit('error', e);
+            return reject(e);
+        }
+        if (!format) {
+            return reject(new Error('Failed to retrieve format data.'));
+        }
+        while (isOk === false) {
+            if (!format) {
+                reject(new Error('Failed to retrieve format data.'));
+                break;
+            }
+            const { valid, reason } = await isDownloadUrlValid(format);
+            if (valid) {
+                isOk = true;
+            }
+            else {
+                if (format.sourceClientName !== 'unknown') {
+                    excludingClients.push(format.sourceClientName);
+                }
+                try {
+                    format = (0, Format_1.chooseFormat)(formats, {
+                        excludingClients,
+                        includingClients: reason?.includes('403') ? ['ios', 'android'] : 'all',
+                        quality: options.quality,
+                        filter: options.filter,
+                    });
+                }
+                catch (e) {
+                    stream.emit('error', e);
+                    return reject(e);
+                }
+            }
+        }
+        resolve(format);
+    });
 }
 function createStream(options = {}) {
     const STREAM = new stream_1.PassThrough({
@@ -77,41 +143,13 @@ async function downloadFromInfoCallback(stream, info, options) {
     }
     let format;
     try {
-        format = (0, Format_1.chooseFormat)(info.formats, options);
+        format = await getValidDownloadUrl(stream, info.formats, options);
     }
-    catch (e) {
-        stream.emit('error', e);
+    catch {
         return;
     }
-    const FETCH_RES = await (0, undici_1.fetch)(format.url, {
-        method: 'HEAD',
-        headers: {
-            'User-Agent': format.sourceClientName.includes('tv') ? UserAgents_1.default.tv : UserAgents_1.default.default,
-        },
-    });
-    if (!FETCH_RES.ok) {
-        if (info._metadata.clients.every((client) => client === 'web')) {
-            Log_1.Logger.warning('<warning>The web client format is deprecated for downloads as it often returns 403.</warning> Include non-WEB clients in the `clients` option. (Example: webCreator, ios, android)');
-        }
-        else {
-            Log_1.Logger.debug(`[ ${format.sourceClientName} ]: The URL for the video <error>did not return a successful response</error>. Got another format.`);
-        }
-        try {
-            format = (0, Format_1.chooseFormat)(info.formats, {
-                excludingClients: ['web', format.sourceClientName !== 'unknown' ? format.sourceClientName : 'webCreator'],
-                includingClients: 'all',
-                quality: options.quality,
-                filter: options.filter,
-            });
-        }
-        catch (e) {
-            stream.emit('error', e);
-            return;
-        }
-        Log_1.Logger.debug(`[ ${format.sourceClientName} ]: This format data is newly selected.`);
-    }
-    else {
-        Log_1.Logger.debug(`[ ${format.sourceClientName} ]: <success>Video URL is normal.</success> The response was received with status code <success>"${FETCH_RES.status}"</success>.`);
+    if (info._metadata.clients.every((client) => client === 'web')) {
+        Log_1.Logger.warning('<warning>The web client format is deprecated for downloads as it often returns 403.</warning> Include non-WEB clients in the `clients` option. (Example: webCreator, ios, android)');
     }
     stream.emit('info', info, format);
     if (stream.destroyed) {
@@ -203,10 +241,6 @@ async function downloadFromInfoCallback(stream, info, options) {
                     Range: `bytes=${options.range.start || '0'}-${options.range.end || ''}`,
                 });
             }
-            if (!requestOptions.headers) {
-                requestOptions.headers = {};
-            }
-            requestOptions.headers.UserAgent = format.sourceClientName.includes('tv') ? UserAgents_1.default.tv : UserAgents_1.default.default;
             req = (0, miniget_1.default)(format.url, requestOptions);
             req.on('response', (res) => {
                 if (stream.destroyed)
