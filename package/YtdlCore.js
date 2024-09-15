@@ -45,6 +45,7 @@ const Format_1 = require("./utils/Format");
 const constants_1 = require("./utils/constants");
 const Log_1 = require("./utils/Log");
 const IP_1 = __importDefault(require("./utils/IP"));
+const UserAgents_1 = __importDefault(require("./utils/UserAgents"));
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
 /* Private Functions */
@@ -84,6 +85,9 @@ async function downloadFromInfoCallback(stream, info, options) {
     }
     const FETCH_RES = await (0, undici_1.fetch)(format.url, {
         method: 'HEAD',
+        headers: {
+            'User-Agent': format.sourceClientName.includes('tv') ? UserAgents_1.default.tv : UserAgents_1.default.default,
+        },
     });
     if (!FETCH_RES.ok) {
         if (info._metadata.clients.every((client) => client === 'web')) {
@@ -94,7 +98,7 @@ async function downloadFromInfoCallback(stream, info, options) {
         }
         try {
             format = (0, Format_1.chooseFormat)(info.formats, {
-                excludingClients: ['web'],
+                excludingClients: ['web', format.sourceClientName !== 'unknown' ? format.sourceClientName : 'webCreator'],
                 includingClients: 'all',
                 quality: options.quality,
                 filter: options.filter,
@@ -199,6 +203,10 @@ async function downloadFromInfoCallback(stream, info, options) {
                     Range: `bytes=${options.range.start || '0'}-${options.range.end || ''}`,
                 });
             }
+            if (!requestOptions.headers) {
+                requestOptions.headers = {};
+            }
+            requestOptions.headers.UserAgent = format.sourceClientName.includes('tv') ? UserAgents_1.default.tv : UserAgents_1.default.default;
             req = (0, miniget_1.default)(format.url, requestOptions);
             req.on('response', (res) => {
                 if (stream.destroyed)

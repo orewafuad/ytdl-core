@@ -3,6 +3,7 @@ type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
 };
 
 import { fetch } from 'undici';
+import { IncomingHttpHeaders } from 'undici/types/header';
 import { PassThrough } from 'stream';
 import miniget from 'miniget';
 import m3u8stream, { parseTimestamp } from 'm3u8stream';
@@ -29,6 +30,7 @@ import { chooseFormat, filterFormats } from './utils/Format';
 import { VERSION } from './utils/constants';
 import { Logger } from './utils/Log';
 import IP from './utils/IP';
+import UserAgent from './utils/UserAgents';
 
 /* Private Constants */
 const STREAM_EVENTS = ['abort', 'request', 'response', 'error', 'redirect', 'retry', 'reconnect'];
@@ -78,6 +80,9 @@ async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInf
 
     const FETCH_RES = await fetch(format.url, {
         method: 'HEAD',
+        headers: {
+            'User-Agent': format.sourceClientName.includes('tv') ? UserAgent.tv : UserAgent.default,
+        },
     });
 
     if (!FETCH_RES.ok) {
@@ -89,7 +94,7 @@ async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInf
 
         try {
             format = chooseFormat(info.formats, {
-                excludingClients: ['web'],
+                excludingClients: ['web', format.sourceClientName !== 'unknown' ? format.sourceClientName : 'webCreator'],
                 includingClients: 'all',
                 quality: options.quality,
                 filter: options.filter,
@@ -204,6 +209,11 @@ async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInf
                     Range: `bytes=${options.range.start || '0'}-${options.range.end || ''}`,
                 });
             }
+
+            if (!requestOptions.headers) {
+                requestOptions.headers = {};
+            }
+            (requestOptions.headers as IncomingHttpHeaders).UserAgent = format.sourceClientName.includes('tv') ? UserAgent.tv : UserAgent.default;
 
             req = miniget(format.url, requestOptions as any);
 
