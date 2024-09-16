@@ -79,6 +79,10 @@ If you have an operating system that works or does not work other than those lis
 1. 22.04
 2. 24.04
 
+#### 💠CentOS
+
+1. 9 Stream
+
 ## Installation
 
 ```bash
