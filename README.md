@@ -60,18 +60,21 @@ To use `@ybd-project/ytdl-core` without problems, **use Node.js 16 or higher.** 
 
 If you have an operating system that works or does not work other than those listed here, please let us know at https://github.com/ybd-project/ytdl-core/issues/25.
 
-### Windows
+> [!IMPORTANT]
+> Developers will only test on currently supported operating systems and versions. Older versions (e.g. Windows 7) will not be tested.
 
-1. Windows 11 Pro
+### 🪟Windows
 
-### MacOS
+1. Windows 11
+
+### 🍎MacOS
 
 > [!NOTE]
 > **MacOS is under testing.**
 
-### Linux
+### 🐧Linux
 
-#### Ubuntu
+#### 🛞Ubuntu
 
 1. 22.04
 2. 24.04
