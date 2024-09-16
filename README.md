@@ -7,6 +7,7 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 <ol>
    <li><a href="#ℹ️announcements-at-this-timeℹ️">ℹ️Announcements at this timeℹ️</a></li>
    <li><a href="#prerequisite">Prerequisite</a></li>
+   <li><a href="#operating-environment">Operating Environment</a></li>
    <li><a href="#installation">Installation</a></li>
    <li>
       <a href="#usage">Usage</a>
@@ -54,6 +55,26 @@ To use `@ybd-project/ytdl-core` without problems, **use Node.js 16 or higher.** 
 
 > [!IMPORTANT]
 > Use with Node.js 16 is not recommended, but will be supported as much as possible.
+
+## Operating Environment
+
+If you have an operating system that works or does not work other than those listed here, please let us know at https://github.com/ybd-project/ytdl-core/issues/25.
+
+### Windows
+
+1. Windows 11 Pro
+
+### MacOS
+
+> [!NOTE]
+> **MacOS is under testing.**
+
+### Linux
+
+#### Ubuntu
+
+1. 22.04
+2. 24.04
 
 ## Installation
 
