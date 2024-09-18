@@ -49,6 +49,8 @@ export default {
         try {
             let contentType = 'text/plain';
 
+            req.headers.set('User-Agent', USER_AGENTS.DEFAULT);
+
             const HEADERS = req.headers,
                 METHOD = req.method,
                 BODY = await req.text(),

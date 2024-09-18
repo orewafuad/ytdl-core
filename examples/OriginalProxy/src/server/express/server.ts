@@ -45,7 +45,10 @@ app.all('/', async (req, res) => {
             BODY = req.body,
             RESPONSE_DATA = await fetch(REQUEST_URL, {
                 method: req.method,
-                headers: HEADERS,
+                headers: {
+                    ...HEADERS,
+                    'User-Agent': USER_AGENTS.DEFAULT,
+                },
                 body: BODY ? JSON.stringify(BODY) : undefined,
             }).then((response) => {
                 const CONTENT_TYPE = response.headers.get('content-type') || '';
