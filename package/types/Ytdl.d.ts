@@ -97,6 +97,16 @@ export type YTDL_VideoInfo = {
     relatedVideos: Array<YTDL_RelatedVideo>;
     formats: Array<YTDL_VideoFormat>;
     full: boolean;
+    _metadata: {
+        isMinimumMode: boolean;
+        clients: Array<YTDL_ClientTypes>;
+        html5Player: string;
+        id: string;
+        options: YTDL_GetInfoOptions;
+    };
+    _ytdl: {
+        version: string;
+    };
     live_chunk_readahead?: number;
     _playerApiResponses?: {
         webCreator: YT_PlayerApiResponse | null;
@@ -109,15 +119,5 @@ export type YTDL_VideoInfo = {
     };
     _nextApiResponses?: {
         web: YT_NextApiResponse | null;
-    };
-    _metadata: {
-        isMinimumMode: boolean;
-        clients: Array<YTDL_ClientTypes>;
-        html5Player: string;
-        id: string;
-        options: YTDL_GetInfoOptions;
-    };
-    _ytdl: {
-        version: string;
     };
 };

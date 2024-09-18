@@ -43,7 +43,8 @@ declare class YtdlCore {
     clients: Array<YTDL_ClientTypes> | undefined;
     disableDefaultClients: boolean;
     oauth2: OAuth2 | undefined;
-    notParsingHLSFormat: boolean;
+    parsesHLSFormat: boolean;
+    originalProxyUrl: string | undefined;
     quality: YTDL_ChooseFormatOptions['quality'] | undefined;
     filter: YTDL_ChooseFormatOptions['filter'] | undefined;
     excludingClients: Array<YTDL_ClientTypes>;
@@ -60,7 +61,7 @@ declare class YtdlCore {
     private setOAuth2;
     private automaticallyGeneratePoToken;
     private initializeHtml5PlayerCache;
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, notParsingHLSFormat, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }?: YTDL_Constructor);
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }?: YTDL_Constructor);
     private setupOptions;
     download(link: string, options?: YTDL_DownloadOptions): PassThrough;
     downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;

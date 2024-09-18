@@ -1,7 +1,10 @@
-const express = require('express'),
+const got = require('got'),
+    express = require('express'),
     app = express();
 
-app.get('/', async (req, res) => {
+app.use(express.json());
+
+app.all('/', async (req, res) => {
     const REQUEST_URL = req.query.url;
 
     if (!REQUEST_URL) {
@@ -11,7 +14,53 @@ app.get('/', async (req, res) => {
         return;
     }
 
-    res.send(await fetch(decodeURIComponent(REQUEST_URL.toString())).then((res) => res.text()));
+    try {
+        const HEADERS = req.rawHeaders.reduce((acc, curr, index) => {
+                if (index % 2 === 0) {
+                    acc[curr] = req.rawHeaders[index + 1];
+                }
+
+                return acc;
+            }, {}),
+            METHOD = req.method,
+            BODY = req.body,
+            RESPONSE_DATA = await fetch(decodeURIComponent(REQUEST_URL.toString()), {
+                method: req.method,
+                headers: HEADERS,
+                body: BODY ? JSON.stringify(BODY) : undefined,
+            }).then((response) => {
+                const CONTENT_TYPE = response.headers.get('content-type') || '';
+                res.setHeader('Content-Type', CONTENT_TYPE);
+                return response.text();
+            });
+
+        console.log(`[${METHOD}]: ${REQUEST_URL}`);
+
+        res.send(RESPONSE_DATA);
+    } catch (err) {
+        res.status(500).json({
+            error: err.message,
+        });
+    }
+});
+
+app.all('/download/', async (req, res) => {
+    const REQUEST_URL = req.query.url;
+
+    if (!REQUEST_URL) {
+        res.status(400);
+        res.end();
+
+        return;
+    }
+
+    try {
+        got.stream(decodeURIComponent(REQUEST_URL.toString()), { headers: { Range: req.headers['range'] || req.get('range') || 'bytes=0-', 'cache-control': 'no-cache', 'Accept-Encoding': 'identity;q=1, *;q=0', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0' }, http2: false, throwHttpErrors: false }).pipe(res);
+    } catch (err) {
+        res.status(500).json({
+            error: err.message,
+        });
+    }
 });
 
 app.listen(3000, () => {

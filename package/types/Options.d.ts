@@ -37,7 +37,9 @@ export type YTDL_GetInfoOptions = {
     /** You can specify the request options. */
     requestOptions?: Parameters<typeof request>[1];
     /** API requests can be rewritten. (This is also a great way to debug what requests are being sent). */
-    rewriteRequest?: (url: string, options: Parameters<typeof request>[1]) => {
+    rewriteRequest?: (url: string, options: Parameters<typeof request>[1], details?: {
+        isDownloadUrl?: boolean;
+    }) => {
         url: string;
         options: Parameters<typeof request>[1];
     };
@@ -70,14 +72,19 @@ export type YTDL_GetInfoOptions = {
     clients?: Array<YTDL_ClientTypes>;
     /** You can disable the default client. (If clients is not specified, it will be included.) */
     disableDefaultClients?: boolean;
+    /** You can specify whether to disable the file cache. Disable this if you encounter errors.  */
+    disableFileCache?: boolean;
+    /** You can specify whether to parse the HLS format. */
+    parsesHLSFormat?: boolean;
     /** You can specify OAuth2 tokens to avoid age restrictions and bot errors.
      * @default null
      */
     oauth2?: OAuth2;
-    /** You can specify that the HLS format should not be parsed from IOS clients. */
-    notParsingHLSFormat?: boolean;
-    /** If errors occur in the file cache, set this to true. */
-    disableFileCache?: boolean;
+    /** You can specify your own proxy URL.
+     * @example 1. "http://localhost:3000"
+     * @example 2. "https://original-proxy.example.com"
+     */
+    originalProxyUrl?: string;
 };
 export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFormatOptions {
     range?: {
@@ -93,4 +100,5 @@ export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFo
 export type YTDL_RequestOptions = {
     rewriteRequest?: YTDL_GetInfoOptions['rewriteRequest'];
     requestOptions?: Omit<Dispatcher.RequestOptions, 'origin' | 'path' | 'method'> & Partial<Pick<Dispatcher.RequestOptions, 'method'>>;
+    originalProxyUrl?: string;
 };

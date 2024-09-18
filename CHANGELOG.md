@@ -1,5 +1,11 @@
 # Changelog
 
+## v5.1.7 (2024/09/18)
+
+## Features
+* **Proxy:** Add `originalProxyUrl` option.
+* **M3U8:** Add `parsesHLSFormat` option. (Rename `notParsingHLSFormat`)
+
 ## v5.1.6 (2024/09/15)
 
 ## Features

@@ -1,12 +1,7 @@
 const { YtdlCore } = require('@ybd-project/ytdl-core');
 
 const ytdl = new YtdlCore({
-    rewriteRequest: (url, options) => {
-        return {
-            url: `https://original-proxy-1.example.com/?url=${encodeURIComponent(url)}`,
-            options,
-        };
-    },
+    originalProxyUrl: 'https://original-proxy-1.example.com',
 });
 
 /* Normal Usage */
@@ -20,12 +15,7 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
 
 /* Proxy Override */
 ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ', {
-    rewriteRequest: (url, options) => {
-        return {
-            url: `https://original-proxy-2.example.com/?url=${encodeURIComponent(url)}`,
-            options,
-        };
-    },
+    originalProxyUrl: 'https://original-proxy-2.example.com',
 })
     .then((info) => {
         console.log(info);

@@ -18,6 +18,23 @@ export default {
             return new Response('', { status: 400, headers: BASE_HEADERS });
         }
 
+        if (req.url.includes('/download/')) {
+            const RESPONSE = await fetch(decodeURIComponent(REQUEST_URL.toString()), {
+                headers: {
+                    Range: req.headers['range'] || 'bytes=0-',
+                    'cache-control': 'no-cache',
+                    'Accept-Encoding': 'identity;q=1, *;q=0',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
+                },
+            });
+
+            if (!RESPONSE.body) {
+                return new Response(null, { status: 500, headers: BASE_HEADERS });
+            }
+
+            return new Response(await RESPONSE.arrayBuffer(), { status: 200, headers: BASE_HEADERS });
+        }
+
         try {
             let contentType = 'text/plain';
 

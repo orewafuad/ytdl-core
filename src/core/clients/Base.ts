@@ -42,6 +42,7 @@ export default class Base {
                         body: typeof requestOptions.payload === 'string' ? requestOptions.payload : JSON.stringify(requestOptions.payload),
                     },
                     rewriteRequest: params.options.rewriteRequest,
+                    originalProxyUrl: params.options.originalProxyUrl,
                 },
                 IS_NEXT_API = url.includes('/next');
 

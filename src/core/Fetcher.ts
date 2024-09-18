@@ -5,11 +5,16 @@ import { YTDL_RequestOptions } from '@/types/Options';
 import { RequestError } from './errors';
 
 export default class Fetcher {
-    static async request<T = unknown>(url: string, { requestOptions, rewriteRequest }: YTDL_RequestOptions = {}): Promise<T> {
+    static async request<T = unknown>(url: string, { requestOptions, rewriteRequest, originalProxyUrl }: YTDL_RequestOptions = {}): Promise<T> {
         if (typeof rewriteRequest === 'function') {
             const WROTE_REQUEST = rewriteRequest(url, requestOptions);
             requestOptions = WROTE_REQUEST.options;
             url = WROTE_REQUEST.url;
+        }
+
+        if (originalProxyUrl) {
+            const PARSED = new URL(originalProxyUrl);
+            url = `${PARSED.protocol}//${PARSED.host}/?url=${encodeURIComponent(url)}`;
         }
 
         const REQUEST_RESULTS = await undiciRequest(url, requestOptions),
@@ -25,7 +30,7 @@ export default class Fetcher {
 
             return REQUEST_RESULTS.body.text() as T;
         } else if (STATUS_CODE.startsWith('3') && LOCATION) {
-            return this.request(LOCATION.toString(), { requestOptions, rewriteRequest });
+            return this.request(LOCATION.toString(), { requestOptions, rewriteRequest, originalProxyUrl });
         }
 
         const ERROR = new RequestError(`Status Code: ${STATUS_CODE}`);

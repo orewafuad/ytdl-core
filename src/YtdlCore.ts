@@ -194,6 +194,21 @@ async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInf
     let req: m3u8stream.Stream;
     let shouldEnd = true;
 
+    /* Request Setup */
+    if (options.rewriteRequest) {
+        const { url, options: reqOptions } = options.rewriteRequest(format.url, options.requestOptions, {
+            isDownloadUrl: true,
+        });
+
+        format.url = url;
+        options.requestOptions = reqOptions;
+    }
+
+    if (options.originalProxyUrl) {
+        const PARSED = new URL(options.originalProxyUrl);
+        format.url = `${PARSED.protocol}//${PARSED.host}/download/?url=${encodeURIComponent(format.url)}`;
+    }
+
     if (format.isHLS || format.isDashMPD) {
         req = m3u8stream(format.url, {
             chunkReadahead: info.live_chunk_readahead ? +info.live_chunk_readahead : undefined,
@@ -339,24 +354,25 @@ class YtdlCore {
     public includesNextAPIResponse: boolean = false;
     public includesOriginalFormatData: boolean = false;
     public includesRelatedVideo: boolean = true;
-    public clients: Array<YTDL_ClientTypes> | undefined = undefined;
+    public clients: Array<YTDL_ClientTypes> | undefined;
     public disableDefaultClients: boolean = false;
     public oauth2: OAuth2 | undefined;
     public parsesHLSFormat: boolean = false;
+    public originalProxyUrl: string | undefined;
 
     /* Format Selection Options */
-    public quality: YTDL_ChooseFormatOptions['quality'] | undefined = undefined;
-    public filter: YTDL_ChooseFormatOptions['filter'] | undefined = undefined;
+    public quality: YTDL_ChooseFormatOptions['quality'] | undefined;
+    public filter: YTDL_ChooseFormatOptions['filter'] | undefined;
     public excludingClients: Array<YTDL_ClientTypes> = [];
     public includingClients: Array<YTDL_ClientTypes> | 'all' = 'all';
 
     /* Download Options */
-    public range: YTDL_DownloadOptions['range'] | undefined = undefined;
-    public begin: YTDL_DownloadOptions['begin'] | undefined = undefined;
-    public liveBuffer: YTDL_DownloadOptions['liveBuffer'] | undefined = undefined;
-    public highWaterMark: YTDL_DownloadOptions['highWaterMark'] | undefined = undefined;
-    public IPv6Block: YTDL_DownloadOptions['IPv6Block'] | undefined = undefined;
-    public dlChunkSize: YTDL_DownloadOptions['dlChunkSize'] | undefined = undefined;
+    public range: YTDL_DownloadOptions['range'] | undefined;
+    public begin: YTDL_DownloadOptions['begin'] | undefined;
+    public liveBuffer: YTDL_DownloadOptions['liveBuffer'] | undefined;
+    public highWaterMark: YTDL_DownloadOptions['highWaterMark'] | undefined;
+    public IPv6Block: YTDL_DownloadOptions['IPv6Block'] | undefined;
+    public dlChunkSize: YTDL_DownloadOptions['dlChunkSize'] | undefined;
 
     /* Metadata */
     public version = VERSION;
@@ -439,7 +455,7 @@ class YtdlCore {
         }
     }
 
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }: YTDL_Constructor = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }: YTDL_Constructor = {}) {
         /* Other Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
         process.env._YTDL_DISABLE_FILE_CACHE = (disableFileCache ?? false).toString();
@@ -456,6 +472,12 @@ class YtdlCore {
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
         this.parsesHLSFormat = parsesHLSFormat ?? false;
+
+        this.originalProxyUrl = originalProxyUrl || undefined;
+        if (this.originalProxyUrl) {
+            Logger.debug(`Original proxy (${this.originalProxyUrl}) is used for video downloads and API requests.`);
+        }
+
         this.setPoToken(poToken);
         this.setVisitorData(visitorData);
         this.setOAuth2(oauth2);
@@ -498,6 +520,7 @@ class YtdlCore {
         options.disableDefaultClients = options.disableDefaultClients || this.disableDefaultClients;
         options.oauth2 = options.oauth2 || this.oauth2;
         options.parsesHLSFormat = options.parsesHLSFormat || this.parsesHLSFormat;
+        options.originalProxyUrl = options.originalProxyUrl || this.originalProxyUrl || undefined;
 
         /* Format Selection Options */
         options.quality = options.quality || this.quality || undefined;

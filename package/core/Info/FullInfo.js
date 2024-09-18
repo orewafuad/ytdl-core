@@ -25,7 +25,7 @@ async function _getFullInfo(id, options) {
     try {
         const FORMATS = INFO.formats;
         FUNCTIONS.push(Signature_1.default.decipherFormats(FORMATS, INFO._metadata.html5Player, options));
-        if (INFO._playerApiResponses?.ios) {
+        if (options.parsesHLSFormat && INFO._playerApiResponses?.ios) {
             FUNCTIONS.push(...Formats_1.default.parseAdditionalManifests(INFO._playerApiResponses.ios, options));
         }
     }

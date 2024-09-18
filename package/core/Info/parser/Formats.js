@@ -11,9 +11,6 @@ class Formats {
         let formats = [];
         if (playerResponse && playerResponse.streamingData) {
             formats = formats.concat(playerResponse.streamingData.formats).concat(playerResponse.streamingData.adaptiveFormats);
-            if (playerResponse.streamingData.hlsManifestUrl) {
-                // 解析処理
-            }
         }
         return formats;
     }

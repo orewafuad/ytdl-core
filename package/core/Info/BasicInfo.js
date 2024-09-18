@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports._getBasicInfo = _getBasicInfo;
 const Cache_1 = require("../../core/Cache");
 const PoToken_1 = __importDefault(require("../../core/PoToken"));
+const OAuth2_1 = require("../../core/OAuth2");
 const Log_1 = require("../../utils/Log");
 const Url_1 = __importDefault(require("../../utils/Url"));
 const constants_1 = require("../../utils/constants");
@@ -45,7 +46,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     Utils_1.default.setPropInsensitive(options.requestOptions?.headers, 'cookie', jar?.getCookieStringSync('https://www.youtube.com'));
     options.requestOptions.dispatcher = options.requestOptions.dispatcher || dispatcher;
     const HTML5_PLAYER_PROMISE = (0, Html5Player_1.default)(id, options);
-    if (options.oauth2 && options.oauth2.shouldRefreshToken()) {
+    if (options.oauth2 && options.oauth2 instanceof OAuth2_1.OAuth2 && options.oauth2.shouldRefreshToken()) {
         Log_1.Logger.info('The specified OAuth2 token has expired and will be renewed automatically.');
         await options.oauth2.refreshAccessToken();
     }

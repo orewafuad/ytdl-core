@@ -1,4 +1,5 @@
 import express from 'express';
+import got from 'got';
 
 const app = express();
 
@@ -42,6 +43,42 @@ app.all('/', async (req, res) => {
             error: err.message,
         });
     }
+});
+
+app.all('/download/', async (req, res) => {
+    const REQUEST_URL = req.query.url;
+
+    if (!REQUEST_URL) {
+        res.status(400);
+        res.end();
+
+        return;
+    }
+
+    console.log(`[${req.method}]: ${REQUEST_URL}`);
+    fetch(decodeURIComponent(REQUEST_URL.toString())).then(
+        async (headRes) => {
+            if (headRes.ok) {
+                try {
+                    got.stream(decodeURIComponent(REQUEST_URL.toString()), {
+                        headers: {
+                            Range: req.headers['range'] || req.get('range') || 'bytes=0-',
+                            'cache-control': 'no-cache',
+                            'Accept-Encoding': 'identity;q=1, *;q=0',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
+                        },
+                        http2: false,
+                        throwHttpErrors: false,
+                    }).pipe(res);
+                } catch (err: any) {
+                    res.status(500).end();
+                }
+            } else {
+                res.status(500).end();
+            }
+        },
+        () => res.status(500).end(),
+    );
 });
 
 app.listen(3000, () => {

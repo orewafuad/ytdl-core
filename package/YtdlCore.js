@@ -179,6 +179,18 @@ async function downloadFromInfoCallback(stream, info, options) {
     const DL_CHUNK_SIZE = typeof options.dlChunkSize === 'number' ? options.dlChunkSize : 1024 * 1024 * 10;
     let req;
     let shouldEnd = true;
+    /* Request Setup */
+    if (options.rewriteRequest) {
+        const { url, options: reqOptions } = options.rewriteRequest(format.url, options.requestOptions, {
+            isDownloadUrl: true,
+        });
+        format.url = url;
+        options.requestOptions = reqOptions;
+    }
+    if (options.originalProxyUrl) {
+        const PARSED = new URL(options.originalProxyUrl);
+        format.url = `${PARSED.protocol}//${PARSED.host}/download/?url=${encodeURIComponent(format.url)}`;
+    }
     if (format.isHLS || format.isDashMPD) {
         req = (0, m3u8stream_1.default)(format.url, {
             chunkReadahead: info.live_chunk_readahead ? +info.live_chunk_readahead : undefined,
@@ -304,22 +316,23 @@ class YtdlCore {
     includesNextAPIResponse = false;
     includesOriginalFormatData = false;
     includesRelatedVideo = true;
-    clients = undefined;
+    clients;
     disableDefaultClients = false;
     oauth2;
-    notParsingHLSFormat = false;
+    parsesHLSFormat = false;
+    originalProxyUrl;
     /* Format Selection Options */
-    quality = undefined;
-    filter = undefined;
+    quality;
+    filter;
     excludingClients = [];
     includingClients = 'all';
     /* Download Options */
-    range = undefined;
-    begin = undefined;
-    liveBuffer = undefined;
-    highWaterMark = undefined;
-    IPv6Block = undefined;
-    dlChunkSize = undefined;
+    range;
+    begin;
+    liveBuffer;
+    highWaterMark;
+    IPv6Block;
+    dlChunkSize;
     /* Metadata */
     version = constants_1.VERSION;
     /* Setup */
@@ -384,7 +397,7 @@ class YtdlCore {
             });
         }
     }
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, notParsingHLSFormat, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache } = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache } = {}) {
         /* Other Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
         process.env._YTDL_DISABLE_FILE_CACHE = (disableFileCache ?? false).toString();
@@ -399,7 +412,11 @@ class YtdlCore {
         this.includesRelatedVideo = includesRelatedVideo ?? true;
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
-        this.notParsingHLSFormat = notParsingHLSFormat ?? false;
+        this.parsesHLSFormat = parsesHLSFormat ?? false;
+        this.originalProxyUrl = originalProxyUrl || undefined;
+        if (this.originalProxyUrl) {
+            Log_1.Logger.debug(`Original proxy (${this.originalProxyUrl}) is used for video downloads and API requests.`);
+        }
         this.setPoToken(poToken);
         this.setVisitorData(visitorData);
         this.setOAuth2(oauth2);
@@ -436,7 +453,8 @@ class YtdlCore {
         options.clients = options.clients || this.clients;
         options.disableDefaultClients = options.disableDefaultClients || this.disableDefaultClients;
         options.oauth2 = options.oauth2 || this.oauth2;
-        options.notParsingHLSFormat = options.notParsingHLSFormat || this.notParsingHLSFormat;
+        options.parsesHLSFormat = options.parsesHLSFormat || this.parsesHLSFormat;
+        options.originalProxyUrl = options.originalProxyUrl || this.originalProxyUrl || undefined;
         /* Format Selection Options */
         options.quality = options.quality || this.quality || undefined;
         options.filter = options.filter || this.filter || undefined;
