@@ -49,14 +49,15 @@ export default {
         try {
             let contentType = 'text/plain';
 
-            req.headers.set('User-Agent', USER_AGENTS.DEFAULT);
-
             const HEADERS = req.headers,
                 METHOD = req.method,
                 BODY = await req.text(),
                 RESPONSE_DATA = await fetch(REQUEST_URL, {
                     method: METHOD,
-                    headers: HEADERS,
+                    headers: {
+                        ...HEADERS,
+                        'User-Agent': USER_AGENTS.DEFAULT,
+                    },
                     body: BODY ? BODY : undefined,
                 }).then((response) => {
                     const CONTENT_TYPE = response.headers.get('content-type') || '';
