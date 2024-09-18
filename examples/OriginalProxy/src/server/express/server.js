@@ -1,6 +1,12 @@
 const got = require('got'),
     express = require('express'),
-    app = express();
+    app = express(),
+    USER_AGENTS = {
+        IOS: 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)',
+        ANDROID: 'com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip',
+        TV: 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+        DEFAULT: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
+    };
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -15,7 +21,7 @@ app.use((req, res, next) => {
         return;
     }
 
-    res.locals.REQUEST_URL = REQUEST_URL;
+    res.locals.REQUEST_URL = decodeURIComponent(REQUEST_URL.toString());
 
     next();
 });
@@ -33,7 +39,7 @@ app.all('/', async (req, res) => {
             }, {}),
             METHOD = req.method,
             BODY = req.body,
-            RESPONSE_DATA = await fetch(decodeURIComponent(REQUEST_URL), {
+            RESPONSE_DATA = await fetch(REQUEST_URL, {
                 method: req.method,
                 headers: HEADERS,
                 body: BODY ? JSON.stringify(BODY) : undefined,
@@ -57,16 +63,21 @@ app.all('/download/', async (req, res) => {
     const REQUEST_URL = res.locals.REQUEST_URL;
 
     console.log(`[${req.method}]: ${REQUEST_URL}`);
-    fetch(decodeURIComponent(REQUEST_URL.toString())).then(
+    fetch(REQUEST_URL).then(
         async (headRes) => {
             if (headRes.ok) {
                 try {
-                    got.stream(decodeURIComponent(REQUEST_URL.toString()), {
+                    const c = new URL(REQUEST_URL).searchParams.get('c') || 'WEB',
+                        USER_AGENT = USER_AGENTS[c] || USER_AGENTS.DEFAULT;
+
+                    console.log('[DEBUG]: Selected user agent:', USER_AGENT);
+
+                    got.stream(REQUEST_URL, {
                         headers: {
                             Range: req.headers['range'] || req.get('range') || 'bytes=0-',
                             'cache-control': 'no-cache',
                             'Accept-Encoding': 'identity;q=1, *;q=0',
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
+                            'User-Agent': USER_AGENT,
                         },
                         http2: false,
                         throwHttpErrors: false,
