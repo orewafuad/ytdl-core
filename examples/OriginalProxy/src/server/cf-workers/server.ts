@@ -2,7 +2,7 @@ const BASE_HEADERS = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': '*',
         'Access-Control-Allow-Headers': '*',
-        'Cache-Control': 'private, no-cache',
+        'Cache-Control': 'public, max-age=2592000',
     },
     USER_AGENTS = {
         IOS: 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)',

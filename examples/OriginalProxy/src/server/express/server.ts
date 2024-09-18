@@ -12,6 +12,9 @@ const app = express(),
 app.use(express.json());
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Cache-Control', 'public, max-age=2592000');
 
     const REQUEST_URL = (req.query.url || '').toString();
 
