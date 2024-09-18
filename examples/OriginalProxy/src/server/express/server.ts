@@ -1,14 +1,7 @@
 import express from 'express';
 import got from 'got';
 
-const app = express(),
-    ALLOWED_HOSTS = ['youtube.com', 'www.youtube.com'];
-
-function isAllowedUrl(url: string) {
-    const { host } = new URL(url);
-
-    return ALLOWED_HOSTS.includes(host) || host.includes('googlevideo.com');
-}
+const app = express();
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -16,18 +9,20 @@ app.use((req, res, next) => {
 
     const REQUEST_URL = (req.query.url || '').toString();
 
-    if (!REQUEST_URL || !isAllowedUrl(REQUEST_URL)) {
+    if (!REQUEST_URL || /(youtube\.com|googlevideo\.com)/.test(REQUEST_URL)) {
         res.status(400);
         res.end();
 
         return;
     }
 
+    res.locals.REQUEST_URL = REQUEST_URL;
+
     next();
 });
 
 app.all('/', async (req, res) => {
-    const REQUEST_URL = (req.query.url || '').toString();
+    const REQUEST_URL = res.locals.REQUEST_URL;
 
     try {
         const HEADERS = req.rawHeaders.reduce((acc: Record<string, string>, curr, index) => {
@@ -60,7 +55,7 @@ app.all('/', async (req, res) => {
 });
 
 app.all('/download/', async (req, res) => {
-    const REQUEST_URL = (req.query.url || '').toString();
+    const REQUEST_URL = res.locals.REQUEST_URL;
 
     console.log(`[${req.method}]: ${REQUEST_URL}`);
     fetch(decodeURIComponent(REQUEST_URL.toString())).then(
