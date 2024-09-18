@@ -43,7 +43,7 @@ export default {
                 return new Response(null, { status: 500, headers: BASE_HEADERS });
             }
 
-            return new Response(await RESPONSE.arrayBuffer(), { status: 200, headers: BASE_HEADERS });
+            return new Response(await RESPONSE.arrayBuffer(), { status: 200, headers: { Connection: 'keep-alive', ...BASE_HEADERS } });
         }
 
         try {

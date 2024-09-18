@@ -102,7 +102,9 @@ export type YTDL_GetInfoOptions = {
      */
     oauth2?: OAuth2;
 
-    /** You can specify your own proxy URL.
+    /** You can specify your own proxy URL. (The proxy specified here is for use with the example implementation as is.)
+     * @advance For advanced use, use the `rewriteRequest` function.
+     * @reference https://github.com/ybd-project/ytdl-core/tree/main/examples/OriginalProxy/src/server
      * @example 1. "http://localhost:3000"
      * @example 2. "https://original-proxy.example.com"
      */

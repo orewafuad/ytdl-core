@@ -14,7 +14,10 @@ export default class Fetcher {
 
         if (originalProxyUrl) {
             const PARSED = new URL(originalProxyUrl);
-            url = `${PARSED.protocol}//${PARSED.host}/?url=${encodeURIComponent(url)}`;
+
+            if (!url.includes(PARSED.host)) {
+                url = `${PARSED.protocol}//${PARSED.host}/?url=${encodeURIComponent(url)}`;
+            }
         }
 
         const REQUEST_RESULTS = await undiciRequest(url, requestOptions),

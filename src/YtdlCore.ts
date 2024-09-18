@@ -206,7 +206,10 @@ async function downloadFromInfoCallback(stream: PassThrough, info: YTDL_VideoInf
 
     if (options.originalProxyUrl) {
         const PARSED = new URL(options.originalProxyUrl);
-        format.url = `${PARSED.protocol}//${PARSED.host}/download/?url=${encodeURIComponent(format.url)}`;
+
+        if (!format.url.includes(PARSED.host)) {
+            format.url = `${PARSED.protocol}//${PARSED.host}/download/?url=${encodeURIComponent(format.url)}`;
+        }
     }
 
     if (format.isHLS || format.isDashMPD) {
