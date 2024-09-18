@@ -20,7 +20,7 @@ export default {
         const url = new URL(req.url),
             REQUEST_URL = decodeURIComponent(url.searchParams.get('url') || '');
 
-        if (!REQUEST_URL || /(youtube\.com|googlevideo\.com)/.test(REQUEST_URL)) {
+        if (!REQUEST_URL || !/(youtube\.com|googlevideo\.com)/.test(REQUEST_URL)) {
             return new Response(null, { status: 400, headers: BASE_HEADERS });
         }
 

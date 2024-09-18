@@ -14,7 +14,7 @@ app.use((req, res, next) => {
 
     const REQUEST_URL = (req.query.url || '').toString();
 
-    if (!REQUEST_URL || /(youtube\.com|googlevideo\.com)/.test(REQUEST_URL)) {
+    if (!REQUEST_URL || !/(youtube\.com|googlevideo\.com)/.test(REQUEST_URL)) {
         res.status(400);
         res.end();
 
