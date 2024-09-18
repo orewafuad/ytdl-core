@@ -37,8 +37,8 @@ export type YTDL_GetInfoOptions = {
     /** You can specify the request options. */
     requestOptions?: Parameters<typeof request>[1];
     /** API requests can be rewritten. (This is also a great way to debug what requests are being sent). */
-    rewriteRequest?: (url: string, options: Parameters<typeof request>[1], details?: {
-        isDownloadUrl?: boolean;
+    rewriteRequest?: (url: string, options: Parameters<typeof request>[1], details: {
+        isDownloadUrl: boolean;
     }) => {
         url: string;
         options: Parameters<typeof request>[1];

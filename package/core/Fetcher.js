@@ -5,7 +5,7 @@ const errors_1 = require("./errors");
 class Fetcher {
     static async request(url, { requestOptions, rewriteRequest, originalProxyUrl } = {}) {
         if (typeof rewriteRequest === 'function') {
-            const WROTE_REQUEST = rewriteRequest(url, requestOptions);
+            const WROTE_REQUEST = rewriteRequest(url, requestOptions, { isDownloadUrl: false });
             requestOptions = WROTE_REQUEST.options;
             url = WROTE_REQUEST.url;
         }

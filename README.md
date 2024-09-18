@@ -7,16 +7,44 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 <ol>
    <li><a href="#ℹ️announcements-at-this-timeℹ️">ℹ️Announcements at this timeℹ️</a></li>
    <li><a href="#prerequisite">Prerequisite</a></li>
-   <li><a href="#operating-environment">Operating Environment</a></li>
+   <li>
+      <a href="#operating-environment">Operating Environment</a>
+      <ul>
+         <li><a href="#🪟windows">🪟Windows</a></li>
+         <li><a href="#🍎macos">🍎MacOS</a></li>
+         <li>
+            <a href="#🐧linux">🐧Linux</a>
+            <ul>
+               <li><a href="#🛞ubuntu">🛞Ubuntu</a></li>
+               <li><a href="#💠centos">💠CentOS</a></li>
+            </ul>
+         </li>
+      </ul>
+    </li>
    <li><a href="#installation">Installation</a></li>
    <li>
       <a href="#usage">Usage</a>
       <ul>
          <li><a href="#usage-before-v510">Usage before v5.1.0</a></li>
-         <li><a href="#oauth2-support">OAuth2 Support</a></li>
+         <li>
+            <a href="#oauth2-support">OAuth2 Support</a>
+            <ul>
+               <li><a href="#oauth2-access-token-generation">Oauth2 Access Token generation</a></li>
+            </ul>
+         </li>
          <li><a href="#potoken-support">PoToken Support</a></li>
          <li><a href="#cookies-support">Cookies Support</a></li>
-         <li><a href="#proxy-support">Proxy Support</a></li>
+         <li>
+            <a href="#proxy-support">Proxy Support</a>
+            <ul>
+               <li>
+                  <a href="#build-and-use-your-own-proxy">Build and use your own proxy</a>
+                  <ul>
+                     <li><a href="#use-of-proprietary-proxies">Use of proprietary proxies</a></li>
+                  </ul>
+               </li>
+            </ul>
+         </li>
          <li><a href="#ip-rotation">IP Rotation</a></li>
       </ul>
    </li>
@@ -69,7 +97,8 @@ If you have an operating system that works or does not work other than those lis
 
 ### 🍎MacOS
 
-> [!NOTE] > **MacOS is under testing.**
+> [!NOTE]
+> **MacOS is under testing.**
 
 ### 🐧Linux
 
@@ -133,7 +162,8 @@ const ytdlCore = require('@ybd-project/ytdl-core/old');
 
 These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
 
-> [!IMPORTANT] > **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
+> [!IMPORTANT]
+> **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
 
 > [!NOTE]
 > The specified OAuth2 token is automatically updated by ytdl-core, so you do not need to update it yourself.
@@ -269,9 +299,23 @@ See the [example](https://github.com/ybd-project/ytdl-core/tree/main/examples/Or
 import { YtdlCore } from '@ybd-project/ytdl-core';
 
 const ytdl = new YtdlCore({
-    rewriteRequest: (url, options) => {
+    originalProxyUrl: 'http://localhost:6543',
+});
+
+/* With rewriteRequest, you can specify various things. */
+const ytdl = new YtdlCore({
+    rewriteRequest: (url, options, { isDownloadUrl }) => {
+        if (isDownloadUrl) {
+            // URL is like: https://***.googlevideo.com/playbackvideo?...
+
+            return {
+                url: `https://your-video-proxy.server.com/?url=${encodeURIComponent(url)}`,
+                options,
+            };
+        }
+
         return {
-            url: `https://your.original-proxy.com/?url=${encodeURIComponent(url)}`,
+            url: `https://your-proxy.server.com/?url=${encodeURIComponent(url)}`,
             options,
         };
     },

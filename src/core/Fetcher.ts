@@ -7,7 +7,7 @@ import { RequestError } from './errors';
 export default class Fetcher {
     static async request<T = unknown>(url: string, { requestOptions, rewriteRequest, originalProxyUrl }: YTDL_RequestOptions = {}): Promise<T> {
         if (typeof rewriteRequest === 'function') {
-            const WROTE_REQUEST = rewriteRequest(url, requestOptions);
+            const WROTE_REQUEST = rewriteRequest(url, requestOptions, { isDownloadUrl: false });
             requestOptions = WROTE_REQUEST.options;
             url = WROTE_REQUEST.url;
         }
