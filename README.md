@@ -261,7 +261,7 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
 Using a proxy sold by one service may not work. In such cases, you can deploy your own proxy, e.g., to Cloudflare Workers.
 
-See the [example](https://github.com/ybd-project/ytdl-core/tree/main/examples) for a proxy server implementation.
+See the [example](https://github.com/ybd-project/ytdl-core/tree/main/examples/OriginalProxy/) for a proxy server implementation.
 
 ##### Use of proprietary proxies
 
