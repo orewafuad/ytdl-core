@@ -1,19 +1,33 @@
 import express from 'express';
 import got from 'got';
 
-const app = express();
+const app = express(),
+    ALLOWED_HOSTS = ['youtube.com', 'www.youtube.com'];
+
+function isAllowedUrl(url: string) {
+    const { host } = new URL(url);
+
+    return ALLOWED_HOSTS.includes(host) || host.includes('googlevideo.com');
+}
 
 app.use(express.json());
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
 
-app.all('/', async (req, res) => {
-    const REQUEST_URL = req.query.url;
+    const REQUEST_URL = (req.query.url || '').toString();
 
-    if (!REQUEST_URL) {
+    if (!REQUEST_URL || !isAllowedUrl(REQUEST_URL)) {
         res.status(400);
         res.end();
 
         return;
     }
+
+    next();
+});
+
+app.all('/', async (req, res) => {
+    const REQUEST_URL = (req.query.url || '').toString();
 
     try {
         const HEADERS = req.rawHeaders.reduce((acc: Record<string, string>, curr, index) => {
@@ -25,7 +39,7 @@ app.all('/', async (req, res) => {
             }, {}),
             METHOD = req.method,
             BODY = req.body,
-            RESPONSE_DATA = await fetch(decodeURIComponent(REQUEST_URL.toString()), {
+            RESPONSE_DATA = await fetch(decodeURIComponent(REQUEST_URL), {
                 method: req.method,
                 headers: HEADERS,
                 body: BODY ? JSON.stringify(BODY) : undefined,
@@ -46,14 +60,7 @@ app.all('/', async (req, res) => {
 });
 
 app.all('/download/', async (req, res) => {
-    const REQUEST_URL = req.query.url;
-
-    if (!REQUEST_URL) {
-        res.status(400);
-        res.end();
-
-        return;
-    }
+    const REQUEST_URL = (req.query.url || '').toString();
 
     console.log(`[${req.method}]: ${REQUEST_URL}`);
     fetch(decodeURIComponent(REQUEST_URL.toString())).then(
