@@ -108,19 +108,6 @@ export type YTDL_VideoInfo = {
     relatedVideos: Array<YTDL_RelatedVideo>;
     formats: Array<YTDL_VideoFormat>;
     full: boolean;
-    live_chunk_readahead?: number;
-    _playerApiResponses: {
-        webCreator: YT_PlayerApiResponse | null;
-        tvEmbedded: YT_PlayerApiResponse | null;
-        ios: YT_PlayerApiResponse | null;
-        android: YT_PlayerApiResponse | null;
-        web?: YT_PlayerApiResponse | null;
-        mweb?: YT_PlayerApiResponse | null;
-        tv?: YT_PlayerApiResponse | null;
-    };
-    _nextApiResponses: {
-        web: YT_NextApiResponse | null;
-    };
     _metadata: {
         isMinimumMode: boolean;
         clients: Array<YTDL_ClientTypes>;
@@ -130,5 +117,18 @@ export type YTDL_VideoInfo = {
     };
     _ytdl: {
         version: string;
+    };
+    live_chunk_readahead?: number;
+    _playerApiResponses?: {
+        webCreator: YT_PlayerApiResponse | null;
+        tvEmbedded: YT_PlayerApiResponse | null;
+        ios: YT_PlayerApiResponse | null;
+        android: YT_PlayerApiResponse | null;
+        web?: YT_PlayerApiResponse | null;
+        mweb?: YT_PlayerApiResponse | null;
+        tv?: YT_PlayerApiResponse | null;
+    };
+    _nextApiResponses?: {
+        web: YT_NextApiResponse | null;
     };
 };

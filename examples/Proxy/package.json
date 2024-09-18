@@ -1,0 +1,17 @@
+{
+    "name": "proxy-examples",
+    "version": "1.0.0",
+    "description": "Proxy Examples",
+    "main": "server.js",
+    "license": "MIT",
+    "scripts": {
+        "start": "node ./src/server.js"
+    },
+    "dependencies": {
+        "@ybd-project/ytdl-core": "^5.1.6",
+        "express": "^5.0.0"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.21"
+    }
+}

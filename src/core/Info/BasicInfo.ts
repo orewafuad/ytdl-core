@@ -4,6 +4,7 @@ import { YTDL_VideoDetailsAdditions, YTDL_VideoInfo } from '@/types/Ytdl';
 
 import { Cache } from '@/core/Cache';
 import PoToken from '@/core/PoToken';
+import { OAuth2 } from '@/core/OAuth2';
 
 import { YTDL_ClientTypes } from '@/meta/Clients';
 
@@ -65,7 +66,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
 
     const HTML5_PLAYER_PROMISE = getHtml5Player(id, options);
 
-    if (options.oauth2 && options.oauth2.shouldRefreshToken()) {
+    if (options.oauth2 && options.oauth2 instanceof OAuth2 && options.oauth2.shouldRefreshToken()) {
         Logger.info('The specified OAuth2 token has expired and will be renewed automatically.');
         await options.oauth2.refreshAccessToken();
     }

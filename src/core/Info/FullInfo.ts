@@ -32,7 +32,7 @@ async function _getFullInfo(id: string, options: YTDL_GetInfoOptions): Promise<Y
         const FORMATS = INFO.formats as any as Array<YT_PlayerApiResponse>;
 
         FUNCTIONS.push(sig.decipherFormats(FORMATS, INFO._metadata.html5Player, options));
-        if (INFO._playerApiResponses?.ios) {
+        if (options.parsesHLSFormat && INFO._playerApiResponses?.ios) {
             FUNCTIONS.push(...Formats.parseAdditionalManifests(INFO._playerApiResponses.ios, options));
         }
     } catch (err) {}

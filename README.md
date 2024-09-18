@@ -69,8 +69,7 @@ If you have an operating system that works or does not work other than those lis
 
 ### 🍎MacOS
 
-> [!NOTE]
-> **MacOS is under testing.**
+> [!NOTE] > **MacOS is under testing.**
 
 ### 🐧Linux
 
@@ -134,8 +133,7 @@ const ytdlCore = require('@ybd-project/ytdl-core/old');
 
 These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
 
-> [!IMPORTANT]
-> **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
+> [!IMPORTANT] > **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
 
 > [!NOTE]
 > The specified OAuth2 token is automatically updated by ytdl-core, so you do not need to update it yourself.
@@ -242,14 +240,41 @@ The use of cookies is deprecated. Use `PoToken`, `OAuth2`, or both.
 
 ### Proxy Support
 
-> [!IMPORTANT]
-> The use of proxies is not very stable and is not recommended. Please try PoToken or OAuth2 before using a proxy.
+`@ybd-project/ytdl-core` supports proxies.
 
-```js
+> [!IMPORTANT]
+> Try PoToken or OAuth2 before using a proxy. These may have the same effect as proxies.
+
+The following `createProxyAgent` function cannot be used with the own proxy in the example folder.
+
+```ts
 import { YtdlCore } from '@ybd-project/ytdl-core';
 
 const ytdl = new YtdlCore({
     agent: YtdlCore.createProxyAgent({ uri: 'my.proxy.server' }),
+});
+
+ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+```
+
+#### Build and use your own proxy
+
+Using a proxy sold by one service may not work. In such cases, you can deploy your own proxy, e.g., to Cloudflare Workers.
+
+See the [example](https://github.com/ybd-project/ytdl-core/tree/main/examples) for a proxy server implementation.
+
+##### Use of proprietary proxies
+
+```ts
+import { YtdlCore } from '@ybd-project/ytdl-core';
+
+const ytdl = new YtdlCore({
+    rewriteRequest: (url, options) => {
+        return {
+            url: `https://your.original-proxy.com/?url=${encodeURIComponent(url)}`,
+            options,
+        };
+    },
 });
 
 ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');

@@ -342,7 +342,7 @@ class YtdlCore {
     public clients: Array<YTDL_ClientTypes> | undefined = undefined;
     public disableDefaultClients: boolean = false;
     public oauth2: OAuth2 | undefined;
-    public notParsingHLSFormat: boolean = false;
+    public parsesHLSFormat: boolean = false;
 
     /* Format Selection Options */
     public quality: YTDL_ChooseFormatOptions['quality'] | undefined = undefined;
@@ -439,7 +439,7 @@ class YtdlCore {
         }
     }
 
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, notParsingHLSFormat, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }: YTDL_Constructor = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }: YTDL_Constructor = {}) {
         /* Other Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
         process.env._YTDL_DISABLE_FILE_CACHE = (disableFileCache ?? false).toString();
@@ -455,7 +455,7 @@ class YtdlCore {
         this.includesRelatedVideo = includesRelatedVideo ?? true;
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
-        this.notParsingHLSFormat = notParsingHLSFormat ?? false;
+        this.parsesHLSFormat = parsesHLSFormat ?? false;
         this.setPoToken(poToken);
         this.setVisitorData(visitorData);
         this.setOAuth2(oauth2);
@@ -497,7 +497,7 @@ class YtdlCore {
         options.clients = options.clients || this.clients;
         options.disableDefaultClients = options.disableDefaultClients || this.disableDefaultClients;
         options.oauth2 = options.oauth2 || this.oauth2;
-        options.notParsingHLSFormat = options.notParsingHLSFormat || this.notParsingHLSFormat;
+        options.parsesHLSFormat = options.parsesHLSFormat || this.parsesHLSFormat;
 
         /* Format Selection Options */
         options.quality = options.quality || this.quality || undefined;

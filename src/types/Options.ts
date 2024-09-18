@@ -91,6 +91,12 @@ export type YTDL_GetInfoOptions = {
     /** You can disable the default client. (If clients is not specified, it will be included.) */
     disableDefaultClients?: boolean;
 
+    /** You can specify whether to disable the file cache. Disable this if you encounter errors.  */
+    disableFileCache?: boolean;
+
+    /** You can specify whether to parse the HLS format. */
+    parsesHLSFormat?: boolean;
+
     /** You can specify OAuth2 tokens to avoid age restrictions and bot errors.
      * @default null
      */
