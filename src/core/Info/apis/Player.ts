@@ -1,16 +1,18 @@
 enum CLIENTS_NUMBER {
     WEB = 0,
     WEBCREATOR = 1,
-    TVEMBEDDED = 2,
-    IOS = 3,
-    ANDROID = 4,
-    MWEB = 5,
-    TV = 6,
+    WEBEMBEDDED = 2,
+    TVEMBEDDED = 3,
+    IOS = 4,
+    ANDROID = 5,
+    MWEB = 6,
+    TV = 7,
 }
 
 type PlayerApiResponses = {
     web: YT_PlayerApiResponse | null;
     webCreator: YT_PlayerApiResponse | null;
+    webEmbedded: YT_PlayerApiResponse | null;
     tvEmbedded: YT_PlayerApiResponse | null;
     ios: YT_PlayerApiResponse | null;
     android: YT_PlayerApiResponse | null;
@@ -20,7 +22,7 @@ type PlayerApiResponses = {
 
 import { YT_PlayerApiResponse } from '@/types/youtube';
 
-import { Web, WebCreator, TvEmbedded, Ios, Android, MWeb, Tv } from '@/core/clients';
+import { Web, WebCreator, WebEmbedded, TvEmbedded, Ios, Android, MWeb, Tv } from '@/core/clients';
 import { UnrecoverableError } from '@/core/errors';
 
 import { YTDL_ClientsParams, YTDL_ClientTypes } from '@/meta/Clients';
@@ -36,6 +38,7 @@ export default class PlayerApi {
         const PLAYER_API_PROMISE = {
                 web: clients.includes('web') ? Web.getPlayerResponse(playerApiParams) : Promise.reject(null),
                 webCreator: clients.includes('webCreator') ? WebCreator.getPlayerResponse(playerApiParams) : Promise.reject(null),
+                webEmbedded: clients.includes('webEmbedded') ? WebEmbedded.getPlayerResponse(playerApiParams) : Promise.reject(null),
                 tvEmbedded: clients.includes('tvEmbedded') ? TvEmbedded.getPlayerResponse(playerApiParams) : Promise.reject(null),
                 ios: clients.includes('ios') ? Ios.getPlayerResponse(playerApiParams) : Promise.reject(null),
                 android: clients.includes('android') ? Android.getPlayerResponse(playerApiParams) : Promise.reject(null),
@@ -46,6 +49,7 @@ export default class PlayerApi {
             PLAYER_API_RESPONSES: PlayerApiResponses = {
                 web: null,
                 webCreator: null,
+                webEmbedded: null,
                 tvEmbedded: null,
                 ios: null,
                 android: null,

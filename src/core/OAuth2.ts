@@ -121,7 +121,6 @@ export class OAuth2 {
 
             Logger.debug('Found client ID: ' + CLIENT_ID);
             Logger.debug('Found client secret: ' + CLIENT_SECRET);
-            FileCache.set('oauth2', JSON.stringify({ ...OAUTH2_CACHE, clientData: { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET } }));
 
             return { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET };
         }
@@ -152,6 +151,8 @@ export class OAuth2 {
 
             this.clientId = data.clientId;
             this.clientSecret = data.clientSecret;
+
+            FileCache.set('oauth2', JSON.stringify({ accessToken: this.accessToken, refreshToken: this.refreshToken, expiryDate: this.expiryDate, clientData: { clientId: data.clientId, clientSecret: data.clientSecret } }));
         }
 
         if (!this.refreshToken) {

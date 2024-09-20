@@ -43,26 +43,24 @@ function isVerified(badges) {
     return !!(badges && badges.find((b) => b.metadataBadgeRenderer.tooltip === 'Verified'));
 }
 function getRelativeTime(date, locale = 'en') {
-    const now = new Date();
-    const secondsAgo = Math.floor((now.getTime() - date.getTime()) / 1000);
-    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'always' });
-    if (secondsAgo < 60) {
-        return rtf.format(-secondsAgo, 'second');
+    const NOW = new Date(), SECONDS_AGO = Math.floor((NOW.getTime() - date.getTime()) / 1000), RTF = new Intl.RelativeTimeFormat(locale, { numeric: 'always' });
+    if (SECONDS_AGO < 60) {
+        return RTF.format(-SECONDS_AGO, 'second');
     }
-    else if (secondsAgo < 3600) {
-        return rtf.format(-Math.floor(secondsAgo / 60), 'minute');
+    else if (SECONDS_AGO < 3600) {
+        return RTF.format(-Math.floor(SECONDS_AGO / 60), 'minute');
     }
-    else if (secondsAgo < 86400) {
-        return rtf.format(-Math.floor(secondsAgo / 3600), 'hour');
+    else if (SECONDS_AGO < 86400) {
+        return RTF.format(-Math.floor(SECONDS_AGO / 3600), 'hour');
     }
-    else if (secondsAgo < 2592000) {
-        return rtf.format(-Math.floor(secondsAgo / 86400), 'day');
+    else if (SECONDS_AGO < 2592000) {
+        return RTF.format(-Math.floor(SECONDS_AGO / 86400), 'day');
     }
-    else if (secondsAgo < 31536000) {
-        return rtf.format(-Math.floor(secondsAgo / 2592000), 'month');
+    else if (SECONDS_AGO < 31536000) {
+        return RTF.format(-Math.floor(SECONDS_AGO / 2592000), 'month');
     }
     else {
-        return rtf.format(-Math.floor(secondsAgo / 31536000), 'year');
+        return RTF.format(-Math.floor(SECONDS_AGO / 31536000), 'year');
     }
 }
 function parseRelatedVideo(details, lang) {
@@ -288,7 +286,7 @@ class InfoExtras {
         }
         return VIDEOS;
     }
-    static cleanVideoDetails(videoDetails, microformat) {
+    static cleanVideoDetails(videoDetails, microformat, lang = 'en') {
         const DETAILS = videoDetails;
         if (DETAILS.thumbnail) {
             DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
@@ -302,7 +300,15 @@ class InfoExtras {
             Utils_1.default.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
         }
         if (microformat) {
-            DETAILS.lengthSeconds = parseInt(microformat.lengthSeconds || videoDetails.lengthSeconds);
+            DETAILS.lengthSeconds = parseInt(microformat.lengthSeconds || videoDetails.lengthSeconds.toString());
+            DETAILS.publishDate = microformat.publishDate || videoDetails.publishDate || null;
+            DETAILS.published = null;
+            try {
+                if (DETAILS.publishDate) {
+                    DETAILS.published = getRelativeTime(new Date(DETAILS.publishDate), lang) || null;
+                }
+            }
+            catch { }
         }
         if (DETAILS.lengthSeconds) {
             DETAILS.lengthSeconds = parseInt(DETAILS.lengthSeconds);

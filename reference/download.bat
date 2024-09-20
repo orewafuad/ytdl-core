@@ -9,10 +9,10 @@ for /f "tokens=*" %%j in ('powershell -command "Invoke-RestMethod https://api.gi
 
 :first
 
-echo [36m1[0mFLuanRT/YouTube.js ‚Ì‚Ý‚ð GitHub ‚©‚çƒNƒ[ƒ“‚µ‚Ü‚·B
-echo [36m2[0mFyt-dlp/yt-dlp ‚Ì‚Ý‚ð GitHub ‚©‚çƒNƒ[ƒ“‚µ‚Ü‚·B
-echo [36m3[0mFã‹L‚Ì—¼•û‚ð GitHub ‚©‚çƒNƒ[ƒ“‚µ‚Ü‚·B
-echo ˆÈã‚Ì3‚Â‚©‚çŽÀs‚µ‚½‚¢ˆ—‚ð”Ô†‚Å“ü—ÍF
+echo [36m1[0mï¿½FLuanRT/YouTube.js ï¿½Ì‚Ý‚ï¿½ GitHub ï¿½ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½B
+echo [36m2[0mï¿½Fyt-dlp/yt-dlp ï¿½Ì‚Ý‚ï¿½ GitHub ï¿½ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½B
+echo [36m3[0mï¿½Fï¿½ï¿½Lï¿½Ì—ï¿½ï¿½ï¿½ï¿½ï¿½ GitHub ï¿½ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½B
+echo ï¿½Èï¿½ï¿½3ï¿½Â‚ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôï¿½ï¿½Å“ï¿½ï¿½ÍF
 set /p process=
 
 if "%process%" == "1" (
@@ -27,7 +27,7 @@ if "%process%" == "3" (
     goto all
 )
 
-echo [33my’ˆÓz[0m “ü—Í‚Å‚«‚é’l‚Íu1vu2vu3v‚Ì‚¢‚¸‚ê‚©‚Å‚·B
+echo [33mï¿½yï¿½ï¿½ï¿½Óz[0m ï¿½ï¿½ï¿½Í‚Å‚ï¿½ï¿½ï¿½lï¿½Íu1ï¿½vï¿½u2ï¿½vï¿½u3ï¿½vï¿½Ì‚ï¿½ï¿½ï¿½ï¿½ê‚©ï¿½Å‚ï¿½ï¿½B
 echo.
 goto first
 
@@ -54,7 +54,7 @@ goto ytdlp-postprocess
 
 :end
 echo.
-echo [32my¬Œ÷z[0m ƒNƒ[ƒ“ˆ—‚Í³í‚ÉŠ®—¹‚µ‚Ü‚µ‚½B
+echo [32mï¿½yï¿½ï¿½ï¿½ï¿½ï¿½z[0m ï¿½Nï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íï¿½ï¿½ï¿½ÉŠï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½ï¿½B
 
 pause
 exit
@@ -77,14 +77,18 @@ goto end
 for /d %%D in (YouTube.js*) do (
     if exist %%D (
         rmdir /s /q %%D
-        echo [32my¬Œ÷z[0m iYouTube.jsjŠù‘¶‚ÌƒtƒHƒ‹ƒ_‚Í³í‚Éíœ‚³‚ê‚Ü‚µ‚½B
+        echo [32mï¿½yï¿½ï¿½ï¿½ï¿½ï¿½z[0m ï¿½iYouTube.jsï¿½jï¿½ï¿½ï¿½ï¿½ï¿½Ìƒtï¿½Hï¿½ï¿½ï¿½_ï¿½Íï¿½ï¿½ï¿½Éíœï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½ï¿½B
     )
 )
+
+goto youtubejs-folder-postprocess
 
 :delete-ytdlp-folder
 for /d %%D in (yt-dlp*) do (
     if exist %%D (
         rmdir /s /q %%D
-        echo [32my¬Œ÷z[0m iyt-dlpjŠù‘¶‚ÌƒtƒHƒ‹ƒ_‚Í³í‚Éíœ‚³‚ê‚Ü‚µ‚½B
+        echo [32mï¿½yï¿½ï¿½ï¿½ï¿½ï¿½z[0m ï¿½iyt-dlpï¿½jï¿½ï¿½ï¿½ï¿½ï¿½Ìƒtï¿½Hï¿½ï¿½ï¿½_ï¿½Íï¿½ï¿½ï¿½Éíœï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½ï¿½B
     )
 )
+
+:youtubejs-folder-postprocess

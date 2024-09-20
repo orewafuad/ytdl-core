@@ -1,19 +1,34 @@
 # Changelog
 
+## v5.1.8 (2024/09/20)
+
+### Features
+* **Proxy:** Add `originalProxy` option.
+* **Client:** With the addition of `WEB_EMBEDDED` in LuanRT/YouTube.js, ytdl-core also supports it
+
+### Bug Fixes
+* **VideoInfo:** Fixed issue with publish date not being included in video details
+
+### Improvement
+* **YtdlCore:** Overall improvements in performance, code, etc.
+
+### Deprecated
+* **Proxy:** The `originalProxyUrl` option has been rewritten to the `originalProxy` option due to lack of convenience of use.
+
 ## v5.1.7 (2024/09/18)
 
-## Features
+### Features
 * **Proxy:** Add `originalProxyUrl` option.
 * **M3U8:** Add `parsesHLSFormat` option. (Rename `notParsingHLSFormat`)
 
 ## v5.1.6 (2024/09/15)
 
-## Features
+### Features
 * **Format Selection:** Changed to determine if the download URL is correct. (To address https://github.com/ybd-project/ytdl-core/issues/21)
 
 ## v5.1.5 (2024/09/14)
 
-## Features
+### Features
 * **OAuth2:** Changed OAuth2 to test whether tokens can be used successfully. If not, disable the token.
 * **Version:** Changed to check Node.js version; If Node.js is less than 16, the process will terminate due to an error.
 
@@ -27,7 +42,7 @@
 
 ## v5.1.3 (2024/09/12)
 
-## Features
+### Features
 * **Cache:** Add `disableFileCache` option. (Specify if an error occurs in the file cache.)
 * **M3U8:** Supports HLS formats that can be retrieved from IOS clients.
 * **M3U8:** Add `notParsingHLSFormat` option. (do not parse HLS format)
@@ -38,7 +53,7 @@
 
 ## v5.1.2 (2024/09/11)
 
-## Features
+### Features
 * **Cache:** Cache PoToken, VisitorData, OAuth2 credentials, and htm5player data. (Data is stored in the CacheFiles directory in /package/core/)
 * **Download:** Send a HEAD request to the download URL to determine if it is available.
 

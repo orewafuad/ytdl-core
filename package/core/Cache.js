@@ -77,7 +77,8 @@ class Cache extends Map {
 exports.Cache = Cache;
 class FileCache {
     static set(cacheName, data, options = { ttl: 60 * 60 * 24 }) {
-        if (process.env._YTDL_DISABLE_FILE_CACHE) {
+        if (process.env._YTDL_DISABLE_FILE_CACHE !== 'false' && process.env._YTDL_DISABLE_FILE_CACHE) {
+            Log_1.Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached by the _YTDL_DISABLE_FILE_CACHE option.`);
             return false;
         }
         try {
@@ -85,6 +86,7 @@ class FileCache {
                 date: Date.now() + options.ttl * 1000,
                 contents: data,
             }));
+            Log_1.Logger.debug(`[ FileCache ]: <success>"${cacheName}"</success> is cached.`);
             return true;
         }
         catch (err) {
@@ -101,7 +103,7 @@ class FileCache {
             if (Date.now() > PARSED_DATA.date) {
                 return null;
             }
-            Log_1.Logger.debug(`[ FileCache ]: Cache key "${cacheName}" was available.`);
+            Log_1.Logger.debug(`[ FileCache ]: Cache key <blue>"${cacheName}"</blue> was available.`);
             try {
                 return JSON.parse(PARSED_DATA.contents);
             }

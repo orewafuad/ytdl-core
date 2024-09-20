@@ -1,4 +1,4 @@
-type YTDL_ClientTypes = 'web' | 'webCreator' | 'android' | 'ios' | 'mweb' | 'tv' | 'tvEmbedded';
+type YTDL_ClientTypes = 'web' | 'webCreator' | 'webEmbedded' | 'android' | 'ios' | 'mweb' | 'tv' | 'tvEmbedded';
 type YTDL_ClientData = {
     context: {
         client: {
@@ -72,6 +72,16 @@ declare class Clients {
         };
     };
     static webCreator({ videoId, signatureTimestamp, options: { poToken, visitorData, lang } }: YTDL_ClientsParams): {
+        url: string;
+        payload: any;
+        headers: {
+            'X-YouTube-Client-Name': number;
+            'X-Youtube-Client-Version': string;
+            'X-Goog-Visitor-Id': string | undefined;
+            'User-Agent': string;
+        };
+    };
+    static webEmbedded({ videoId, signatureTimestamp, options: { poToken, visitorData, lang } }: YTDL_ClientsParams): {
         url: string;
         payload: any;
         headers: {

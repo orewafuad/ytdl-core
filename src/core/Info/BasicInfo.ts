@@ -22,7 +22,7 @@ import InfoExtras from './Extras';
 
 /* Private Constants */
 const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'],
-    SUPPORTED_CLIENTS = ['webCreator', 'tvEmbedded', 'ios', 'android', 'web', 'mweb', 'tv'],
+    SUPPORTED_CLIENTS = ['web', 'webCreator', 'webEmbedded', 'ios', 'android', 'mweb', 'tv', 'tvEmbedded'],
     BASE_CLIENTS: Array<YTDL_ClientTypes> = ['web', 'webCreator', 'tvEmbedded', 'ios', 'android'],
     BASIC_INFO_CACHE = new Cache();
 
@@ -140,7 +140,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
     VIDEO_DETAILS.liveBroadcastDetails = PLAYER_RESPONSES.web?.microformat?.playerMicroformatRenderer.liveBroadcastDetails || undefined;
 
     const STORYBOARDS = InfoExtras.getStoryboards(INCLUDE_STORYBOARDS),
-        MEDIA = InfoExtras.getMedia(PLAYER_RESPONSES.web) || InfoExtras.getMedia(PLAYER_RESPONSES.webCreator) || InfoExtras.getMedia(PLAYER_RESPONSES.tvEmbedded) || InfoExtras.getMedia(PLAYER_RESPONSES.ios) || InfoExtras.getMedia(PLAYER_RESPONSES.android) || InfoExtras.getMedia(PLAYER_RESPONSES.mweb) || InfoExtras.getMedia(PLAYER_RESPONSES.tv),
+        MEDIA = InfoExtras.getMedia(PLAYER_RESPONSES.web) || InfoExtras.getMedia(PLAYER_RESPONSES.webCreator) || InfoExtras.getMedia(PLAYER_RESPONSES.ios) || InfoExtras.getMedia(PLAYER_RESPONSES.android) || InfoExtras.getMedia(PLAYER_RESPONSES.webEmbedded) || InfoExtras.getMedia(PLAYER_RESPONSES.tvEmbedded) || InfoExtras.getMedia(PLAYER_RESPONSES.mweb) || InfoExtras.getMedia(PLAYER_RESPONSES.tv),
         AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))),
         ADDITIONAL_DATA: YTDL_VideoDetailsAdditions = {
             videoUrl: Url.getWatchPageUrl(id),
@@ -155,7 +155,7 @@ async function _getBasicInfo(id: string, options: YTDL_GetInfoOptions, isFromGet
             return [...items, ...Formats.parseFormats(playerResponse)];
         }, []) as any;
 
-    VIDEO_INFO.videoDetails = InfoExtras.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT?.playerMicroformatRenderer || null);
+    VIDEO_INFO.videoDetails = InfoExtras.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT?.playerMicroformatRenderer || null, options.lang);
 
     VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? InfoExtras.getRelatedVideos(NEXT_RESPONSES.web, options.lang || 'en') : [];
     VIDEO_INFO.formats = isFromGetInfo ? FORMATS : [];

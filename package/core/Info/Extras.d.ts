@@ -7,7 +7,7 @@ export default class InfoExtras {
     static getAuthorFromPlayerResponse(info: YT_PlayerApiResponse): YTDL_Author | null;
     static getLikes(info: YT_NextApiResponse | null): number | null;
     static getRelatedVideos(info: YT_NextApiResponse | null, lang: YTDL_Hreflang): Array<YTDL_RelatedVideo>;
-    static cleanVideoDetails(videoDetails: YTDL_VideoDetails, microformat: YT_MicroformatRenderer | null): YTDL_VideoDetails;
+    static cleanVideoDetails(videoDetails: YTDL_VideoDetails, microformat: YT_MicroformatRenderer | null, lang?: string): YTDL_VideoDetails;
     static getStoryboards(info: YT_PlayerApiResponse | null): Array<YTDL_Storyboard>;
     static getChapters(info: YT_NextApiResponse | null): Array<YTDL_Chapter>;
 }

@@ -20,7 +20,7 @@ export default class ApiBase {
                 return REASON;
             }
         } catch (err) {
-            return (res as any).reason as YTDL_InnertubeResponseInfo<T>;
+            return (res as any || {})?.reason as YTDL_InnertubeResponseInfo<T>;
         }
     }
 }

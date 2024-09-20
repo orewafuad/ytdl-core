@@ -299,7 +299,10 @@ See the [example](https://github.com/ybd-project/ytdl-core/tree/main/examples/Or
 import { YtdlCore } from '@ybd-project/ytdl-core';
 
 const ytdl = new YtdlCore({
-    originalProxyUrl: 'http://localhost:6543',
+    originalProxy: {
+        base: 'http://localhost:6543',
+        download: 'http://localhost:6543/video-download',
+    },
 });
 
 /* With rewriteRequest, you can specify various things. */

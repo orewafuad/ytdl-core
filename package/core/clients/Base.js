@@ -27,7 +27,7 @@ class Base {
             const { jar, dispatcher } = params.options.agent || {}, HEADERS = {
                 'Content-Type': 'application/json',
                 cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                'X-Goog-Visitor-Id': params.options.visitorData,
+                'X-Goog-Visitor-Id': '6zpwvWUNAco' || params.options.visitorData,
                 ...requestOptions.headers,
             }, OPTS = {
                 requestOptions: {
@@ -37,35 +37,60 @@ class Base {
                     body: typeof requestOptions.payload === 'string' ? requestOptions.payload : JSON.stringify(requestOptions.payload),
                 },
                 rewriteRequest: params.options.rewriteRequest,
-                originalProxyUrl: params.options.originalProxyUrl,
-            }, IS_NEXT_API = url.includes('/next');
-            try {
-                Fetcher_1.default.request(url, OPTS)
-                    .then((response) => {
-                    const PLAY_ERROR = this.playError(response);
-                    if (PLAY_ERROR) {
-                        return reject({
-                            isError: true,
-                            error: PLAY_ERROR,
-                            contents: response,
+                originalProxy: params.options.originalProxy,
+            }, IS_NEXT_API = url.includes('/next'), responseHandler = (response) => {
+                const PLAY_ERROR = this.playError(response);
+                if (PLAY_ERROR) {
+                    if (OPTS.originalProxy) {
+                        OPTS.originalProxy = undefined;
+                        Fetcher_1.default.request(url, OPTS)
+                            .then(responseHandler)
+                            .catch((err) => {
+                            reject({
+                                isError: true,
+                                error: err,
+                                contents: null,
+                            });
                         });
+                        return;
                     }
-                    if (!IS_NEXT_API && (!response.videoDetails || params.videoId !== response.videoDetails.videoId)) {
-                        const ERROR = new errors_1.PlayerRequestError('Malformed response from YouTube');
-                        ERROR.response = response;
-                        return reject({
-                            isError: true,
-                            error: ERROR,
-                            contents: response,
-                        });
-                    }
-                    resolve({
-                        isError: false,
-                        error: null,
+                    return reject({
+                        isError: true,
+                        error: PLAY_ERROR,
                         contents: response,
                     });
-                })
+                }
+                if (!IS_NEXT_API && (!response.videoDetails || params.videoId !== response.videoDetails.videoId)) {
+                    const ERROR = new errors_1.PlayerRequestError('Malformed response from YouTube');
+                    ERROR.response = response;
+                    return reject({
+                        isError: true,
+                        error: ERROR,
+                        contents: response,
+                    });
+                }
+                resolve({
+                    isError: false,
+                    error: null,
+                    contents: response,
+                });
+            };
+            try {
+                Fetcher_1.default.request(url, OPTS)
+                    .then(responseHandler)
                     .catch((err) => {
+                    if (OPTS.originalProxy) {
+                        OPTS.originalProxy = undefined;
+                        Fetcher_1.default.request(url, OPTS)
+                            .then(responseHandler)
+                            .catch((err) => {
+                            reject({
+                                isError: true,
+                                error: err,
+                                contents: null,
+                            });
+                        });
+                    }
                     reject({
                         isError: true,
                         error: err,

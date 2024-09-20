@@ -1,14 +1,15 @@
 import querystring from 'querystring';
 import vm from 'vm';
 
-import { YTDL_GetInfoOptions, YTDL_RequestOptions } from '@/types/Options';
+import { YTDL_RequestOptions } from '@/types/Options';
+import { Html5PlayerCache } from '@/types/FileCache';
 
 import Fetcher from '@/core/Fetcher';
 
 import utils from '@/utils/Utils';
 import { Logger } from '@/utils/Log';
 
-import { Cache } from './Cache';
+import { Cache, FileCache } from './Cache';
 
 /* Private Constants */
 const DECIPHER_NAME_REGEXPS = [
@@ -191,7 +192,8 @@ function extractFunctions(body: string) {
 
 function getFunctions<T = unknown>(html5PlayerFile: string, options: YTDL_RequestOptions) {
     return CACHE.getOrSet<T>(html5PlayerFile, async () => {
-        const BODY = await Fetcher.request<string>(html5PlayerFile, options),
+        console.log(FileCache.get<Html5PlayerCache>('html5Player')?.playerUrl)
+        const BODY = await (FileCache.get<Html5PlayerCache>('html5Player')?.playerBody || Fetcher.request<string>(html5PlayerFile, options)),
             FUNCTIONS = extractFunctions(BODY);
 
         CACHE.set(html5PlayerFile, FUNCTIONS);
@@ -261,9 +263,8 @@ async function decipherFormats(formats: any, html5PlayerFile: string, options: Y
     return DECIPHERED_FORMATS;
 }
 
-async function getSignatureTimestamp(html5PlayerUrl: string, options: YTDL_GetInfoOptions) {
-    const BODY = await Fetcher.request<string>(html5PlayerUrl, options),
-        MO = BODY.match(/signatureTimestamp:(\d+)/);
+async function getSignatureTimestamp(body: string) {
+    const MO = body.match(/signatureTimestamp:(\d+)/);
 
     return MO ? MO[1] : undefined;
 }

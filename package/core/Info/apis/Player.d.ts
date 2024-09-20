@@ -1,6 +1,7 @@
 type PlayerApiResponses = {
     web: YT_PlayerApiResponse | null;
     webCreator: YT_PlayerApiResponse | null;
+    webEmbedded: YT_PlayerApiResponse | null;
     tvEmbedded: YT_PlayerApiResponse | null;
     ios: YT_PlayerApiResponse | null;
     android: YT_PlayerApiResponse | null;

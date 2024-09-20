@@ -1,5 +1,5 @@
 import { YTDL_ClientTypes } from '../meta/Clients';
-import { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail, YT_VideoDetails } from './youtube';
+import { YT_Itag, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail } from './youtube';
 import { YTDL_GetInfoOptions } from './Options';
 export type YTDL_Author = {
     id: string;
@@ -49,11 +49,33 @@ export type YTDL_VideoDetailsAdditions = {
     storyboards: Array<YTDL_Storyboard>;
     chapters: Array<YTDL_Chapter>;
     description?: string | null;
-    published?: number | null;
 };
-export type YTDL_VideoDetails = Omit<YT_VideoDetails, 'lengthSeconds' | 'author' | 'thumbnail' | 'shortDescription' | 'viewCount'> & Omit<YT_MicroformatRenderer, 'title' | 'description'> & YTDL_VideoDetailsAdditions & {
+export type YTDL_VideoDetails = YTDL_VideoDetailsAdditions & {
+    videoId: string;
+    title: string;
     lengthSeconds: number;
+    keywords: Array<string>;
+    channelId: string;
+    isOwnerViewing: boolean;
+    isCrawlable: boolean;
+    allowRatings: boolean;
     viewCount: number;
+    author: {
+        id: string;
+        name: string;
+        user: string;
+        channelUrl: string;
+        externalChannelUrl: string;
+        userUrl: string;
+        thumbnails: Array<YT_Thumbnail>;
+        subscriberCount: number;
+        verified: boolean;
+    };
+    isPrivate: boolean;
+    isUnpluggedCorpus: boolean;
+    isLiveContent: boolean;
+    published: string | null;
+    publishDate: string | null;
 };
 export type YTDL_RelatedVideo = {
     id: string;

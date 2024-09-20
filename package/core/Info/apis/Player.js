@@ -7,11 +7,12 @@ var CLIENTS_NUMBER;
 (function (CLIENTS_NUMBER) {
     CLIENTS_NUMBER[CLIENTS_NUMBER["WEB"] = 0] = "WEB";
     CLIENTS_NUMBER[CLIENTS_NUMBER["WEBCREATOR"] = 1] = "WEBCREATOR";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["TVEMBEDDED"] = 2] = "TVEMBEDDED";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["IOS"] = 3] = "IOS";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["ANDROID"] = 4] = "ANDROID";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["MWEB"] = 5] = "MWEB";
-    CLIENTS_NUMBER[CLIENTS_NUMBER["TV"] = 6] = "TV";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["WEBEMBEDDED"] = 2] = "WEBEMBEDDED";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["TVEMBEDDED"] = 3] = "TVEMBEDDED";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["IOS"] = 4] = "IOS";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["ANDROID"] = 5] = "ANDROID";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["MWEB"] = 6] = "MWEB";
+    CLIENTS_NUMBER[CLIENTS_NUMBER["TV"] = 7] = "TV";
 })(CLIENTS_NUMBER || (CLIENTS_NUMBER = {}));
 const clients_1 = require("../../../core/clients");
 const errors_1 = require("../../../core/errors");
@@ -23,6 +24,7 @@ class PlayerApi {
         const PLAYER_API_PROMISE = {
             web: clients.includes('web') ? clients_1.Web.getPlayerResponse(playerApiParams) : Promise.reject(null),
             webCreator: clients.includes('webCreator') ? clients_1.WebCreator.getPlayerResponse(playerApiParams) : Promise.reject(null),
+            webEmbedded: clients.includes('webEmbedded') ? clients_1.WebEmbedded.getPlayerResponse(playerApiParams) : Promise.reject(null),
             tvEmbedded: clients.includes('tvEmbedded') ? clients_1.TvEmbedded.getPlayerResponse(playerApiParams) : Promise.reject(null),
             ios: clients.includes('ios') ? clients_1.Ios.getPlayerResponse(playerApiParams) : Promise.reject(null),
             android: clients.includes('android') ? clients_1.Android.getPlayerResponse(playerApiParams) : Promise.reject(null),
@@ -31,6 +33,7 @@ class PlayerApi {
         }, PLAYER_API_PROMISES = await Promise.allSettled(Object.values(PLAYER_API_PROMISE)), PLAYER_API_RESPONSES = {
             web: null,
             webCreator: null,
+            webEmbedded: null,
             tvEmbedded: null,
             ios: null,
             android: null,

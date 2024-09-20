@@ -33,6 +33,20 @@ const INNERTUBE_BASE_API_URL = 'https://www.youtube.com/youtubei/v1', INNERTUBE_
             key: 'AIzaSyBUPetSUmoZL-OhlxA7wSac5XinrygCqMo',
         },
     },
+    webEmbedded: {
+        context: {
+            client: {
+                clientName: 'WEB_EMBEDDED_PLAYER',
+                clientVersion: '2.20240111.09.00',
+                userAgent: UserAgents_1.default.default,
+                clientScreen: 'EMBED',
+            },
+        },
+        clientName: 56,
+        apiInfo: {
+            key: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        },
+    },
     android: {
         context: {
             client: {
@@ -196,6 +210,32 @@ class Clients {
     }
     static webCreator({ videoId, signatureTimestamp, options: { poToken, visitorData, lang } }) {
         const CLIENT = INNERTUBE_CLIENTS.webCreator, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
+        PAYLOAD.videoId = videoId;
+        PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
+        PAYLOAD.context.client = CLIENT.context.client;
+        PAYLOAD.context.client.hl = lang || 'en';
+        if (poToken) {
+            PAYLOAD.serviceIntegrityDimensions.poToken = poToken;
+        }
+        else {
+            PAYLOAD.serviceIntegrityDimensions = undefined;
+        }
+        if (visitorData) {
+            PAYLOAD.context.client.visitorData = visitorData;
+        }
+        return {
+            url: `${INNERTUBE_BASE_API_URL}/player?key=${CLIENT.apiInfo.key}&prettyPrint=false`,
+            payload: PAYLOAD,
+            headers: {
+                'X-YouTube-Client-Name': CLIENT.clientName,
+                'X-Youtube-Client-Version': CLIENT.context.client.clientVersion,
+                'X-Goog-Visitor-Id': visitorData,
+                'User-Agent': CLIENT.context.client.userAgent,
+            },
+        };
+    }
+    static webEmbedded({ videoId, signatureTimestamp, options: { poToken, visitorData, lang } }) {
+        const CLIENT = INNERTUBE_CLIENTS.webEmbedded, PAYLOAD = { ...INNERTUBE_BASE_PAYLOAD };
         PAYLOAD.videoId = videoId;
         PAYLOAD.playbackContext.contentPlaybackContext.signatureTimestamp = signatureTimestamp;
         PAYLOAD.context.client = CLIENT.context.client;

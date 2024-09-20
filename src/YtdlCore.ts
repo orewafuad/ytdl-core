@@ -13,12 +13,13 @@ import { YTDL_Agent } from './types/Agent';
 import { YTDL_Hreflang } from './types/Language';
 
 import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
+import getHtml5Player from './core/Info/parser/Html5Player';
 import { createAgent, createProxyAgent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
 import PoToken from './core/PoToken';
 import { FileCache } from './core/Cache';
-import getHtml5Player from './core/Info/parser/Html5Player';
 import { getSignatureTimestamp } from './core/Signature';
+import Fetcher from './core/Fetcher';
 
 import { YTDL_ClientTypes } from './meta/Clients';
 
@@ -361,7 +362,7 @@ class YtdlCore {
     public disableDefaultClients: boolean = false;
     public oauth2: OAuth2 | undefined;
     public parsesHLSFormat: boolean = false;
-    public originalProxyUrl: string | undefined;
+    public originalProxy: YTDL_GetInfoOptions['originalProxy'];
 
     /* Format Selection Options */
     public quality: YTDL_ChooseFormatOptions['quality'] | undefined;
@@ -438,27 +439,11 @@ class YtdlCore {
 
         if (!HTML5_PLAYER && !process.env._YTDL_DISABLE_HTML5_PLAYER_CACHE) {
             Logger.debug('To speed up processing, html5Player and signatureTimestamp are pre-fetched and cached.');
-            getHtml5Player('dQw4w9WgXcQ', {}).then(async ({ playerUrl, path }) => {
-                if (!playerUrl) {
-                    return;
-                }
-
-                const SIG_TIMESTAMP = (await getSignatureTimestamp(playerUrl, {})) || '0';
-
-                FileCache.set(
-                    'html5Player',
-                    JSON.stringify({
-                        playerUrl,
-                        path,
-                        signatureTimestamp: SIG_TIMESTAMP,
-                    }),
-                    { ttl: 60 * 60 * 24 * 3 },
-                );
-            });
+            getHtml5Player('dQw4w9WgXcQ', {});
         }
     }
 
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }: YTDL_Constructor = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }: YTDL_Constructor = {}) {
         /* Other Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
         process.env._YTDL_DISABLE_FILE_CACHE = (disableFileCache ?? false).toString();
@@ -476,9 +461,24 @@ class YtdlCore {
         this.disableDefaultClients = disableDefaultClients ?? false;
         this.parsesHLSFormat = parsesHLSFormat ?? false;
 
-        this.originalProxyUrl = originalProxyUrl || undefined;
-        if (this.originalProxyUrl) {
-            Logger.debug(`Original proxy (${this.originalProxyUrl}) is used for video downloads and API requests.`);
+        this.originalProxy = originalProxy || undefined;
+        if (originalProxyUrl && !originalProxy) {
+            Logger.info('<warning>`originalProxyUrl` is deprecated.</warning> Use `originalProxy` instead.');
+
+            if (!this.originalProxy) {
+                try {
+                    this.originalProxy = {
+                        base: originalProxyUrl,
+                        download: new URL(originalProxyUrl).origin + '/download',
+                        urlQueryName: 'url',
+                    };
+                } catch {}
+            }
+        }
+        if (this.originalProxy) {
+            Logger.debug(`<debug>"${this.originalProxy.base}"</debug> is used for <blue>API requests</blue>.`);
+            Logger.debug(`<debug>"${this.originalProxy.download}"</debug> is used for <blue>video downloads</blue>.`);
+            Logger.debug(`The query name <debug>"${this.originalProxy.urlQueryName || 'url'}"</debug> is used to specify the URL in the request. <blue>(?url=...)</blue>`);
         }
 
         this.setPoToken(poToken);
@@ -523,7 +523,19 @@ class YtdlCore {
         options.disableDefaultClients = options.disableDefaultClients || this.disableDefaultClients;
         options.oauth2 = options.oauth2 || this.oauth2;
         options.parsesHLSFormat = options.parsesHLSFormat || this.parsesHLSFormat;
-        options.originalProxyUrl = options.originalProxyUrl || this.originalProxyUrl || undefined;
+        options.originalProxy = options.originalProxy || this.originalProxy || undefined;
+
+        if (options.originalProxyUrl && !options.originalProxy) {
+            Logger.info('<warning>originalProxyUrl is deprecated.</warning> Use `originalProxy` instead.');
+
+            try {
+                options.originalProxy = {
+                    base: options.originalProxyUrl,
+                    download: new URL(options.originalProxyUrl).origin + '/download',
+                    urlQueryName: 'url',
+                };
+            } catch {}
+        }
 
         /* Format Selection Options */
         options.quality = options.quality || this.quality || undefined;

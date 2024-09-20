@@ -18,7 +18,7 @@ class ApiBase {
             }
         }
         catch (err) {
-            return res.reason;
+            return (res || {})?.reason;
         }
     }
 }

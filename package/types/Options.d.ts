@@ -80,11 +80,18 @@ export type YTDL_GetInfoOptions = {
      * @default null
      */
     oauth2?: OAuth2;
-    /** You can specify your own proxy URL.
-     * @example 1. "http://localhost:3000"
-     * @example 2. "https://original-proxy.example.com"
-     */
+    /** @deprecated */
     originalProxyUrl?: string;
+    /** You can specify your own proxy. (See "Proxy Support" in the README for details.)
+     * @advance For advanced use, use the `rewriteRequest` function.
+     * @reference https://github.com/ybd-project/ytdl-core/tree/main/examples/OriginalProxy/src/server
+     * @details https://github.com/ybd-project/ytdl-core?tab=readme-ov-file#use-of-proprietary-proxies
+     */
+    originalProxy?: {
+        base: string;
+        download: string;
+        urlQueryName?: 'url' | (string & {});
+    };
 };
 export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFormatOptions {
     range?: {
@@ -100,5 +107,5 @@ export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFo
 export type YTDL_RequestOptions = {
     rewriteRequest?: YTDL_GetInfoOptions['rewriteRequest'];
     requestOptions?: Omit<Dispatcher.RequestOptions, 'origin' | 'path' | 'method'> & Partial<Pick<Dispatcher.RequestOptions, 'method'>>;
-    originalProxyUrl?: string;
+    originalProxy?: YTDL_GetInfoOptions['originalProxy'];
 };

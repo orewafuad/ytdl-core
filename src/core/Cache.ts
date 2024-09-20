@@ -95,7 +95,8 @@ export class Cache extends Map {
 
 export class FileCache {
     static set(cacheName: AvailableCacheFileNames, data: string, options: FileCacheOptions = { ttl: 60 * 60 * 24 }): boolean {
-        if (process.env._YTDL_DISABLE_FILE_CACHE) {
+        if (process.env._YTDL_DISABLE_FILE_CACHE !== 'false' && process.env._YTDL_DISABLE_FILE_CACHE) {
+            Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached by the _YTDL_DISABLE_FILE_CACHE option.`);
             return false;
         }
 
@@ -108,6 +109,7 @@ export class FileCache {
                 }),
             );
 
+            Logger.debug(`[ FileCache ]: <success>"${cacheName}"</success> is cached.`);
             return true;
         } catch (err) {
             Logger.error(`Failed to cache ${cacheName}.\nDetails: `, err);
@@ -128,7 +130,7 @@ export class FileCache {
                 return null;
             }
 
-            Logger.debug(`[ FileCache ]: Cache key "${cacheName}" was available.`);
+            Logger.debug(`[ FileCache ]: Cache key <blue>"${cacheName}"</blue> was available.`);
 
             try {
                 return JSON.parse(PARSED_DATA.contents);

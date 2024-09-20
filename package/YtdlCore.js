@@ -32,12 +32,11 @@ const stream_1 = require("stream");
 const miniget_1 = __importDefault(require("miniget"));
 const m3u8stream_1 = __importStar(require("m3u8stream"));
 const Info_1 = require("./core/Info");
+const Html5Player_1 = __importDefault(require("./core/Info/parser/Html5Player"));
 const Agent_1 = require("./core/Agent");
 const OAuth2_1 = require("./core/OAuth2");
 const PoToken_1 = __importDefault(require("./core/PoToken"));
 const Cache_1 = require("./core/Cache");
-const Html5Player_1 = __importDefault(require("./core/Info/parser/Html5Player"));
-const Signature_1 = require("./core/Signature");
 const Utils_1 = __importDefault(require("./utils/Utils"));
 const Url_1 = __importDefault(require("./utils/Url"));
 const DownloadOptions_1 = __importDefault(require("./utils/DownloadOptions"));
@@ -189,7 +188,9 @@ async function downloadFromInfoCallback(stream, info, options) {
     }
     if (options.originalProxyUrl) {
         const PARSED = new URL(options.originalProxyUrl);
-        format.url = `${PARSED.protocol}//${PARSED.host}/download/?url=${encodeURIComponent(format.url)}`;
+        if (!format.url.includes(PARSED.host)) {
+            format.url = `${PARSED.protocol}//${PARSED.host}/download/?url=${encodeURIComponent(format.url)}`;
+        }
     }
     if (format.isHLS || format.isDashMPD) {
         req = (0, m3u8stream_1.default)(format.url, {
@@ -320,7 +321,7 @@ class YtdlCore {
     disableDefaultClients = false;
     oauth2;
     parsesHLSFormat = false;
-    originalProxyUrl;
+    originalProxy;
     /* Format Selection Options */
     quality;
     filter;
@@ -384,20 +385,10 @@ class YtdlCore {
         const HTML5_PLAYER = Cache_1.FileCache.get('html5Player');
         if (!HTML5_PLAYER && !process.env._YTDL_DISABLE_HTML5_PLAYER_CACHE) {
             Log_1.Logger.debug('To speed up processing, html5Player and signatureTimestamp are pre-fetched and cached.');
-            (0, Html5Player_1.default)('dQw4w9WgXcQ', {}).then(async ({ playerUrl, path }) => {
-                if (!playerUrl) {
-                    return;
-                }
-                const SIG_TIMESTAMP = (await (0, Signature_1.getSignatureTimestamp)(playerUrl, {})) || '0';
-                Cache_1.FileCache.set('html5Player', JSON.stringify({
-                    playerUrl,
-                    path,
-                    signatureTimestamp: SIG_TIMESTAMP,
-                }), { ttl: 60 * 60 * 24 * 3 });
-            });
+            (0, Html5Player_1.default)('dQw4w9WgXcQ', {});
         }
     }
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache } = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache } = {}) {
         /* Other Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
         process.env._YTDL_DISABLE_FILE_CACHE = (disableFileCache ?? false).toString();
@@ -413,9 +404,24 @@ class YtdlCore {
         this.clients = clients || undefined;
         this.disableDefaultClients = disableDefaultClients ?? false;
         this.parsesHLSFormat = parsesHLSFormat ?? false;
-        this.originalProxyUrl = originalProxyUrl || undefined;
-        if (this.originalProxyUrl) {
-            Log_1.Logger.debug(`Original proxy (${this.originalProxyUrl}) is used for video downloads and API requests.`);
+        this.originalProxy = originalProxy || undefined;
+        if (originalProxyUrl && !originalProxy) {
+            Log_1.Logger.info('<warning>`originalProxyUrl` is deprecated.</warning> Use `originalProxy` instead.');
+            if (!this.originalProxy) {
+                try {
+                    this.originalProxy = {
+                        base: originalProxyUrl,
+                        download: new URL(originalProxyUrl).origin + '/download',
+                        urlQueryName: 'url',
+                    };
+                }
+                catch { }
+            }
+        }
+        if (this.originalProxy) {
+            Log_1.Logger.debug(`<debug>"${this.originalProxy.base}"</debug> is used for <blue>API requests</blue>.`);
+            Log_1.Logger.debug(`<debug>"${this.originalProxy.download}"</debug> is used for <blue>video downloads</blue>.`);
+            Log_1.Logger.debug(`The query name <debug>"${this.originalProxy.urlQueryName || 'url'}"</debug> is used to specify the URL in the request. <blue>(?url=...)</blue>`);
         }
         this.setPoToken(poToken);
         this.setVisitorData(visitorData);
@@ -454,7 +460,18 @@ class YtdlCore {
         options.disableDefaultClients = options.disableDefaultClients || this.disableDefaultClients;
         options.oauth2 = options.oauth2 || this.oauth2;
         options.parsesHLSFormat = options.parsesHLSFormat || this.parsesHLSFormat;
-        options.originalProxyUrl = options.originalProxyUrl || this.originalProxyUrl || undefined;
+        options.originalProxy = options.originalProxy || this.originalProxy || undefined;
+        if (options.originalProxyUrl && !options.originalProxy) {
+            Log_1.Logger.info('<warning>originalProxyUrl is deprecated.</warning> Use `originalProxy` instead.');
+            try {
+                options.originalProxy = {
+                    base: options.originalProxyUrl,
+                    download: new URL(options.originalProxyUrl).origin + '/download',
+                    urlQueryName: 'url',
+                };
+            }
+            catch { }
+        }
         /* Format Selection Options */
         options.quality = options.quality || this.quality || undefined;
         options.filter = options.filter || this.filter || undefined;

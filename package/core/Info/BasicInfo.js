@@ -18,7 +18,7 @@ const Player_1 = __importDefault(require("./apis/Player"));
 const Next_1 = __importDefault(require("./apis/Next"));
 const Extras_1 = __importDefault(require("./Extras"));
 /* Private Constants */
-const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], SUPPORTED_CLIENTS = ['webCreator', 'tvEmbedded', 'ios', 'android', 'web', 'mweb', 'tv'], BASE_CLIENTS = ['web', 'webCreator', 'tvEmbedded', 'ios', 'android'], BASIC_INFO_CACHE = new Cache_1.Cache();
+const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'], SUPPORTED_CLIENTS = ['web', 'webCreator', 'webEmbedded', 'ios', 'android', 'mweb', 'tv', 'tvEmbedded'], BASE_CLIENTS = ['web', 'webCreator', 'tvEmbedded', 'ios', 'android'], BASIC_INFO_CACHE = new Cache_1.Cache();
 /* ----------- */
 /* Private Functions */
 function setupClients(clients, disableDefaultClients) {
@@ -96,7 +96,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     /* Filtered */
     const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_ARRAY.filter((p) => p?.storyboards)[0], VIDEO_DETAILS = PLAYER_RESPONSE_ARRAY.filter((p) => p?.videoDetails)[0]?.videoDetails || {}, MICROFORMAT = PLAYER_RESPONSE_ARRAY.filter((p) => p?.microformat)[0]?.microformat || null;
     VIDEO_DETAILS.liveBroadcastDetails = PLAYER_RESPONSES.web?.microformat?.playerMicroformatRenderer.liveBroadcastDetails || undefined;
-    const STORYBOARDS = Extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = Extras_1.default.getMedia(PLAYER_RESPONSES.web) || Extras_1.default.getMedia(PLAYER_RESPONSES.webCreator) || Extras_1.default.getMedia(PLAYER_RESPONSES.tvEmbedded) || Extras_1.default.getMedia(PLAYER_RESPONSES.ios) || Extras_1.default.getMedia(PLAYER_RESPONSES.android) || Extras_1.default.getMedia(PLAYER_RESPONSES.mweb) || Extras_1.default.getMedia(PLAYER_RESPONSES.tv), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
+    const STORYBOARDS = Extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = Extras_1.default.getMedia(PLAYER_RESPONSES.web) || Extras_1.default.getMedia(PLAYER_RESPONSES.webCreator) || Extras_1.default.getMedia(PLAYER_RESPONSES.ios) || Extras_1.default.getMedia(PLAYER_RESPONSES.android) || Extras_1.default.getMedia(PLAYER_RESPONSES.webEmbedded) || Extras_1.default.getMedia(PLAYER_RESPONSES.tvEmbedded) || Extras_1.default.getMedia(PLAYER_RESPONSES.mweb) || Extras_1.default.getMedia(PLAYER_RESPONSES.tv), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))), ADDITIONAL_DATA = {
         videoUrl: Url_1.default.getWatchPageUrl(id),
         author: Extras_1.default.getAuthor(NEXT_RESPONSES.web),
         media: MEDIA,
@@ -107,7 +107,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
     }, FORMATS = PLAYER_RESPONSE_ARRAY.reduce((items, playerResponse) => {
         return [...items, ...Formats_1.default.parseFormats(playerResponse)];
     }, []);
-    VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT?.playerMicroformatRenderer || null);
+    VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(Object.assign({}, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT?.playerMicroformatRenderer || null, options.lang);
     VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? Extras_1.default.getRelatedVideos(NEXT_RESPONSES.web, options.lang || 'en') : [];
     VIDEO_INFO.formats = isFromGetInfo ? FORMATS : [];
     return VIDEO_INFO;

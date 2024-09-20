@@ -150,7 +150,8 @@ function extractFunctions(body) {
 }
 function getFunctions(html5PlayerFile, options) {
     return CACHE.getOrSet(html5PlayerFile, async () => {
-        const BODY = await Fetcher_1.default.request(html5PlayerFile, options), FUNCTIONS = extractFunctions(BODY);
+        console.log(Cache_1.FileCache.get('html5Player')?.playerUrl);
+        const BODY = await (Cache_1.FileCache.get('html5Player')?.playerBody || Fetcher_1.default.request(html5PlayerFile, options)), FUNCTIONS = extractFunctions(BODY);
         CACHE.set(html5PlayerFile, FUNCTIONS);
         return FUNCTIONS;
     });
@@ -193,8 +194,8 @@ async function decipherFormats(formats, html5PlayerFile, options) {
     });
     return DECIPHERED_FORMATS;
 }
-async function getSignatureTimestamp(html5PlayerUrl, options) {
-    const BODY = await Fetcher_1.default.request(html5PlayerUrl, options), MO = BODY.match(/signatureTimestamp:(\d+)/);
+async function getSignatureTimestamp(body) {
+    const MO = body.match(/signatureTimestamp:(\d+)/);
     return MO ? MO[1] : undefined;
 }
 exports.default = { CACHE, extractFunctions, getFunctions, setDownloadURL, decipherFormats, getSignatureTimestamp };

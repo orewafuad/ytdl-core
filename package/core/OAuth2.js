@@ -98,7 +98,6 @@ class OAuth2 {
             }
             Log_1.Logger.debug('Found client ID: ' + CLIENT_ID);
             Log_1.Logger.debug('Found client secret: ' + CLIENT_SECRET);
-            Cache_1.FileCache.set('oauth2', JSON.stringify({ ...OAUTH2_CACHE, clientData: { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET } }));
             return { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET };
         }
         this.error("Could not obtain script URL. Please create an issue in the repository for possible specification changes on YouTube's side.");
@@ -121,6 +120,7 @@ class OAuth2 {
             }
             this.clientId = data.clientId;
             this.clientSecret = data.clientSecret;
+            Cache_1.FileCache.set('oauth2', JSON.stringify({ accessToken: this.accessToken, refreshToken: this.refreshToken, expiryDate: this.expiryDate, clientData: { clientId: data.clientId, clientSecret: data.clientSecret } }));
         }
         if (!this.refreshToken) {
             return this.error('Refresh token is missing, make sure it is specified.');
