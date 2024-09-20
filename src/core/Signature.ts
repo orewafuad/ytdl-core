@@ -192,7 +192,6 @@ function extractFunctions(body: string) {
 
 function getFunctions<T = unknown>(html5PlayerFile: string, options: YTDL_RequestOptions) {
     return CACHE.getOrSet<T>(html5PlayerFile, async () => {
-        console.log(FileCache.get<Html5PlayerCache>('html5Player')?.playerUrl)
         const BODY = await (FileCache.get<Html5PlayerCache>('html5Player')?.playerBody || Fetcher.request<string>(html5PlayerFile, options)),
             FUNCTIONS = extractFunctions(BODY);
 

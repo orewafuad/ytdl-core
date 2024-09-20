@@ -119,7 +119,7 @@ export class FileCache {
     }
 
     static get<T = unknown>(cacheName: AvailableCacheFileNames): T | null {
-        if (process.env._YTDL_DISABLE_FILE_CACHE) {
+        if (process.env._YTDL_DISABLE_FILE_CACHE !== 'false' && process.env._YTDL_DISABLE_FILE_CACHE) {
             return null;
         }
 

@@ -150,7 +150,6 @@ function extractFunctions(body) {
 }
 function getFunctions(html5PlayerFile, options) {
     return CACHE.getOrSet(html5PlayerFile, async () => {
-        console.log(Cache_1.FileCache.get('html5Player')?.playerUrl);
         const BODY = await (Cache_1.FileCache.get('html5Player')?.playerBody || Fetcher_1.default.request(html5PlayerFile, options)), FUNCTIONS = extractFunctions(BODY);
         CACHE.set(html5PlayerFile, FUNCTIONS);
         return FUNCTIONS;

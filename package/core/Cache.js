@@ -95,7 +95,7 @@ class FileCache {
         }
     }
     static get(cacheName) {
-        if (process.env._YTDL_DISABLE_FILE_CACHE) {
+        if (process.env._YTDL_DISABLE_FILE_CACHE !== 'false' && process.env._YTDL_DISABLE_FILE_CACHE) {
             return null;
         }
         try {
