@@ -8,7 +8,7 @@
         "start": "node ./src/server.js"
     },
     "dependencies": {
-        "@ybd-project/ytdl-core": "^5.1.6",
+        "@ybd-project/ytdl-core": "latest",
         "express": "^5.0.0",
         "got": "^11.8.6"
     },

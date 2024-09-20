@@ -302,6 +302,7 @@ const ytdl = new YtdlCore({
     originalProxy: {
         base: 'http://localhost:6543',
         download: 'http://localhost:6543/video-download',
+        urlQueryName: 'apiUrl',
     },
 });
 

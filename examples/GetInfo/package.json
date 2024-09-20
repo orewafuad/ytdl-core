@@ -8,6 +8,6 @@
         "start": "node ./src/index.js"
     },
     "dependencies": {
-        "@ybd-project/ytdl-core": "^5.1.2"
+        "@ybd-project/ytdl-core": "latest"
     }
 }
