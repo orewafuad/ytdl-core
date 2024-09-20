@@ -306,7 +306,7 @@ const ytdl = new YtdlCore({
     },
 });
 
-/* With rewriteRequest, you can specify various things. */
+/* With rewriteRequest, you can specify various things. (e.g., random selection of multiple proxies) */
 const ytdl = new YtdlCore({
     rewriteRequest: (url, options, { isDownloadUrl }) => {
         if (isDownloadUrl) {
