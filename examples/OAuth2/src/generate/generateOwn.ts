@@ -13,7 +13,7 @@ interface TokenApiResponse {
 }
 
 import got from 'got';
-import inquirer from '@inquirer/prompts';
+import { confirm } from '@inquirer/prompts';
 
 const DIVIDER = '|----------------------|',
     DEVICE_API = 'https://oauth2.googleapis.com/device/code',
@@ -54,8 +54,7 @@ function generateToken() {
             console.log(`|     Info   : Open the URL and follow the instructions.`);
             console.log(DIVIDER + '\n\n');
 
-            inquirer
-                .confirm({
+            confirm({
                     message: 'Did you go to the end?',
                     default: true,
                 })

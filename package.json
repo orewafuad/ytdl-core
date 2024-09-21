@@ -11,7 +11,7 @@
         "registry": "https://npm.pkg.github.com"
     },
     "engines": {
-        "node": ">=18.0"
+        "node": ">=16.0"
     },
     "main": "./package/YtdlCore.js",
     "types": "./package/YtdlCore.d.ts",
@@ -20,7 +20,15 @@
             "types": "./package/YtdlCore.d.ts",
             "default": "./package/YtdlCore.js"
         },
-        "./old": {
+        "./browser": {
+            "types": "./package/YtdlCore.old.d.ts",
+            "default": "./package/YtdlCore.old.js"
+        },
+        "./serverless": {
+            "types": "./package/YtdlCore.old.d.ts",
+            "default": "./package/YtdlCore.old.js"
+        },
+        "./types": {
             "types": "./package/YtdlCore.old.d.ts",
             "default": "./package/YtdlCore.old.js"
         }

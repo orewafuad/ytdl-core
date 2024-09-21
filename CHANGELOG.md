@@ -1,5 +1,17 @@
 # Changelog
 
+## v5.2.0 (2024/09/20) *Not released, planned.
+
+### Features
+* **YtdlCore:** Support for use in browsers. (To use, import `@ybd-project/ytdl-core/browser`)
+* **YtdlCore:** Add a processing-optimized YtdlCore for deployment to serverless functions such as Vercel Functions (just use `@ybd-project/ytdl-core/serverless` when importing)
+
+> [!NOTE]
+> YtdlCore for serverless functions no longer uses class instances, but individual functions. (No need to import `{ YtdlCore }`, just like `{ getFullInfo }`)
+
+* **YtdlCore:** Changed to be able to import types used in YtdlCore (To use, import `@ybd-project/ytdl-core/types`)
+* **Search:** Supports search from YouTube
+
 ## v5.1.8 (2024/09/20)
 
 ### Features
