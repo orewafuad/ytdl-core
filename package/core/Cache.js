@@ -18,7 +18,6 @@ catch {
     process.env._YTDL_DISABLE_HTML5_PLAYER_CACHE = 'true';
 }
 class Cache extends Map {
-    timeout;
     // timeout = 30 seconds
     constructor(timeout = 1000 * 30) {
         super();

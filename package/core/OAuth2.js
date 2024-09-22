@@ -13,13 +13,11 @@ const Cache_1 = require("./Cache");
 /* Reference: LuanRT/YouTube.js */
 const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') };
 class OAuth2 {
-    isEnabled = false;
-    accessToken = '';
-    refreshToken = '';
-    expiryDate = '';
-    clientId;
-    clientSecret;
     constructor(credentials) {
+        this.isEnabled = false;
+        this.accessToken = '';
+        this.refreshToken = '';
+        this.expiryDate = '';
         if (!credentials) {
             return;
         }

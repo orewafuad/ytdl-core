@@ -50,7 +50,7 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         Log_1.Logger.info('The specified OAuth2 token has expired and will be renewed automatically.');
         await options.oauth2.refreshAccessToken();
     }
-    if (!options.poToken) {
+    if (!options.poToken && !options.disablePoTokenAutoGeneration) {
         Log_1.Logger.warning('Specify poToken for stable and fast operation. See README for details.');
         Log_1.Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.');
         const { poToken, visitorData } = await PoToken_1.default.generatePoToken();

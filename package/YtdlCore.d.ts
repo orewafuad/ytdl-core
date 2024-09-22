@@ -35,6 +35,7 @@ declare class YtdlCore {
     rewriteRequest: YTDL_GetInfoOptions['rewriteRequest'];
     agent: YTDL_Agent | undefined;
     poToken: string | undefined;
+    disablePoTokenAutoGeneration: boolean;
     visitorData: string | undefined;
     includesPlayerAPIResponse: boolean;
     includesNextAPIResponse: boolean;
@@ -61,7 +62,7 @@ declare class YtdlCore {
     private setOAuth2;
     private automaticallyGeneratePoToken;
     private initializeHtml5PlayerCache;
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }?: YTDL_Constructor);
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }?: YTDL_Constructor);
     private setupOptions;
     download(link: string, options?: YTDL_DownloadOptions): PassThrough;
     downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;

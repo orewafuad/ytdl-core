@@ -47,6 +47,8 @@ export type YTDL_GetInfoOptions = {
     agent?: YTDL_Agent;
     /** You can specify a valid PoToken to avoid bot errors. */
     poToken?: string;
+    /** You can disable the automatic generation of PoToken. */
+    disablePoTokenAutoGeneration?: boolean;
     /** You can specify a valid VisitorData to avoid bot errors, etc. */
     visitorData?: string;
     /** You can specify whether to include Player API responses.

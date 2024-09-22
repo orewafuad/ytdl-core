@@ -291,51 +291,6 @@ function download(link, options = {}) {
 }
 /* Public CLass */
 class YtdlCore {
-    static download = download;
-    static downloadFromInfo = downloadFromInfo;
-    static getBasicInfo = Info_1.getBasicInfo;
-    /** @deprecated */
-    static getInfo = Info_1.getInfo;
-    static getFullInfo = Info_1.getFullInfo;
-    static chooseFormat = Format_1.chooseFormat;
-    static filterFormats = Format_1.filterFormats;
-    static validateID = Url_1.default.validateID;
-    static validateURL = Url_1.default.validateURL;
-    static getURLVideoID = Url_1.default.getURLVideoID;
-    static getVideoID = Url_1.default.getVideoID;
-    static createAgent = Agent_1.createAgent;
-    static createProxyAgent = Agent_1.createProxyAgent;
-    static OAuth2 = OAuth2_1.OAuth2;
-    /* Get Info Options */
-    lang = 'en';
-    requestOptions = {};
-    rewriteRequest;
-    agent;
-    poToken;
-    visitorData;
-    includesPlayerAPIResponse = false;
-    includesNextAPIResponse = false;
-    includesOriginalFormatData = false;
-    includesRelatedVideo = true;
-    clients;
-    disableDefaultClients = false;
-    oauth2;
-    parsesHLSFormat = false;
-    originalProxy;
-    /* Format Selection Options */
-    quality;
-    filter;
-    excludingClients = [];
-    includingClients = 'all';
-    /* Download Options */
-    range;
-    begin;
-    liveBuffer;
-    highWaterMark;
-    IPv6Block;
-    dlChunkSize;
-    /* Metadata */
-    version = constants_1.VERSION;
     /* Setup */
     setPoToken(poToken) {
         const PO_TOKEN_CACHE = Cache_1.FileCache.get('poToken');
@@ -388,7 +343,21 @@ class YtdlCore {
             (0, Html5Player_1.default)('dQw4w9WgXcQ', {});
         }
     }
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache } = {}) {
+    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache } = {}) {
+        /* Get Info Options */
+        this.lang = 'en';
+        this.requestOptions = {};
+        this.disablePoTokenAutoGeneration = false;
+        this.includesPlayerAPIResponse = false;
+        this.includesNextAPIResponse = false;
+        this.includesOriginalFormatData = false;
+        this.includesRelatedVideo = true;
+        this.disableDefaultClients = false;
+        this.parsesHLSFormat = false;
+        this.excludingClients = [];
+        this.includingClients = 'all';
+        /* Metadata */
+        this.version = constants_1.VERSION;
         /* Other Options */
         process.env.YTDL_DEBUG = (debug ?? false).toString();
         process.env._YTDL_DISABLE_FILE_CACHE = (disableFileCache ?? false).toString();
@@ -397,6 +366,7 @@ class YtdlCore {
         this.requestOptions = requestOptions || {};
         this.rewriteRequest = rewriteRequest || undefined;
         this.agent = agent || undefined;
+        this.disablePoTokenAutoGeneration = disablePoTokenAutoGeneration ?? false;
         this.includesPlayerAPIResponse = includesPlayerAPIResponse ?? false;
         this.includesNextAPIResponse = includesNextAPIResponse ?? false;
         this.includesOriginalFormatData = includesOriginalFormatData ?? false;
@@ -438,7 +408,9 @@ class YtdlCore {
         this.highWaterMark = highWaterMark || undefined;
         this.IPv6Block = IPv6Block || undefined;
         this.dlChunkSize = dlChunkSize || undefined;
-        this.automaticallyGeneratePoToken();
+        if (!this.disablePoTokenAutoGeneration) {
+            this.automaticallyGeneratePoToken();
+        }
         this.initializeHtml5PlayerCache();
         /* Version Check */
         if (!isNodeVersionOk(process.version)) {
@@ -451,6 +423,7 @@ class YtdlCore {
         options.rewriteRequest = options.rewriteRequest || this.rewriteRequest;
         options.agent = options.agent || this.agent;
         options.poToken = options.poToken || this.poToken;
+        options.disablePoTokenAutoGeneration = options.disablePoTokenAutoGeneration || this.disablePoTokenAutoGeneration;
         options.visitorData = options.visitorData || this.visitorData;
         options.includesPlayerAPIResponse = options.includesPlayerAPIResponse || this.includesPlayerAPIResponse;
         options.includesNextAPIResponse = options.includesNextAPIResponse || this.includesNextAPIResponse;
@@ -511,5 +484,20 @@ class YtdlCore {
     }
 }
 exports.YtdlCore = YtdlCore;
+YtdlCore.download = download;
+YtdlCore.downloadFromInfo = downloadFromInfo;
+YtdlCore.getBasicInfo = Info_1.getBasicInfo;
+/** @deprecated */
+YtdlCore.getInfo = Info_1.getInfo;
+YtdlCore.getFullInfo = Info_1.getFullInfo;
+YtdlCore.chooseFormat = Format_1.chooseFormat;
+YtdlCore.filterFormats = Format_1.filterFormats;
+YtdlCore.validateID = Url_1.default.validateID;
+YtdlCore.validateURL = Url_1.default.validateURL;
+YtdlCore.getURLVideoID = Url_1.default.getURLVideoID;
+YtdlCore.getVideoID = Url_1.default.getVideoID;
+YtdlCore.createAgent = Agent_1.createAgent;
+YtdlCore.createProxyAgent = Agent_1.createProxyAgent;
+YtdlCore.OAuth2 = OAuth2_1.OAuth2;
 module.exports.YtdlCore = YtdlCore;
 //# sourceMappingURL=YtdlCore.js.map
