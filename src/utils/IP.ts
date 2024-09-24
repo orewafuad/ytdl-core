@@ -1,6 +1,6 @@
 const IPV6_REGEX = /^(([0-9a-f]{1,4}:)(:[0-9a-f]{1,4}){1,6}|([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}|([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,4}|([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,3}|([0-9a-f]{1,4}:){1,5}(:[0-9a-f]{1,4}){1,2}|([0-9a-f]{1,4}:){1,6}(:[0-9a-f]{1,4})|([0-9a-f]{1,4}:){1,7}(([0-9a-f]{1,4})|:))\/(1[0-1]\d|12[0-8]|\d{1,2})$/;
 
-export default class IP {
+class IP {
     static isIPv6(ip: string): boolean {
         return IPV6_REGEX.test(ip);
     }
@@ -50,3 +50,5 @@ export default class IP {
         return MERGED_ADDR.map((x) => x.toString(16)).join(':');
     }
 }
+
+export { IP };

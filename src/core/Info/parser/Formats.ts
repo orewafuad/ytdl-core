@@ -12,14 +12,13 @@ type YTDL_DashManifestData = {
 
 import sax from 'sax';
 
-import { YTDL_RequestOptions } from '@/types/Options';
-import { YT_StreamingAdaptiveFormat, YT_PlayerApiResponse } from '@/types/youtube';
+import { YTDL_RequestOptions, YT_StreamingAdaptiveFormat, YT_PlayerApiResponse } from '@/types';
 
-import Fetcher from '@/core/Fetcher';
+import { Fetcher } from '@/core/Fetcher';
 
-import Url from '@/utils/Url';
+import { Url } from '@/utils/Url';
 
-export default class Formats {
+export class FormatParser {
     static parseFormats(playerResponse: YT_PlayerApiResponse | null): Array<YT_StreamingAdaptiveFormat> {
         let formats: Array<YT_StreamingAdaptiveFormat> = [];
 
@@ -111,11 +110,11 @@ export default class Formats {
 
         if (STREAMING_DATA) {
             if (STREAMING_DATA.dashManifestUrl) {
-                MANIFESTS.push(Formats.getDashManifest(STREAMING_DATA.dashManifestUrl, options));
+                MANIFESTS.push(this.getDashManifest(STREAMING_DATA.dashManifestUrl, options));
             }
 
             if (STREAMING_DATA.hlsManifestUrl) {
-                MANIFESTS.push(Formats.getM3U8(STREAMING_DATA.hlsManifestUrl, options));
+                MANIFESTS.push(this.getM3U8(STREAMING_DATA.hlsManifestUrl, options));
             }
         }
 

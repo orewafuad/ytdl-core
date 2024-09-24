@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Logger = void 0;
-const constants_1 = require("./constants");
+const Constants_1 = require("./Constants");
 const OUTPUT_CONTROL_CHARACTER = {
     red: '\x1b[31m',
     green: '\x1b[32m',
@@ -44,22 +44,31 @@ class Logger {
         return messages.map((m) => this.replaceColorTags(m));
     }
     static debug(...messages) {
-        if (constants_1.VERSION.includes('dev') || constants_1.VERSION.includes('beta') || constants_1.VERSION.includes('test') || process.env.YTDL_DEBUG) {
+        if (Constants_1.VERSION.includes('dev') || Constants_1.VERSION.includes('beta') || Constants_1.VERSION.includes('test') || process.env.YTDL_DEBUG || this.logDisplay.includes('debug')) {
             console.log(this.convertMessage('<debug>[  DEBUG  ]:</debug>'), ...this.convertMessages(messages));
         }
     }
     static info(...messages) {
-        console.info(this.convertMessage('<info>[  INFO!  ]:</info>'), ...this.convertMessages(messages));
+        if (this.logDisplay.includes('info')) {
+            console.info(this.convertMessage('<info>[  INFO!  ]:</info>'), ...this.convertMessages(messages));
+        }
     }
     static success(...messages) {
-        console.log(this.convertMessage('<success>[ SUCCESS ]:</success>'), ...this.convertMessages(messages));
+        if (this.logDisplay.includes('success')) {
+            console.log(this.convertMessage('<success>[ SUCCESS ]:</success>'), ...this.convertMessages(messages));
+        }
     }
     static warning(...messages) {
-        console.warn(this.convertMessage('<warning>[ WARNING ]:</warning>'), ...this.convertMessages(messages));
+        if (this.logDisplay.includes('warning')) {
+            console.warn(this.convertMessage('<warning>[ WARNING ]:</warning>'), ...this.convertMessages(messages));
+        }
     }
     static error(...messages) {
-        console.error(this.convertMessage('<error>[  ERROR  ]:</error>'), ...this.convertMessages(messages));
+        if (this.logDisplay.includes('error')) {
+            console.error(this.convertMessage('<error>[  ERROR  ]:</error>'), ...this.convertMessages(messages));
+        }
     }
 }
 exports.Logger = Logger;
+Logger.logDisplay = ['info', 'success', 'warning', 'error'];
 //# sourceMappingURL=Log.js.map

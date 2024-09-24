@@ -1,59 +1,56 @@
-type Html5PlayerInfo = { playerUrl: string | null; path: string | null; signatureTimestamp: string };
+type Html5PlayerInfo = { playerUrl: string | null; signatureTimestamp: string };
 
 import type { YTDL_GetInfoOptions } from '@/types/Options';
-import Url from '@/utils/Url';
-import YouTubePageExtractor from './PageExtractor';
-import { FileCache } from '@/core/Cache';
-import { getSignatureTimestamp } from '@/core/Signature';
+import { Platform } from '@/platforms/Platform';
+import { Signature } from '@/core/Signature';
+import { Url } from '@/utils/Url';
 import { Logger } from '@/utils/Log';
-import Fetcher from '@/core/Fetcher';
+import { Fetcher } from '@/core/Fetcher';
 
-function getPlayerPathFromBody(body: string): string | null {
-    const HTML5_PLAYER_RES = /<script\s+src="([^"]+)"(?:\s+type="text\/javascript")?\s+name="player_ias\/base"\s*>|"jsUrl":"([^"]+)"/.exec(body);
+const FileCache = Platform.getShim().fileCache;
 
-    return HTML5_PLAYER_RES ? HTML5_PLAYER_RES[1] || HTML5_PLAYER_RES[2] : null;
+function getPlayerId(body: string): string | null {
+    const MATCH = body.match(/player\/([a-zA-Z0-9]+)\//);
+
+    if (MATCH) {
+        return MATCH[1];
+    }
+
+    return null;
 }
 
-async function getPlayerPath(id: string, options: YTDL_GetInfoOptions): Promise<string | null> {
-    const WATCH_PAGE_BODY_PROMISE = YouTubePageExtractor.getWatchPageBody(id, options),
-        WATCH_PAGE_BODY = await WATCH_PAGE_BODY_PROMISE,
-        PLAYER_PATH = getPlayerPathFromBody(WATCH_PAGE_BODY) || getPlayerPathFromBody(await YouTubePageExtractor.getEmbedPageBody(id, options));
-
-    return PLAYER_PATH;
-}
-
-export default async function getHtml5Player(id: string, options: YTDL_GetInfoOptions): Promise<Html5PlayerInfo> {
-    const CACHE = FileCache.get<Html5PlayerInfo>('html5Player');
+async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5PlayerInfo> {
+    const CACHE = await FileCache.get<Html5PlayerInfo>('html5Player');
 
     if (CACHE) {
         return {
             playerUrl: CACHE.playerUrl,
-            path: CACHE.path,
             signatureTimestamp: CACHE.signatureTimestamp,
         };
     }
 
-    const PLAYER_PATH = await getPlayerPath(id, options);
+    const PLAYER_BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), options),
+        PLAYER_ID = getPlayerId(PLAYER_BODY);
 
-    let playerUrl = PLAYER_PATH ? new URL(PLAYER_PATH, Url.getBaseUrl()).toString() : null;
+    let playerUrl = PLAYER_ID ? Url.getPlayerJsUrl(PLAYER_ID) : null;
 
-    if (!playerUrl && (options.originalProxy || options.originalProxyUrl)) {
+    if (!playerUrl && options.originalProxy) {
         Logger.debug('Could not get html5Player using your own proxy. It is retrieved again with its own proxy disabled. (Other requests will not invalidate it.)');
 
-        const PATH = await getPlayerPath(id, {
-            ...options,
-            originalProxy: undefined,
-            originalProxyUrl: undefined,
-        });
+        const BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), {
+                ...options,
+                rewriteRequest: undefined,
+                originalProxy: undefined,
+            }),
+            PLAYER_ID = getPlayerId(BODY);
 
-        playerUrl = PATH ? new URL(PATH, Url.getBaseUrl()).toString() : null;
+        playerUrl = PLAYER_ID ? Url.getPlayerJsUrl(PLAYER_ID) : null;
     }
 
     const HTML5_PLAYER_BODY = playerUrl ? await Fetcher.request<string>(playerUrl, options) : '',
         DATA = {
             playerUrl,
-            path: PLAYER_PATH,
-            signatureTimestamp: playerUrl ? (await getSignatureTimestamp(HTML5_PLAYER_BODY)) || '' : '',
+            signatureTimestamp: playerUrl ? Signature.getSignatureTimestamp(HTML5_PLAYER_BODY) || '' : '',
             playerBody: HTML5_PLAYER_BODY || null,
         };
 
@@ -61,3 +58,5 @@ export default async function getHtml5Player(id: string, options: YTDL_GetInfoOp
 
     return DATA;
 }
+
+export { getHtml5Player };

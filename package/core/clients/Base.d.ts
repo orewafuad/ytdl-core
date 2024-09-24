@@ -1,5 +1,5 @@
-import { YT_PlayerApiResponse, YTDL_InnertubeResponseInfo } from '../../types/youtube';
-import type { YTDL_ClientsParams } from '../../meta/Clients';
+import type { YT_PlayerApiResponse, YTDL_InnertubeResponseInfo } from '@/types';
+import type { YTDL_ClientsParams } from '@/utils/Clients';
 export default class Base {
     private static playError;
     static request<T = YT_PlayerApiResponse>(url: string, requestOptions: {

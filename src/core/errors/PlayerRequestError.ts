@@ -1,8 +1,11 @@
-export default class PlayerRequestError<T = unknown> extends Error {
+import RequestError from './RequestError';
+
+export default class PlayerRequestError<T = unknown> extends RequestError {
     response: T | null;
 
-    constructor(message: string) {
+    constructor(message: string, response: T | null, statusCode: number | null) {
         super(message);
-        this.response = null;
+        this.response = response;
+        this.statusCode = statusCode || 0;
     }
 }

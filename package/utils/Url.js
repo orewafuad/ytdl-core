@@ -1,15 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Url = void 0;
 const BASE_URL = 'https://www.youtube.com', URL_REGEX = /^https?:\/\//, ID_REGEX = /^[a-zA-Z0-9-_]{11}$/, VALID_QUERY_DOMAINS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'gaming.youtube.com']), VALID_PATH_DOMAINS = /^https?:\/\/(youtu\.be\/|(www\.)?youtube\.com\/(embed|v|shorts|live)\/)/;
 class Url {
     static getBaseUrl() {
         return BASE_URL;
+    }
+    static getPlayerJsUrl(playerId) {
+        return `${BASE_URL}/s/player/${playerId}/player_ias.vflset/en_US/base.js`;
     }
     static getWatchPageUrl(id) {
         return `${BASE_URL}/watch?v=${id}`;
     }
     static getEmbedUrl(id) {
         return `${BASE_URL}/embed/${id}`;
+    }
+    static getIframeApiUrl() {
+        return `${BASE_URL}/iframe_api`;
+    }
+    static getInnertubeBaseUrl() {
+        return `${BASE_URL}/youtubei/v1`;
     }
     static getTvUrl() {
         return `${BASE_URL}/tv`;
@@ -60,5 +70,5 @@ class Url {
         }
     }
 }
-exports.default = Url;
+exports.Url = Url;
 //# sourceMappingURL=Url.js.map

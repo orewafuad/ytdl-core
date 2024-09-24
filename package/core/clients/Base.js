@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const errors_1 = require("../../core/errors");
-const Fetcher_1 = __importDefault(require("../../core/Fetcher"));
+const errors_1 = require("@/core/errors");
+const Fetcher_1 = require("@/core/Fetcher");
 class Base {
     static playError(playerResponse) {
         const PLAYABILITY = playerResponse && playerResponse.playabilityStatus;
@@ -43,7 +40,7 @@ class Base {
                 if (PLAY_ERROR) {
                     if (OPTS.originalProxy) {
                         OPTS.originalProxy = undefined;
-                        Fetcher_1.default.request(url, OPTS)
+                        Fetcher_1.Fetcher.request(url, OPTS)
                             .then(responseHandler)
                             .catch((err) => {
                             reject({
@@ -61,7 +58,7 @@ class Base {
                     });
                 }
                 if (!IS_NEXT_API && (!response.videoDetails || params.videoId !== response.videoDetails.videoId)) {
-                    const ERROR = new errors_1.PlayerRequestError('Malformed response from YouTube');
+                    const ERROR = new errors_1.PlayerRequestError('Malformed response from YouTube', response, null);
                     ERROR.response = response;
                     return reject({
                         isError: true,
@@ -76,12 +73,12 @@ class Base {
                 });
             };
             try {
-                Fetcher_1.default.request(url, OPTS)
+                Fetcher_1.Fetcher.request(url, OPTS)
                     .then(responseHandler)
                     .catch((err) => {
                     if (OPTS.originalProxy) {
                         OPTS.originalProxy = undefined;
-                        Fetcher_1.default.request(url, OPTS)
+                        Fetcher_1.Fetcher.request(url, OPTS)
                             .then(responseHandler)
                             .catch((err) => {
                             reject({

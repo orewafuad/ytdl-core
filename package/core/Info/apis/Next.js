@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const clients_1 = require("../../../core/clients");
+const clients_1 = require("@/core/clients");
 const Base_1 = __importDefault(require("./Base"));
 class NextApi {
     static async getApiResponses(nextApiParams) {

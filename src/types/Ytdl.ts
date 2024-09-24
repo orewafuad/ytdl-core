@@ -1,5 +1,5 @@
-import { YTDL_ClientTypes } from '@/meta/Clients';
-import { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail, YT_VideoDetails } from './youtube';
+import { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail } from './YouTube';
+import { YTDL_ClientTypes } from './Clients';
 import { YTDL_GetInfoOptions } from './Options';
 
 export type YTDL_Author = {
@@ -50,10 +50,10 @@ export type YTDL_VideoDetailsAdditions = {
     likes: number | null;
     media: YTDL_Media | null;
     author: YTDL_Author | null;
-    thumbnails?: Array<YT_Thumbnail>;
     storyboards: Array<YTDL_Storyboard>;
     chapters: Array<YTDL_Chapter>;
-    description?: string | null;
+    thumbnails: Array<YT_Thumbnail>;
+    description: string | null;
 };
 
 export type YTDL_VideoDetails = YTDL_VideoDetailsAdditions & {
@@ -80,6 +80,8 @@ export type YTDL_VideoDetails = YTDL_VideoDetailsAdditions & {
     isPrivate: boolean;
     isUnpluggedCorpus: boolean;
     isLiveContent: boolean;
+    isUpcoming: boolean;
+    liveBroadcastDetails: YT_MicroformatRenderer['liveBroadcastDetails'] | null;
     published: string | null;
     publishDate: string | null;
 };

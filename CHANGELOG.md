@@ -10,7 +10,13 @@
 > YtdlCore for serverless functions no longer uses class instances, but individual functions. (No need to import `{ YtdlCore }`, just like `{ getFullInfo }`)
 
 * **YtdlCore:** Changed to be able to import types used in YtdlCore (To use, import `@ybd-project/ytdl-core/types`)
-* **Search:** Supports search from YouTube
+* **YtdlCore:** Static methods such as the `getFullInfo` function have been eliminated in view of optional adaptations, etc.
+* **Log:** Added `logDisplay` option to specify the type of log to display
+* **Country:** Add `gl` option
+
+### Change
+* **Lang:** Remove the `lang` option and add the `hl` option.
+* **Debug:** Eliminated the use of the `YTDL_DEBUG` environment variable
 
 ## v5.1.8 (2024/09/20)
 

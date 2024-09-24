@@ -20,12 +20,11 @@ type PlayerApiResponses = {
     tv: YT_PlayerApiResponse | null;
 };
 
-import { YT_PlayerApiResponse } from '@/types/youtube';
+import type { YT_PlayerApiResponse, YTDL_ClientTypes } from '@/types';
+import type { YTDL_ClientsParams } from '@/utils/Clients';
 
 import { Web, WebCreator, WebEmbedded, TvEmbedded, Ios, Android, MWeb, Tv } from '@/core/clients';
 import { UnrecoverableError } from '@/core/errors';
-
-import { YTDL_ClientsParams, YTDL_ClientTypes } from '@/meta/Clients';
 
 import { Logger } from '@/utils/Log';
 
@@ -65,7 +64,7 @@ export default class PlayerApi {
         const IS_MINIMUM_MODE = PLAYER_API_PROMISES.every((r) => r.status === 'rejected');
 
         if (IS_MINIMUM_MODE) {
-            const ERROR_TEXT = `All player APIs responded with an error. (Clients: ${clients.join(', ')})\nFor more information, specify YTDL_DEBUG as an environment variable.`;
+            const ERROR_TEXT = `All player APIs responded with an error. (Clients: ${clients.join(', ')})\nFor details, specify \`logDisplay: ["debug", "info", "success", "warning", "error"]\` in the constructor options of the YtdlCore class.`;
 
             if (PLAYER_API_RESPONSES.ios && (CONTINUES_NOT_POSSIBLE_ERRORS.includes(PLAYER_API_RESPONSES.ios?.playabilityStatus.reason || '') || !PLAYER_API_RESPONSES.ios.videoDetails)) {
                 throw new UnrecoverableError(ERROR_TEXT + `\nNote: This error cannot continue processing. (Details: ${JSON.stringify(PLAYER_API_RESPONSES.ios.playabilityStatus.reason)})`);

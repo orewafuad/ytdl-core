@@ -1,4 +1,4 @@
-import { VERSION } from './constants';
+import { VERSION } from './Constants';
 
 const OUTPUT_CONTROL_CHARACTER = {
     red: '\x1b[31m',
@@ -11,6 +11,8 @@ const OUTPUT_CONTROL_CHARACTER = {
 };
 
 export class Logger {
+    static logDisplay: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> = ['info', 'success', 'warning', 'error'];
+
     private static replaceColorTags(message: string): string {
         try {
             message = message.replace(/<magenta>/g, OUTPUT_CONTROL_CHARACTER.magenta);
@@ -51,24 +53,32 @@ export class Logger {
     }
 
     public static debug(...messages: Array<any>) {
-        if (VERSION.includes('dev') || VERSION.includes('beta') || VERSION.includes('test') || process.env.YTDL_DEBUG) {
+        if (VERSION.includes('dev') || VERSION.includes('beta') || VERSION.includes('test') || this.logDisplay.includes('debug')) {
             console.log(this.convertMessage('<debug>[  DEBUG  ]:</debug>'), ...this.convertMessages(messages));
         }
     }
 
     public static info(...messages: Array<any>) {
-        console.info(this.convertMessage('<info>[  INFO!  ]:</info>'), ...this.convertMessages(messages));
+        if (this.logDisplay.includes('info')) {
+            console.info(this.convertMessage('<info>[  INFO!  ]:</info>'), ...this.convertMessages(messages));
+        }
     }
 
     public static success(...messages: Array<any>) {
-        console.log(this.convertMessage('<success>[ SUCCESS ]:</success>'), ...this.convertMessages(messages));
+        if (this.logDisplay.includes('success')) {
+            console.log(this.convertMessage('<success>[ SUCCESS ]:</success>'), ...this.convertMessages(messages));
+        }
     }
 
     public static warning(...messages: Array<any>) {
-        console.warn(this.convertMessage('<warning>[ WARNING ]:</warning>'), ...this.convertMessages(messages));
+        if (this.logDisplay.includes('warning')) {
+            console.warn(this.convertMessage('<warning>[ WARNING ]:</warning>'), ...this.convertMessages(messages));
+        }
     }
 
     public static error(...messages: Array<any>) {
-        console.error(this.convertMessage('<error>[  ERROR  ]:</error>'), ...this.convertMessages(messages));
+        if (this.logDisplay.includes('error')) {
+            console.error(this.convertMessage('<error>[  ERROR  ]:</error>'), ...this.convertMessages(messages));
+        }
     }
 }

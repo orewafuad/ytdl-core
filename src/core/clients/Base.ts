@@ -1,10 +1,9 @@
-import type { YTDL_GetInfoOptions } from '@/types/Options';
-import { YT_PlayerApiResponse, YTDL_InnertubeResponseInfo } from '@/types/youtube';
+import type { YTDL_GetInfoOptions, YT_PlayerApiResponse, YTDL_InnertubeResponseInfo } from '@/types';
 
 import { PlayerRequestError, UnrecoverableError } from '@/core/errors';
-import Fetcher from '@/core/Fetcher';
+import { Fetcher } from '@/core/Fetcher';
 
-import type { YTDL_ClientsParams } from '@/meta/Clients';
+import type { YTDL_ClientsParams } from '@/utils/Clients';
 
 export default class Base {
     private static playError(playerResponse: YT_PlayerApiResponse | null): Error | null {
@@ -71,7 +70,7 @@ export default class Base {
                     }
 
                     if (!IS_NEXT_API && (!response.videoDetails || params.videoId !== response.videoDetails.videoId)) {
-                        const ERROR = new PlayerRequestError('Malformed response from YouTube');
+                        const ERROR = new PlayerRequestError('Malformed response from YouTube', response, null);
                         ERROR.response = response;
 
                         return reject({

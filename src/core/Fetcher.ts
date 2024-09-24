@@ -1,4 +1,4 @@
-import { request as undiciRequest } from 'undici';
+import { fetch, RequestInit, request as undiciRequest } from 'undici';
 
 import { YTDL_RequestOptions } from '@/types/Options';
 
@@ -25,7 +25,7 @@ function getCaller() {
     return 'Unknown';
 }
 
-export default class Fetcher {
+class Fetcher {
     static async request<T = unknown>(url: string, { requestOptions, rewriteRequest, originalProxy }: YTDL_RequestOptions = {}): Promise<T> {
         if (typeof rewriteRequest === 'function') {
             const WROTE_REQUEST = rewriteRequest(url, requestOptions, { isDownloadUrl: false });
@@ -66,3 +66,5 @@ export default class Fetcher {
         throw ERROR;
     }
 }
+
+export { Fetcher };

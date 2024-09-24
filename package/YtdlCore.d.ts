@@ -1,36 +1,27 @@
 type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
     debug?: boolean;
+    logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'>;
 };
-import { PassThrough } from 'stream';
-import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions } from './types/Options';
-import { YTDL_VideoInfo } from './types/Ytdl';
-import { YTDL_Agent } from './types/Agent';
-import { YTDL_Hreflang } from './types/Language';
-import { getBasicInfo, getFullInfo, getInfo } from './core/Info';
-import { createAgent, createProxyAgent } from './core/Agent';
+import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_ClientTypes, YTDL_Agent, YTDL_Hreflang, YTDL_GeoCountry, YTDL_VideoInfo } from './types';
 import { OAuth2 } from './core/OAuth2';
-import { YTDL_ClientTypes } from './meta/Clients';
-import Url from './utils/Url';
-import { chooseFormat, filterFormats } from './utils/Format';
-declare function downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;
-declare function download(link: string, options?: YTDL_DownloadOptions): PassThrough;
+import { Url } from './utils/Url';
+import { FormatUtils } from './utils/Format';
 declare class YtdlCore {
-    static download: typeof download;
-    static downloadFromInfo: typeof downloadFromInfo;
-    static getBasicInfo: typeof getBasicInfo;
-    /** @deprecated */
-    static getInfo: typeof getInfo;
-    static getFullInfo: typeof getFullInfo;
-    static chooseFormat: typeof chooseFormat;
-    static filterFormats: typeof filterFormats;
+    static download: any;
+    static downloadFromInfo: any;
+    static getBasicInfo: any;
+    static getFullInfo: any;
+    static search: any;
+    static chooseFormat: typeof FormatUtils.chooseFormat;
+    static filterFormats: typeof FormatUtils.filterFormats;
     static validateID: typeof Url.validateID;
     static validateURL: typeof Url.validateURL;
     static getURLVideoID: typeof Url.getURLVideoID;
     static getVideoID: typeof Url.getVideoID;
-    static createAgent: typeof createAgent;
-    static createProxyAgent: typeof createProxyAgent;
-    static OAuth2: typeof OAuth2;
-    lang: YTDL_Hreflang;
+    static createAgent: any;
+    static createProxyAgent: any;
+    hl: YTDL_Hreflang;
+    gl: YTDL_GeoCountry;
     requestOptions: any;
     rewriteRequest: YTDL_GetInfoOptions['rewriteRequest'];
     agent: YTDL_Agent | undefined;
@@ -49,7 +40,7 @@ declare class YtdlCore {
     quality: YTDL_ChooseFormatOptions['quality'] | undefined;
     filter: YTDL_ChooseFormatOptions['filter'] | undefined;
     excludingClients: Array<YTDL_ClientTypes>;
-    includingClients: Array<YTDL_ClientTypes> | 'all';
+    includingClients: Array<YTDL_ClientTypes>;
     range: YTDL_DownloadOptions['range'] | undefined;
     begin: YTDL_DownloadOptions['begin'] | undefined;
     liveBuffer: YTDL_DownloadOptions['liveBuffer'] | undefined;
@@ -64,15 +55,11 @@ declare class YtdlCore {
     private initializeHtml5PlayerCache;
     constructor({ lang, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache }?: YTDL_Constructor);
     private setupOptions;
-    download(link: string, options?: YTDL_DownloadOptions): PassThrough;
-    downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): PassThrough;
+    download(link: string, options?: YTDL_DownloadOptions): any;
+    downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): any;
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
-    getBasicInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
-    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.)
-     * @deprecated
-     */
-    getInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
+    getBasicInfo(link: string, options?: YTDL_DownloadOptions): any;
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
-    getFullInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
+    getFullInfo(link: string, options?: YTDL_DownloadOptions): any;
 }
 export { YtdlCore };

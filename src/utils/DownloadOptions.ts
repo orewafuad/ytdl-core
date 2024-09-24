@@ -1,26 +1,26 @@
 import { YTDL_DownloadOptions } from '@/types/Options';
 
-import AGENT from '@/core/Agent';
+import { Agent } from '@/core/Agent';
 
 import { Logger } from './Log';
-import UserAgent from './UserAgents';
+import { UserAgent } from './UserAgents';
 import { getPropInsensitive } from './Utils';
-import IP from './IP';
+import { IP } from './IP';
 
 let oldCookieWarning = true,
     oldDispatcherWarning = true,
     oldLocalAddressWarning = true,
     oldIpRotationsWarning = true;
 
-export default class DownloadOptionsUtils {
+export class DownloadOptionsUtils {
     static applyDefaultAgent(options: YTDL_DownloadOptions) {
         if (!options.agent) {
-            const { jar } = AGENT.defaultAgent,
+            const { jar } = Agent.defaultAgent,
                 COOKIE = getPropInsensitive<string>(options?.requestOptions?.headers, 'cookie');
 
             if (COOKIE) {
                 jar.removeAllCookiesSync();
-                AGENT.addCookiesFromString(jar, COOKIE);
+                Agent.addCookiesFromString(jar, COOKIE);
 
                 if (oldCookieWarning) {
                     oldCookieWarning = false;
@@ -33,7 +33,7 @@ export default class DownloadOptionsUtils {
                 Logger.warning('Your dispatcher is overridden by `ytdl.Agent`. To implement your own, check out the documentation. (https://github.com/ybd-project/ytdl-core#how-to-implement-ytdlagent-with-your-own-dispatcher)');
             }
 
-            options.agent = AGENT.defaultAgent;
+            options.agent = Agent.defaultAgent;
         }
     }
 
@@ -44,7 +44,7 @@ export default class DownloadOptionsUtils {
             return;
         }
 
-        options.agent = AGENT.createAgent(undefined, {
+        options.agent = Agent.createAgent(undefined, {
             localAddress: REQUEST_OPTION_LOCAL_ADDRESS,
         });
 

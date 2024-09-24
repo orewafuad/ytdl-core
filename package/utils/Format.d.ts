@@ -1,15 +1,9 @@
-import { YTDL_VideoFormat } from '../types/Ytdl';
-import { YTDL_ChooseFormatOptions } from '../types/Options';
-import { YT_StreamingAdaptiveFormat } from '../types/youtube';
-declare function sortFormats(a: Object, b: Object): number;
-declare function filterFormats(formats: Array<YTDL_VideoFormat>, filter?: YTDL_ChooseFormatOptions['filter']): Array<YTDL_VideoFormat>;
-declare function chooseFormat(formats: Array<YTDL_VideoFormat>, options: YTDL_ChooseFormatOptions): YTDL_VideoFormat;
-declare function addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOriginalFormatData: boolean): YTDL_VideoFormat;
-export { sortFormats, filterFormats, chooseFormat, addFormatMeta };
-declare const _default: {
-    sortFormats: typeof sortFormats;
-    filterFormats: typeof filterFormats;
-    chooseFormat: typeof chooseFormat;
-    addFormatMeta: typeof addFormatMeta;
-};
-export default _default;
+import { YT_StreamingAdaptiveFormat, YTDL_ClientTypes, YTDL_VideoFormat, YTDL_ChooseFormatOptions } from '@/types';
+declare class FormatUtils {
+    static sortFormats(a: Object, b: Object): number;
+    static filterFormats(formats: Array<YTDL_VideoFormat>, filter?: YTDL_ChooseFormatOptions['filter']): Array<YTDL_VideoFormat>;
+    static chooseFormat(formats: Array<YTDL_VideoFormat>, options: YTDL_ChooseFormatOptions): YTDL_VideoFormat;
+    static getClientName(url: string): YTDL_ClientTypes | 'unknown';
+    static addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOriginalFormatData: boolean): YTDL_VideoFormat;
+}
+export { FormatUtils };

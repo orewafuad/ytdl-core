@@ -1,7 +1,10 @@
-export default class Url {
+declare class Url {
     static getBaseUrl(): string;
+    static getPlayerJsUrl(playerId: string): string;
     static getWatchPageUrl(id: string): string;
     static getEmbedUrl(id: string): string;
+    static getIframeApiUrl(): string;
+    static getInnertubeBaseUrl(): string;
     static getTvUrl(): string;
     static getRefreshTokenApiUrl(): string;
     static validateID(id: string): boolean;
@@ -9,3 +12,4 @@ export default class Url {
     static getVideoID(str: string): string;
     static validateURL(str: string): boolean;
 }
+export { Url };

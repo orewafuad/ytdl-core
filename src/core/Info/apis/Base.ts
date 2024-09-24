@@ -1,5 +1,4 @@
-import { YTDL_ClientTypes } from '@/meta/Clients';
-import { YT_NextApiResponse, YT_PlayerApiResponse, YTDL_InnertubeResponseInfo } from '@/types/youtube';
+import { YT_NextApiResponse, YT_PlayerApiResponse, YTDL_InnertubeResponseInfo, YTDL_ClientTypes } from '@/types';
 import { Logger } from '@/utils/Log';
 
 export default class ApiBase {
@@ -14,13 +13,13 @@ export default class ApiBase {
 
                 return Object.assign({}, res.value) as YTDL_InnertubeResponseInfo<T>;
             } else {
-                const REASON = res.reason as YTDL_InnertubeResponseInfo<T> || {};
+                const REASON = (res.reason as YTDL_InnertubeResponseInfo<T>) || {};
                 Logger.debug(`[ ${client} ]: <error>Error</error>\nReason: ${REASON.error?.message || REASON.error?.toString()}`);
 
                 return REASON;
             }
         } catch (err) {
-            return (res as any || {})?.reason as YTDL_InnertubeResponseInfo<T>;
+            return ((res as any) || {})?.reason as YTDL_InnertubeResponseInfo<T>;
         }
     }
 }

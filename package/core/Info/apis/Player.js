@@ -14,9 +14,9 @@ var CLIENTS_NUMBER;
     CLIENTS_NUMBER[CLIENTS_NUMBER["MWEB"] = 6] = "MWEB";
     CLIENTS_NUMBER[CLIENTS_NUMBER["TV"] = 7] = "TV";
 })(CLIENTS_NUMBER || (CLIENTS_NUMBER = {}));
-const clients_1 = require("../../../core/clients");
-const errors_1 = require("../../../core/errors");
-const Log_1 = require("../../../utils/Log");
+const clients_1 = require("@/core/clients");
+const errors_1 = require("@/core/errors");
+const Log_1 = require("@/utils/Log");
 const Base_1 = __importDefault(require("./Base"));
 const CONTINUES_NOT_POSSIBLE_ERRORS = ['This video is private'];
 class PlayerApi {

@@ -2,11 +2,11 @@ type NextApiResponses = {
     web: YT_NextApiResponse | null;
 };
 
-import { YT_NextApiResponse } from '@/types/youtube';
+import { YT_NextApiResponse } from '@/types';
 
 import { Web } from '@/core/clients';
 
-import { YTDL_ClientsParams } from '@/meta/Clients';
+import { YTDL_ClientsParams } from '@/utils/Clients';
 
 import ApiBase from './Base';
 

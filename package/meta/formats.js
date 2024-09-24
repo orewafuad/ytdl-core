@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.FORMATS = void 0;
 const FORMATS = {
     5: {
         mimeType: 'video/flv; codecs="Sorenson H.283, mp3"',
@@ -482,5 +483,5 @@ const FORMATS = {
         audioBitrate: null,
     },
 };
-exports.default = FORMATS;
+exports.FORMATS = FORMATS;
 //# sourceMappingURL=formats.js.map

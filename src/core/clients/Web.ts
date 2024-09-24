@@ -1,4 +1,4 @@
-import { Clients, YTDL_ClientsParams } from '@/meta/Clients';
+import { Clients, YTDL_ClientsParams } from '@/utils/Clients';
 import Base from './Base';
 
 export default class Web {

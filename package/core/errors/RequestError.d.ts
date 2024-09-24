@@ -1,4 +1,4 @@
 export default class RequestError extends Error {
     statusCode: number;
-    constructor(message: string);
+    constructor(message: string, statusCode?: number);
 }

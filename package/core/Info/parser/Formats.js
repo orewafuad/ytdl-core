@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.FormatParser = void 0;
 const sax_1 = __importDefault(require("sax"));
-const Fetcher_1 = __importDefault(require("../../../core/Fetcher"));
-const Url_1 = __importDefault(require("../../../utils/Url"));
-class Formats {
+const Fetcher_1 = require("@/core/Fetcher");
+const Url_1 = require("@/utils/Url");
+class FormatParser {
     static parseFormats(playerResponse) {
         let formats = [];
         if (playerResponse && playerResponse.streamingData) {
@@ -15,7 +16,7 @@ class Formats {
         return formats;
     }
     static async getM3U8(url, options) {
-        const _URL = new URL(url, Url_1.default.getBaseUrl()), BODY = await Fetcher_1.default.request(_URL.toString(), options), FORMATS = {};
+        const _URL = new URL(url, Url_1.Url.getBaseUrl()), BODY = await Fetcher_1.Fetcher.request(_URL.toString(), options), FORMATS = {};
         BODY.split('\n')
             .filter((line) => /^https?:\/\//.test(line))
             .forEach((line) => {
@@ -64,7 +65,7 @@ class Formats {
             PARSER.onend = () => {
                 resolve(FORMATS);
             };
-            Fetcher_1.default.request(new URL(url, Url_1.default.getBaseUrl()).toString(), options)
+            Fetcher_1.Fetcher.request(new URL(url, Url_1.Url.getBaseUrl()).toString(), options)
                 .then((res) => {
                 PARSER.write(res);
                 PARSER.close();
@@ -76,14 +77,14 @@ class Formats {
         const STREAMING_DATA = playerResponse && playerResponse.streamingData, MANIFESTS = [];
         if (STREAMING_DATA) {
             if (STREAMING_DATA.dashManifestUrl) {
-                MANIFESTS.push(Formats.getDashManifest(STREAMING_DATA.dashManifestUrl, options));
+                MANIFESTS.push(this.getDashManifest(STREAMING_DATA.dashManifestUrl, options));
             }
             if (STREAMING_DATA.hlsManifestUrl) {
-                MANIFESTS.push(Formats.getM3U8(STREAMING_DATA.hlsManifestUrl, options));
+                MANIFESTS.push(this.getM3U8(STREAMING_DATA.hlsManifestUrl, options));
             }
         }
         return MANIFESTS;
     }
 }
-exports.default = Formats;
+exports.FormatParser = FormatParser;
 //# sourceMappingURL=Formats.js.map

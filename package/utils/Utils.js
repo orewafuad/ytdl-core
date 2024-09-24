@@ -1,7 +1,4 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.lastUpdateCheck = void 0;
 exports.between = between;
@@ -10,14 +7,12 @@ exports.parseAbbreviatedNumber = parseAbbreviatedNumber;
 exports.cutAfterJS = cutAfterJS;
 exports.deprecate = deprecate;
 exports.checkForUpdates = checkForUpdates;
-exports.saveDebugFile = saveDebugFile;
 exports.getPropInsensitive = getPropInsensitive;
 exports.setPropInsensitive = setPropInsensitive;
 exports.generateClientPlaybackNonce = generateClientPlaybackNonce;
-const fs_1 = require("fs");
-const Fetcher_1 = __importDefault(require("../core/Fetcher"));
-const constants_1 = require("../utils/constants");
-const Log_1 = require("../utils/Log");
+const Fetcher_1 = require("@/core/Fetcher");
+const Constants_1 = require("@/utils/Constants");
+const Log_1 = require("@/utils/Log");
 const ESCAPING_SEQUENCE = [
     { start: '"', end: '"' },
     { start: "'", end: "'" },
@@ -148,11 +143,6 @@ function deprecate(obj, prop, value, oldPath, newPath) {
         },
     });
 }
-function saveDebugFile(name, body) {
-    const FILENAME = `${+new Date()}-${name}`;
-    (0, fs_1.writeFileSync)(FILENAME, body);
-    return FILENAME;
-}
 function getPropInsensitive(obj, prop) {
     const KEY = findPropKeyInsensitive(obj, prop);
     return KEY && obj[KEY];
@@ -175,11 +165,11 @@ function checkForUpdates() {
     if (!YTDL_NO_UPDATE && Date.now() - lastUpdateCheck >= UPDATE_INTERVAL) {
         exports.lastUpdateCheck = lastUpdateCheck = Date.now();
         const GITHUB_URL = 'https://api.github.com/repos/ybd-project/ytdl-core/contents/package.json';
-        return Fetcher_1.default.request(GITHUB_URL, {
+        return Fetcher_1.Fetcher.request(GITHUB_URL, {
             requestOptions: { headers: { 'User-Agent': 'Chromium";v="112", "Microsoft Edge";v="112", "Not:A-Brand";v="99' } },
         }).then((response) => {
             const BUFFER = Buffer.from(response.content, response.encoding), PKG_FILE = JSON.parse(BUFFER.toString('ascii'));
-            if (PKG_FILE.version !== constants_1.VERSION && updateWarnTimes++ < 5) {
+            if (PKG_FILE.version !== Constants_1.VERSION && updateWarnTimes++ < 5) {
                 Log_1.Logger.warning('@ybd-project/ytdl-core is out of date! Update with "npm install @ybd-project/ytdl-core@latest".');
             }
         }, (err) => {
@@ -189,5 +179,5 @@ function checkForUpdates() {
     }
     return null;
 }
-exports.default = { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, saveDebugFile, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+exports.default = { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
 //# sourceMappingURL=Utils.js.map

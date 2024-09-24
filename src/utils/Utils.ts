@@ -1,8 +1,6 @@
-import { writeFileSync } from 'fs';
+import { Fetcher } from '@/core/Fetcher';
 
-import Fetcher from '@/core/Fetcher';
-
-import { VERSION } from '@/utils/constants';
+import { VERSION } from '@/utils/Constants';
 import { Logger } from '@/utils/Log';
 
 /* Private Constants */
@@ -176,13 +174,6 @@ function deprecate(obj: Object, prop: string, value: Object, oldPath: string, ne
     });
 }
 
-function saveDebugFile(name: string, body: any): string {
-    const FILENAME = `${+new Date()}-${name}`;
-    writeFileSync(FILENAME, body);
-
-    return FILENAME;
-}
-
 function getPropInsensitive<T = unknown>(obj: any, prop: string): T {
     const KEY = findPropKeyInsensitive(obj, prop);
     return KEY && obj[KEY];
@@ -231,5 +222,5 @@ function checkForUpdates() {
     return null;
 }
 
-export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, saveDebugFile, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
-export default { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, saveDebugFile, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+export default { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };

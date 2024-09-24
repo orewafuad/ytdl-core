@@ -4,9 +4,13 @@ const BASE_URL = 'https://www.youtube.com',
     VALID_QUERY_DOMAINS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'gaming.youtube.com']),
     VALID_PATH_DOMAINS = /^https?:\/\/(youtu\.be\/|(www\.)?youtube\.com\/(embed|v|shorts|live)\/)/;
 
-export default class Url {
+class Url {
     static getBaseUrl() {
         return BASE_URL;
+    }
+
+    static getPlayerJsUrl(playerId: string) {
+        return `${BASE_URL}/s/player/${playerId}/player_ias.vflset/en_US/base.js`;
     }
 
     static getWatchPageUrl(id: string) {
@@ -15,6 +19,14 @@ export default class Url {
 
     static getEmbedUrl(id: string) {
         return `${BASE_URL}/embed/${id}`;
+    }
+
+    static getIframeApiUrl() {
+        return `${BASE_URL}/iframe_api`;
+    }
+
+    static getInnertubeBaseUrl() {
+        return `${BASE_URL}/youtubei/v1`;
     }
 
     static getTvUrl() {
@@ -73,3 +85,5 @@ export default class Url {
         }
     }
 }
+
+export { Url };

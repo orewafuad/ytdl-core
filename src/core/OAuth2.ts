@@ -7,32 +7,44 @@ interface RefreshApiResponse {
 
 import { fetch } from 'undici';
 
-import { YTDL_OAuth2ClientData, YTDL_OAuth2Credentials } from '@/types/Options';
+import { YTDL_OAuth2ClientData, YTDL_OAuth2Credentials, YTDL_ProxyOptions } from '@/types/Options';
+
+import { Platform } from '@/platforms/Platform';
 
 import { Logger } from '@/utils/Log';
-import Url from '@/utils/Url';
-import UserAgent from '@/utils/UserAgents';
+import { Url } from '@/utils/Url';
+import { UserAgent } from '@/utils/UserAgents';
 
 import { Web } from './clients';
-import { FileCache } from './Cache';
 
 /* Reference: LuanRT/YouTube.js */
-const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') };
+const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') },
+    FileCache = Platform.getShim().fileCache;
 
 export class OAuth2 {
+    private proxyOptions?: YTDL_ProxyOptions;
+
     public isEnabled: boolean = false;
+    public credentials: YTDL_OAuth2Credentials = {
+        accessToken: '',
+        refreshToken: '',
+        expiryDate: '',
+    };
     public accessToken: string = '';
     public refreshToken: string = '';
     public expiryDate: string = '';
     public clientId?: string;
     public clientSecret?: string;
 
-    constructor(credentials?: YTDL_OAuth2Credentials) {
+    constructor(credentials: YTDL_OAuth2Credentials | null, proxyOptions: YTDL_ProxyOptions) {
         if (!credentials) {
+            this.isEnabled = false;
             return;
         }
+        this.proxyOptions = proxyOptions;
 
         this.isEnabled = true;
+        this.credentials = credentials;
         this.accessToken = credentials.accessToken;
         this.refreshToken = credentials.refreshToken;
         this.expiryDate = credentials.expiryDate;
@@ -52,17 +64,21 @@ export class OAuth2 {
 
     private async availableTokenCheck() {
         try {
+            const HTML5_PLAYER_CACHE = await FileCache.get<{ signatureTimestamp: string }>('html5Player');
+
             Web.getPlayerResponse({
                 videoId: 'dQw4w9WgXcQ',
-                signatureTimestamp: parseInt(FileCache.get<{ signatureTimestamp: string }>('html5Player')?.signatureTimestamp || '0') || 0,
+                signatureTimestamp: parseInt(HTML5_PLAYER_CACHE?.signatureTimestamp || '0') || 0,
                 options: {
                     oauth2: this,
                 },
-            }).then(() => Logger.debug('The specified OAuth2 token is valid.')).catch((err) => {
-                if (err.error.message.includes('401')) {
-                    this.error('Request using the specified token failed (Web Client). Generating the token again may fix the problem.');
-                }
-            });
+            })
+                .then(() => Logger.debug('The specified OAuth2 token is valid.'))
+                .catch((err) => {
+                    if (err.error.message.includes('401')) {
+                        this.error('Request using the specified token failed (Web Client). Generating the token again may fix the problem.');
+                    }
+                });
         } catch (err: any) {
             if ((err.message || err.error.message).includes('401')) {
                 this.error('Request using the specified token failed (Web Client). Generating the token again may fix the problem.');
@@ -77,7 +93,7 @@ export class OAuth2 {
     }
 
     private async getClientData(): Promise<YTDL_OAuth2ClientData | null> {
-        const OAUTH2_CACHE = FileCache.get<YTDL_OAuth2Credentials>('oauth2') || ({} as any);
+        const OAUTH2_CACHE = (await FileCache.get<YTDL_OAuth2Credentials>('oauth2')) || ({} as any);
 
         if (OAUTH2_CACHE.clientData?.clientId && OAUTH2_CACHE.clientData?.clientSecret) {
             return {
@@ -193,5 +209,9 @@ export class OAuth2 {
 
     getAccessToken(): string {
         return this.accessToken;
+    }
+
+    getCredentials(): YTDL_OAuth2Credentials {
+        return this.credentials;
     }
 }

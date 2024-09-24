@@ -6,4 +6,4 @@ type YTDL_FormatData = {
     audioBitrate: number | null;
 };
 declare const FORMATS: Record<number, YTDL_FormatData>;
-export default FORMATS;
+export { FORMATS };

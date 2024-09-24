@@ -7,13 +7,12 @@ declare function parseAbbreviatedNumber(string: string): number | null;
 declare function cutAfterJS(mixedJson: string): string;
 /** Temporary helper to help deprecating a few properties. */
 declare function deprecate(obj: Object, prop: string, value: Object, oldPath: string, newPath: string): void;
-declare function saveDebugFile(name: string, body: any): string;
 declare function getPropInsensitive<T = unknown>(obj: any, prop: string): T;
 declare function setPropInsensitive(obj: any, prop: string, value: any): string | null;
 declare function generateClientPlaybackNonce(length: number): string;
 declare let lastUpdateCheck: number;
 declare function checkForUpdates(): Promise<void> | null;
-export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, saveDebugFile, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
 declare const _default: {
     between: typeof between;
     tryParseBetween: typeof tryParseBetween;
@@ -22,7 +21,6 @@ declare const _default: {
     deprecate: typeof deprecate;
     lastUpdateCheck: number;
     checkForUpdates: typeof checkForUpdates;
-    saveDebugFile: typeof saveDebugFile;
     getPropInsensitive: typeof getPropInsensitive;
     setPropInsensitive: typeof setPropInsensitive;
     generateClientPlaybackNonce: typeof generateClientPlaybackNonce;

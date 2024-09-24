@@ -1,27 +1,32 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OAuth2 = void 0;
 const undici_1 = require("undici");
-const Log_1 = require("../utils/Log");
-const Url_1 = __importDefault(require("../utils/Url"));
-const UserAgents_1 = __importDefault(require("../utils/UserAgents"));
+const Platform_1 = require("@/platforms/Platform");
+const Log_1 = require("@/utils/Log");
+const Url_1 = require("@/utils/Url");
+const UserAgents_1 = require("@/utils/UserAgents");
 const clients_1 = require("./clients");
-const Cache_1 = require("./Cache");
 /* Reference: LuanRT/YouTube.js */
-const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') };
+const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') }, FileCache = Platform_1.Platform.getShim().fileCache;
 class OAuth2 {
-    constructor(credentials) {
+    constructor(credentials, proxyOptions) {
         this.isEnabled = false;
+        this.credentials = {
+            accessToken: '',
+            refreshToken: '',
+            expiryDate: '',
+        };
         this.accessToken = '';
         this.refreshToken = '';
         this.expiryDate = '';
         if (!credentials) {
+            this.isEnabled = false;
             return;
         }
+        this.proxyOptions = proxyOptions;
         this.isEnabled = true;
+        this.credentials = credentials;
         this.accessToken = credentials.accessToken;
         this.refreshToken = credentials.refreshToken;
         this.expiryDate = credentials.expiryDate;
@@ -36,17 +41,20 @@ class OAuth2 {
         else {
             this.availableTokenCheck();
         }
-        Cache_1.FileCache.set('oauth2', JSON.stringify(credentials));
+        FileCache.set('oauth2', JSON.stringify(credentials));
     }
     async availableTokenCheck() {
         try {
+            const HTML5_PLAYER_CACHE = await FileCache.get('html5Player');
             clients_1.Web.getPlayerResponse({
                 videoId: 'dQw4w9WgXcQ',
-                signatureTimestamp: parseInt(Cache_1.FileCache.get('html5Player')?.signatureTimestamp || '0') || 0,
+                signatureTimestamp: parseInt(HTML5_PLAYER_CACHE?.signatureTimestamp || '0') || 0,
                 options: {
                     oauth2: this,
                 },
-            }).then(() => Log_1.Logger.debug('The specified OAuth2 token is valid.')).catch((err) => {
+            })
+                .then(() => Log_1.Logger.debug('The specified OAuth2 token is valid.'))
+                .catch((err) => {
                 if (err.error.message.includes('401')) {
                     this.error('Request using the specified token failed (Web Client). Generating the token again may fix the problem.');
                 }
@@ -64,17 +72,17 @@ class OAuth2 {
         this.isEnabled = false;
     }
     async getClientData() {
-        const OAUTH2_CACHE = Cache_1.FileCache.get('oauth2') || {};
+        const OAUTH2_CACHE = (await FileCache.get('oauth2')) || {};
         if (OAUTH2_CACHE.clientData?.clientId && OAUTH2_CACHE.clientData?.clientSecret) {
             return {
                 clientId: OAUTH2_CACHE.clientData.clientId,
                 clientSecret: OAUTH2_CACHE.clientData.clientSecret,
             };
         }
-        const YT_TV_RESPONSE = await (0, undici_1.fetch)(Url_1.default.getTvUrl(), {
+        const YT_TV_RESPONSE = await (0, undici_1.fetch)(Url_1.Url.getTvUrl(), {
             headers: {
-                'User-Agent': UserAgents_1.default.tv,
-                Referer: Url_1.default.getTvUrl(),
+                'User-Agent': UserAgents_1.UserAgent.tv,
+                Referer: Url_1.Url.getTvUrl(),
             },
         });
         if (!YT_TV_RESPONSE.ok) {
@@ -84,7 +92,7 @@ class OAuth2 {
         const YT_TV_HTML = await YT_TV_RESPONSE.text(), SCRIPT_PATH = REGEX.tvScript.exec(YT_TV_HTML)?.[1];
         if (SCRIPT_PATH) {
             Log_1.Logger.debug('Found YouTube TV script: ' + SCRIPT_PATH);
-            const SCRIPT_RESPONSE = await (0, undici_1.fetch)(Url_1.default.getBaseUrl() + SCRIPT_PATH);
+            const SCRIPT_RESPONSE = await (0, undici_1.fetch)(Url_1.Url.getBaseUrl() + SCRIPT_PATH);
             if (!SCRIPT_RESPONSE.ok) {
                 this.error('TV script request failed with status code: ' + SCRIPT_RESPONSE.status);
                 return null;
@@ -118,7 +126,7 @@ class OAuth2 {
             }
             this.clientId = data.clientId;
             this.clientSecret = data.clientSecret;
-            Cache_1.FileCache.set('oauth2', JSON.stringify({ accessToken: this.accessToken, refreshToken: this.refreshToken, expiryDate: this.expiryDate, clientData: { clientId: data.clientId, clientSecret: data.clientSecret } }));
+            FileCache.set('oauth2', JSON.stringify({ accessToken: this.accessToken, refreshToken: this.refreshToken, expiryDate: this.expiryDate, clientData: { clientId: data.clientId, clientSecret: data.clientSecret } }));
         }
         if (!this.refreshToken) {
             return this.error('Refresh token is missing, make sure it is specified.');
@@ -129,7 +137,7 @@ class OAuth2 {
                 client_secret: this.clientSecret,
                 refresh_token: this.refreshToken,
                 grant_type: 'refresh_token',
-            }, REFRESH_API_RESPONSE = await (0, undici_1.fetch)(Url_1.default.getRefreshTokenApiUrl(), {
+            }, REFRESH_API_RESPONSE = await (0, undici_1.fetch)(Url_1.Url.getRefreshTokenApiUrl(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -152,6 +160,9 @@ class OAuth2 {
     }
     getAccessToken() {
         return this.accessToken;
+    }
+    getCredentials() {
+        return this.credentials;
     }
 }
 exports.OAuth2 = OAuth2;

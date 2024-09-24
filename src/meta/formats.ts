@@ -489,4 +489,4 @@ const FORMATS: Record<number, YTDL_FormatData> = {
     },
 };
 
-export default FORMATS;
+export { FORMATS };
