@@ -1,16 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OAuth2 = void 0;
-const undici_1 = require("undici");
-const Platform_1 = require("@/platforms/Platform");
-const Log_1 = require("@/utils/Log");
-const Url_1 = require("@/utils/Url");
-const UserAgents_1 = require("@/utils/UserAgents");
+const Platform_1 = require("../platforms/Platform");
+const Log_1 = require("../utils/Log");
+const Url_1 = require("../utils/Url");
+const UserAgents_1 = require("../utils/UserAgents");
 const clients_1 = require("./clients");
+const Fetcher_1 = require("./Fetcher");
 /* Reference: LuanRT/YouTube.js */
 const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') }, FileCache = Platform_1.Platform.getShim().fileCache;
 class OAuth2 {
-    constructor(credentials, proxyOptions) {
+    constructor(credentials) {
         this.isEnabled = false;
         this.credentials = {
             accessToken: '',
@@ -24,7 +24,6 @@ class OAuth2 {
             this.isEnabled = false;
             return;
         }
-        this.proxyOptions = proxyOptions;
         this.isEnabled = true;
         this.credentials = credentials;
         this.accessToken = credentials.accessToken;
@@ -79,11 +78,11 @@ class OAuth2 {
                 clientSecret: OAUTH2_CACHE.clientData.clientSecret,
             };
         }
-        const YT_TV_RESPONSE = await (0, undici_1.fetch)(Url_1.Url.getTvUrl(), {
-            headers: {
-                'User-Agent': UserAgents_1.UserAgent.tv,
-                Referer: Url_1.Url.getTvUrl(),
-            },
+        const HEADERS = {
+            'User-Agent': UserAgents_1.UserAgent.tv,
+            Referer: Url_1.Url.getTvUrl(),
+        }, SHIM = Platform_1.Platform.getShim(), YT_TV_RESPONSE = await Fetcher_1.Fetcher.fetch(Url_1.Url.getTvUrl(), {
+            headers: HEADERS,
         });
         if (!YT_TV_RESPONSE.ok) {
             this.error('Failed to get client data: ' + YT_TV_RESPONSE.status);
@@ -92,7 +91,7 @@ class OAuth2 {
         const YT_TV_HTML = await YT_TV_RESPONSE.text(), SCRIPT_PATH = REGEX.tvScript.exec(YT_TV_HTML)?.[1];
         if (SCRIPT_PATH) {
             Log_1.Logger.debug('Found YouTube TV script: ' + SCRIPT_PATH);
-            const SCRIPT_RESPONSE = await (0, undici_1.fetch)(Url_1.Url.getBaseUrl() + SCRIPT_PATH);
+            const SCRIPT_RESPONSE = await Fetcher_1.Fetcher.fetch(Url_1.Url.getBaseUrl() + SCRIPT_PATH, { headers: HEADERS });
             if (!SCRIPT_RESPONSE.ok) {
                 this.error('TV script request failed with status code: ' + SCRIPT_RESPONSE.status);
                 return null;
@@ -137,7 +136,7 @@ class OAuth2 {
                 client_secret: this.clientSecret,
                 refresh_token: this.refreshToken,
                 grant_type: 'refresh_token',
-            }, REFRESH_API_RESPONSE = await (0, undici_1.fetch)(Url_1.Url.getRefreshTokenApiUrl(), {
+            }, REFRESH_API_RESPONSE = await fetch(Url_1.Url.getRefreshTokenApiUrl(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

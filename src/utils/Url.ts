@@ -65,13 +65,13 @@ class Url {
         return id;
     }
 
-    static getVideoID(str: string): string {
+    static getVideoID(str: string): string | null {
         if (this.validateID(str)) {
             return str;
         } else if (URL_REGEX.test(str.trim())) {
             return this.getURLVideoID(str);
         } else {
-            throw new Error(`No video id found: ${str}`);
+            return null;
         }
     }
 

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const errors_1 = require("@/core/errors");
-const Fetcher_1 = require("@/core/Fetcher");
+const errors_1 = require("../../core/errors");
+const Fetcher_1 = require("../../core/Fetcher");
 class Base {
     static playError(playerResponse) {
         const PLAYABILITY = playerResponse && playerResponse.playabilityStatus;

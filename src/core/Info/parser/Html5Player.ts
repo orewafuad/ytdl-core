@@ -1,4 +1,4 @@
-type Html5PlayerInfo = { playerUrl: string | null; signatureTimestamp: string };
+type Html5PlayerInfo = { playerUrl: string | null; signatureTimestamp: string; playerBody: string | null };
 
 import type { YTDL_GetInfoOptions } from '@/types/Options';
 import { Platform } from '@/platforms/Platform';
@@ -10,7 +10,7 @@ import { Logger } from '@/utils/Log';
 const FileCache = Platform.getShim().fileCache;
 
 function getPlayerId(body: string): string | null {
-    const MATCH = body.match(/player\/([a-zA-Z0-9]+)\//);
+    const MATCH = body.match(/player\\\/([a-zA-Z0-9]+)\\\//);
 
     if (MATCH) {
         return MATCH[1];
@@ -22,15 +22,16 @@ function getPlayerId(body: string): string | null {
 async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5PlayerInfo> {
     const CACHE = await FileCache.get<Html5PlayerInfo>('html5Player');
 
-    if (CACHE) {
+    if (CACHE && CACHE.playerUrl) {
         return {
             playerUrl: CACHE.playerUrl,
             signatureTimestamp: CACHE.signatureTimestamp,
+            playerBody: CACHE.playerBody,
         };
     }
 
-    const PLAYER_BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), options),
-        PLAYER_ID = getPlayerId(PLAYER_BODY);
+    const IFRAME_API_BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), options),
+        PLAYER_ID = getPlayerId(IFRAME_API_BODY);
 
     let playerUrl = PLAYER_ID ? Url.getPlayerJsUrl(PLAYER_ID) : null;
 

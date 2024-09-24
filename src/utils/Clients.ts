@@ -27,13 +27,12 @@ type YTDL_ClientData = {
 type YTDL_ClientsParams = {
     videoId: string;
     signatureTimestamp: number;
-    options: Omit<YTDL_GetInfoOptions, 'oauth2Credentials'> & {
-        oauth2: OAuth2;
-    };
+    options: InternalDownloadOptions;
 };
 
 import type { OAuth2 } from '@/core/OAuth2';
-import type { YTDL_ClientTypes, YTDL_GetInfoOptions } from '@/types';
+import type { YTDL_ClientTypes } from '@/types';
+import { InternalDownloadOptions } from '@/core/types';
 
 import utils from './Utils';
 import { UserAgent } from './UserAgents';
@@ -186,7 +185,7 @@ const INNERTUBE_BASE_API_URL = 'https://www.youtube.com/youtubei/v1',
     };
 
 class Clients {
-    static getAuthorizationHeader(oauth2?: OAuth2) {
+    static getAuthorizationHeader(oauth2?: OAuth2 | null) {
         return oauth2 && oauth2.isEnabled ? { authorization: 'Bearer ' + oauth2.getAccessToken() } : {};
     }
 

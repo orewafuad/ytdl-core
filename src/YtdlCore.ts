@@ -3,8 +3,8 @@ type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
     logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'>;
 };
 
-import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_ClientTypes, YTDL_Agent, YTDL_Hreflang, YTDL_GeoCountry, YTDL_VideoInfo, YTDL_OAuth2Credentials, YTDL_ProxyOptions } from './types';
-import { InternalDownloadOptions } from './core/types';
+import type { YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials, YTDL_ProxyOptions } from './types';
+import type { InternalDownloadOptions } from './core/types';
 
 import { Platform } from './platforms/Platform';
 
@@ -34,28 +34,27 @@ class YtdlCore {
     public static getVideoID = Url.getVideoID;
 
     /* Get Info Options */
-    public hl: YTDL_Hreflang = 'en';
-    public gl: YTDL_GeoCountry = 'US';
+    public hl: YTDL_DownloadOptions['hl'] = 'en';
+    public gl: YTDL_DownloadOptions['gl'] = 'US';
     public rewriteRequest: YTDL_GetInfoOptions['rewriteRequest'];
-    public agent: YTDL_Agent | undefined;
-    public poToken: string | undefined;
-    public disablePoTokenAutoGeneration: boolean = false;
-    public visitorData: string | undefined;
-    public includesPlayerAPIResponse: boolean = false;
-    public includesNextAPIResponse: boolean = false;
-    public includesOriginalFormatData: boolean = false;
-    public includesRelatedVideo: boolean = true;
-    public clients: Array<YTDL_ClientTypes> | undefined;
-    public disableDefaultClients: boolean = false;
+    public poToken: YTDL_DownloadOptions['poToken'];
+    public disablePoTokenAutoGeneration: YTDL_DownloadOptions['disablePoTokenAutoGeneration'] = false;
+    public visitorData: YTDL_DownloadOptions['visitorData'];
+    public includesPlayerAPIResponse: YTDL_DownloadOptions['includesPlayerAPIResponse'] = false;
+    public includesNextAPIResponse: YTDL_DownloadOptions['includesNextAPIResponse'] = false;
+    public includesOriginalFormatData: YTDL_DownloadOptions['includesOriginalFormatData'] = false;
+    public includesRelatedVideo: YTDL_DownloadOptions['includesRelatedVideo'] = true;
+    public clients: YTDL_DownloadOptions['clients'];
+    public disableDefaultClients: YTDL_DownloadOptions['disableDefaultClients'] = false;
     public oauth2: OAuth2 | null = null;
-    public parsesHLSFormat: boolean = false;
-    public originalProxy: YTDL_GetInfoOptions['originalProxy'];
+    public parsesHLSFormat: YTDL_DownloadOptions['parsesHLSFormat'] = false;
+    public originalProxy: YTDL_DownloadOptions['originalProxy'];
 
     /* Format Selection Options */
-    public quality: YTDL_ChooseFormatOptions['quality'] | undefined;
-    public filter: YTDL_ChooseFormatOptions['filter'] | undefined;
-    public excludingClients: Array<YTDL_ClientTypes> = [];
-    public includingClients: Array<YTDL_ClientTypes> | 'all' = 'all';
+    public quality: YTDL_DownloadOptions['quality'] | undefined;
+    public filter: YTDL_DownloadOptions['filter'] | undefined;
+    public excludingClients: YTDL_DownloadOptions['excludingClients'] = [];
+    public includingClients: YTDL_DownloadOptions['includingClients'] = 'all';
 
     /* Download Options */
     public range: YTDL_DownloadOptions['range'] | undefined;
@@ -79,7 +78,7 @@ class YtdlCore {
             this.poToken = PO_TOKEN_CACHE || undefined;
         }
 
-        FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
+        FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 });
     }
 
     private async setVisitorData(visitorData?: string) {
@@ -92,17 +91,17 @@ class YtdlCore {
             this.visitorData = VISITOR_DATA_CACHE || undefined;
         }
 
-        FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
+        FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 });
     }
 
-    private async setOAuth2(oauth2Credentials: YTDL_OAuth2Credentials | null, proxyOptions: YTDL_ProxyOptions) {
+    private async setOAuth2(oauth2Credentials: YTDL_OAuth2Credentials | null) {
         const OAUTH2_CACHE = (await FileCache.get<YTDL_OAuth2Credentials>('oauth2')) || undefined;
 
         try {
             if (oauth2Credentials) {
-                this.oauth2 = new OAuth2(oauth2Credentials, proxyOptions) || undefined;
+                this.oauth2 = new OAuth2(oauth2Credentials) || undefined;
             } else if (OAUTH2_CACHE) {
-                this.oauth2 = new OAuth2(OAUTH2_CACHE, proxyOptions);
+                this.oauth2 = new OAuth2(OAUTH2_CACHE);
             } else {
                 this.oauth2 = null;
             }
@@ -113,7 +112,7 @@ class YtdlCore {
 
     private automaticallyGeneratePoToken() {
         if (!this.poToken && !this.visitorData) {
-            Logger.info('Since PoToken and VisitorData are not specified, they are generated automatically.');
+            Logger.debug('Since PoToken and VisitorData are not specified, they are generated automatically.');
 
             const generatePoToken = Platform.getShim().poToken;
 
@@ -122,8 +121,8 @@ class YtdlCore {
                     this.poToken = poToken;
                     this.visitorData = visitorData;
 
-                    FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
-                    FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
+                    FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 });
+                    FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 });
                 })
                 .catch(() => {});
         }
@@ -138,12 +137,14 @@ class YtdlCore {
         }
     }
 
-    constructor({ hl, gl,rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay }: YTDL_Constructor = {}) {
+    constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay }: YTDL_Constructor = {}) {
         /* Other Options */
         Logger.logDisplay = logDisplay || ['info', 'success', 'warning', 'error'];
         if (fetcher) {
             const SHIM = Platform.getShim();
             SHIM.fetcher = fetcher;
+            SHIM.requestRelated.originalProxy = originalProxy;
+            SHIM.requestRelated.rewriteRequest = rewriteRequest;
             Platform.load(SHIM);
         }
         if (disableFileCache) {
@@ -154,7 +155,6 @@ class YtdlCore {
         this.hl = hl || 'en';
         this.gl = gl || 'US';
         this.rewriteRequest = rewriteRequest || undefined;
-        this.agent = agent || undefined;
         this.disablePoTokenAutoGeneration = disablePoTokenAutoGeneration ?? false;
         this.includesPlayerAPIResponse = includesPlayerAPIResponse ?? false;
         this.includesNextAPIResponse = includesNextAPIResponse ?? false;
@@ -173,11 +173,7 @@ class YtdlCore {
 
         this.setPoToken(poToken);
         this.setVisitorData(visitorData);
-        this.setOAuth2(oauth2Credentials || null, {
-            agent: this.agent,
-            rewriteRequest: this.rewriteRequest,
-            originalProxy: this.originalProxy,
-        });
+        this.setOAuth2(oauth2Credentials || null);
 
         /* Format Selection Options */
         this.quality = quality || undefined;
@@ -210,7 +206,6 @@ class YtdlCore {
         INTERNAL_OPTIONS.hl = options.hl || this.hl;
         INTERNAL_OPTIONS.gl = options.gl || this.gl;
         INTERNAL_OPTIONS.rewriteRequest = options.rewriteRequest || this.rewriteRequest;
-        INTERNAL_OPTIONS.agent = options.agent || this.agent;
         INTERNAL_OPTIONS.poToken = options.poToken || this.poToken;
         INTERNAL_OPTIONS.disablePoTokenAutoGeneration = options.disablePoTokenAutoGeneration || this.disablePoTokenAutoGeneration;
         INTERNAL_OPTIONS.visitorData = options.visitorData || this.visitorData;
@@ -241,11 +236,7 @@ class YtdlCore {
         if (!INTERNAL_OPTIONS.oauth2 && options.oauth2Credentials) {
             Logger.warning('The OAuth2 token should be specified when instantiating the YtdlCore class, not as a function argument.');
 
-            INTERNAL_OPTIONS.oauth2 = new OAuth2(options.oauth2Credentials, {
-                agent: INTERNAL_OPTIONS.agent,
-                rewriteRequest: INTERNAL_OPTIONS.rewriteRequest,
-                originalProxy: INTERNAL_OPTIONS.originalProxy,
-            });
+            INTERNAL_OPTIONS.oauth2 = new OAuth2(options.oauth2Credentials);
         }
 
         return INTERNAL_OPTIONS;

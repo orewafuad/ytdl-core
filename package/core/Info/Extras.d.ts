@@ -1,4 +1,4 @@
-import type { YT_PlayerApiResponse, YT_NextApiResponse, YT_MicroformatRenderer, YTDL_Media, YTDL_Author, YTDL_RelatedVideo, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_Hreflang } from '@/types';
+import type { YT_PlayerApiResponse, YT_NextApiResponse, YT_MicroformatRenderer, YTDL_Media, YTDL_Author, YTDL_RelatedVideo, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_Hreflang } from '../../types';
 export default class InfoExtras {
     static getMedia(info: YT_PlayerApiResponse | null): YTDL_Media | null;
     static getAuthor(info: YT_NextApiResponse | null): YTDL_Author | null;

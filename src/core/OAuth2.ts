@@ -5,8 +5,6 @@ interface RefreshApiResponse {
     expires_in: number;
 }
 
-import { fetch } from 'undici';
-
 import type { YTDL_OAuth2ClientData, YTDL_OAuth2Credentials, YTDL_ProxyOptions } from '@/types/Options';
 
 import { Platform } from '@/platforms/Platform';
@@ -16,14 +14,13 @@ import { Url } from '@/utils/Url';
 import { UserAgent } from '@/utils/UserAgents';
 
 import { Web } from './clients';
+import { Fetcher } from './Fetcher';
 
 /* Reference: LuanRT/YouTube.js */
 const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') },
     FileCache = Platform.getShim().fileCache;
 
 export class OAuth2 {
-    private proxyOptions?: YTDL_ProxyOptions;
-
     public isEnabled: boolean = false;
     public credentials: YTDL_OAuth2Credentials = {
         accessToken: '',
@@ -36,12 +33,11 @@ export class OAuth2 {
     public clientId?: string;
     public clientSecret?: string;
 
-    constructor(credentials: YTDL_OAuth2Credentials | null, proxyOptions: YTDL_ProxyOptions) {
+    constructor(credentials: YTDL_OAuth2Credentials | null) {
         if (!credentials) {
             this.isEnabled = false;
             return;
         }
-        this.proxyOptions = proxyOptions;
 
         this.isEnabled = true;
         this.credentials = credentials;
@@ -102,12 +98,14 @@ export class OAuth2 {
             };
         }
 
-        const YT_TV_RESPONSE = await fetch(Url.getTvUrl(), {
-            headers: {
+        const HEADERS = {
                 'User-Agent': UserAgent.tv,
                 Referer: Url.getTvUrl(),
             },
-        });
+            SHIM = Platform.getShim(),
+            YT_TV_RESPONSE = await Fetcher.fetch(Url.getTvUrl(), {
+                headers: HEADERS,
+            });
 
         if (!YT_TV_RESPONSE.ok) {
             this.error('Failed to get client data: ' + YT_TV_RESPONSE.status);
@@ -120,7 +118,7 @@ export class OAuth2 {
         if (SCRIPT_PATH) {
             Logger.debug('Found YouTube TV script: ' + SCRIPT_PATH);
 
-            const SCRIPT_RESPONSE = await fetch(Url.getBaseUrl() + SCRIPT_PATH);
+            const SCRIPT_RESPONSE = await Fetcher.fetch(Url.getBaseUrl() + SCRIPT_PATH, { headers: HEADERS });
             if (!SCRIPT_RESPONSE.ok) {
                 this.error('TV script request failed with status code: ' + SCRIPT_RESPONSE.status);
                 return null;

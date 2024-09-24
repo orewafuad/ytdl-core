@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { generate } from 'youtube-po-token-generator';
 
 import { Platform } from '@/platforms/Platform';
 import { CacheWithMap, YtdlCore_Cache } from '@/platforms/utils/Classes';
@@ -152,27 +151,10 @@ Platform.load({
     fetcher: fetch,
     poToken: () => {
         return new Promise((resolve) => {
-            try {
-                generate()
-                    .then((data: any) => {
-                        Logger.success('Successfully generated a poToken.');
-                        resolve(data);
-                    })
-                    .catch((err: Error) => {
-                        Logger.error('Failed to generate a poToken.\nDetails: ' + err);
-                        resolve({
-                            poToken: '',
-                            visitorData: '',
-                        });
-                    });
-            } catch (err) {
-                Logger.error('Failed to generate a poToken.\nDetails: ' + err);
-
-                resolve({
-                    poToken: '',
-                    visitorData: '',
-                });
-            }
+            resolve({
+                poToken: '',
+                visitorData: '',
+            });
         });
     },
     default: {
@@ -188,12 +170,12 @@ Platform.load({
             disableFileCache: false,
             parsesHLSFormat: true,
         },
-        proxy: {
-            rewriteRequest: (url, options) => {
-                return { url, options };
-            },
-            originalProxy: null,
+    },
+    requestRelated: {
+        rewriteRequest: (url, options) => {
+            return { url, options };
         },
+        originalProxy: null,
     },
     info: {
         version: VERSION,

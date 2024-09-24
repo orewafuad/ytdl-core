@@ -15,9 +15,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./YouTube"), exports);
-__exportStar(require("./Agent"), exports);
 __exportStar(require("./Clients"), exports);
-__exportStar(require("./Cookie"), exports);
 __exportStar(require("./FileCache"), exports);
 __exportStar(require("./Language"), exports);
 __exportStar(require("./Options"), exports);

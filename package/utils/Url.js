@@ -57,7 +57,7 @@ class Url {
             return this.getURLVideoID(str);
         }
         else {
-            throw new Error(`No video id found: ${str}`);
+            return null;
         }
     }
     static validateURL(str) {

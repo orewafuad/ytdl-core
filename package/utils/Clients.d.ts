@@ -1,14 +1,12 @@
 type YTDL_ClientsParams = {
     videoId: string;
     signatureTimestamp: number;
-    options: Omit<YTDL_GetInfoOptions, 'oauth2Credentials'> & {
-        oauth2: OAuth2;
-    };
+    options: InternalDownloadOptions;
 };
-import type { OAuth2 } from '@/core/OAuth2';
-import type { YTDL_GetInfoOptions } from '@/types';
+import type { OAuth2 } from '../core/OAuth2';
+import { InternalDownloadOptions } from '../core/types';
 declare class Clients {
-    static getAuthorizationHeader(oauth2?: OAuth2): {
+    static getAuthorizationHeader(oauth2?: OAuth2 | null): {
         authorization: string;
     } | {
         authorization?: undefined;

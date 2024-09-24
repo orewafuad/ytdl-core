@@ -1,6 +1,5 @@
-import type { YTDL_OAuth2Credentials, YTDL_ProxyOptions } from '@/types/Options';
+import type { YTDL_OAuth2Credentials } from '../types/Options';
 export declare class OAuth2 {
-    private proxyOptions?;
     isEnabled: boolean;
     credentials: YTDL_OAuth2Credentials;
     accessToken: string;
@@ -8,7 +7,7 @@ export declare class OAuth2 {
     expiryDate: string;
     clientId?: string;
     clientSecret?: string;
-    constructor(credentials: YTDL_OAuth2Credentials | null, proxyOptions: YTDL_ProxyOptions);
+    constructor(credentials: YTDL_OAuth2Credentials | null);
     private availableTokenCheck;
     private error;
     private getClientData;

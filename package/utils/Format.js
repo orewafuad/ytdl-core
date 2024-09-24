@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FormatUtils = void 0;
-const formats_1 = require("@/meta/formats");
+const formats_1 = require("../meta/formats");
 const Utils_1 = __importDefault(require("./Utils"));
 /* Private Constants */
 // Use these to help sort formats, higher index is better.

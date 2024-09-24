@@ -1,9 +1,8 @@
-import * as chrono from 'chrono-node';
-
 import type { YT_CompactVideoRenderer, YT_PlayerApiResponse, YT_NextApiResponse, YT_MicroformatRenderer, YT_VideoSecondaryInfoRenderer, YT_VideoOwnerRenderer, YT_VideoPrimaryInfoRenderer, YTDL_Media, YTDL_Author, YTDL_RelatedVideo, YTDL_Storyboard, YTDL_Chapter, YTDL_VideoDetails, YTDL_Hreflang } from '@/types';
 
 import { Url } from '@/utils/Url';
 import utils from '@/utils/Utils';
+import { Logger } from '@/utils/Log';
 
 /* Reference: m3u8stream/parse-time.js */
 const NUMBER_FORMAT = /^\d+$/,
@@ -101,7 +100,7 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, lang: YTDL_Hreflang
             VIDEO: YTDL_RelatedVideo = {
                 id: details.videoId,
                 title: getText(details.title),
-                published: lang === 'en' ? PUBLISHED_TEXT : getRelativeTime(chrono.parseDate(PUBLISHED_TEXT), lang),
+                published: PUBLISHED_TEXT || null,
                 author: {
                     id: CHANNEL_ID,
                     name: NAME,
@@ -117,7 +116,7 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, lang: YTDL_Hreflang
                 },
                 shortViewCountText: lang === 'en' ? SHORT_VIEW_COUNT_TEXT : FORMATTER.format(parseStringToNumber(SHORT_VIEW_COUNT_TEXT)),
                 viewCount: parseInt(viewCount.replace(/,/g, '')),
-                lengthSeconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1000) : undefined,
+                lengthSeconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1000) : null,
                 thumbnails: details.thumbnail.thumbnails || [],
                 richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails.thumbnails : [],
                 isLive: !!(details.badges && details.badges.find((b) => b.metadataBadgeRenderer.label === 'LIVE NOW')),
@@ -127,6 +126,7 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, lang: YTDL_Hreflang
         utils.deprecate(VIDEO, 'video_thumbnail', VIDEO.thumbnails[0].url, 'relatedVideo.video_thumbnail', 'relatedVideo.thumbnails[0].url');
         return VIDEO;
     } catch (err) {
+        Logger.debug(`<error>Failed</error> to parse related video (ID: ${details?.videoId || 'Unknown'}): <error>${err}</error>`);
         return null;
     }
 }

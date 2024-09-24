@@ -13,7 +13,7 @@ export class CacheWithMap implements YtdlCore_Cache {
     private cache: Map<string, any>;
     private timeouts: Map<string, NodeJS.Timeout>;
 
-    constructor(private ttl: number = 60000) {
+    constructor(private ttl: number = 60) {
         this.cache = new Map();
         this.timeouts = new Map();
     }
@@ -22,7 +22,7 @@ export class CacheWithMap implements YtdlCore_Cache {
         return this.cache.get(key) || null;
     }
 
-    async set(key: string, value: any): Promise<boolean> {
+    async set(key: string, value: any, { ttl }: { ttl: number } = { ttl: this.ttl }): Promise<boolean> {
         this.cache.set(key, value);
 
         if (this.timeouts.has(key)) {
@@ -31,7 +31,7 @@ export class CacheWithMap implements YtdlCore_Cache {
 
         const timeout = setTimeout(() => {
             this.delete(key);
-        }, this.ttl);
+        }, ttl * 1000);
 
         this.timeouts.set(key, timeout);
 

@@ -1,4 +1,4 @@
-import { YTDL_DownloadOptions } from '@/types';
+import { YTDL_DownloadOptions } from '../types';
 import { YtdlCore_Cache } from './utils/Classes';
 interface YtdlCore_Shim {
     runtime: 'default' | 'browser' | 'serverless';
@@ -12,10 +12,10 @@ interface YtdlCore_Shim {
     }>;
     default: {
         options: YTDL_DownloadOptions;
-        proxy: {
-            rewriteRequest: YTDL_DownloadOptions['rewriteRequest'];
-            originalProxy: YTDL_DownloadOptions['originalProxy'] | null;
-        };
+    };
+    requestRelated: {
+        rewriteRequest: YTDL_DownloadOptions['rewriteRequest'];
+        originalProxy: YTDL_DownloadOptions['originalProxy'] | null;
     };
     info: {
         version: string;

@@ -36,6 +36,10 @@
         "./serverless": {
             "types": "./package/types/index.d.ts",
             "default": "./package/Platforms/Serverless/Serverless.js"
+        },
+        "./types": {
+            "types": "./package/types/index.d.ts",
+            "default": "./package/types/index.d.ts"
         }
     },
     "files": [
@@ -48,21 +52,14 @@
         "update": "ncu && ncu -u && npm i",
         "publish:github": "npm run build && npm publish --registry=https://npm.pkg.github.com",
         "publish:npm": "npm run build && npm publish --registry=https://registry.npmjs.org/",
-        "create-node-bundle": "rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --external:chrono-node --external:http-cookie-agent --external:m3u8stream --external:miniget --external:sax --external:tough-cookie --external:undici --external:youtube-po-token-generator --banner:js=\"/* eslint-disable */\"",
-        "create-browser-bundle": "esbuild ./package/Platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser"
+        "create-node-bundle": "rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --banner:js=\"/* eslint-disable */\"",
+        "create-browser-bundle": "esbuild ./package/Platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser --minify"
     },
     "dependencies": {
-        "@ybd-project/ytdl-core": "^5.1.9-2",
-        "chrono-node": "^2.7.7",
-        "http-cookie-agent": "^6.0.5",
-        "ky": "^1.7.2",
-        "m3u8stream": "^0.8.6",
-        "miniget": "^4.2.3",
+        "buffer": "^6.0.3",
         "node-fetch": "^3.3.2",
         "sax": "^1.4.1",
-        "tough-cookie": "^4.1.4",
-        "undici": "^5.19.1",
-        "youtube-po-token-generator": "^0.2.0"
+        "string_decoder": "^1.3.0"
     },
     "devDependencies": {
         "@types/jest": "^29.5.13",
@@ -79,9 +76,17 @@
     "keywords": [
         "youtube",
         "video",
+        "audio",
         "download",
+        "getInfo",
         "ybd-project",
-        "ytdl"
+        "ytdl",
+        "ytdl-core",
+        "secure",
+        "fast",
+        "browser",
+        "serverless",
+        "typescript"
     ],
     "license": "MIT"
 }

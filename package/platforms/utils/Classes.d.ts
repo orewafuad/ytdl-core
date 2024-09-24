@@ -12,7 +12,9 @@ export declare class CacheWithMap implements YtdlCore_Cache {
     private timeouts;
     constructor(ttl?: number);
     get<T = unknown>(key: string): Promise<T | null>;
-    set(key: string, value: any): Promise<boolean>;
+    set(key: string, value: any, { ttl }?: {
+        ttl: number;
+    }): Promise<boolean>;
     has(key: string): Promise<boolean>;
     delete(key: string): Promise<boolean>;
     disable(): void;

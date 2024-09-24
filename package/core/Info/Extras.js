@@ -1,34 +1,11 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const chrono = __importStar(require("chrono-node"));
-const Url_1 = require("@/utils/Url");
-const Utils_1 = __importDefault(require("@/utils/Utils"));
+const Url_1 = require("../../utils/Url");
+const Utils_1 = __importDefault(require("../../utils/Utils"));
+const Log_1 = require("../../utils/Log");
 /* Reference: m3u8stream/parse-time.js */
 const NUMBER_FORMAT = /^\d+$/, TIME_FORMAT = /^(?:(?:(\d+):)?(\d{1,2}):)?(\d{1,2})(?:\.(\d{3}))?$/, TIME_IN_ENG_FORMAT = /(-?\d+)(ms|s|m|h)/g, TIME_UNITS = {
     ms: 1,
@@ -103,7 +80,7 @@ function parseRelatedVideo(details, lang) {
         }), BROWSE_ENDPOINT = details.shortBylineText.runs[0].navigationEndpoint.browseEndpoint, CHANNEL_ID = BROWSE_ENDPOINT.browseId, NAME = getText(details.shortBylineText), USER = (BROWSE_ENDPOINT.canonicalBaseUrl || '').split('/').slice(-1)[0], PUBLISHED_TEXT = getText(details.publishedTimeText), SHORT_VIEW_COUNT_TEXT = shortViewCount.split(' ')[0], VIDEO = {
             id: details.videoId,
             title: getText(details.title),
-            published: lang === 'en' ? PUBLISHED_TEXT : getRelativeTime(chrono.parseDate(PUBLISHED_TEXT), lang),
+            published: PUBLISHED_TEXT || null,
             author: {
                 id: CHANNEL_ID,
                 name: NAME,
@@ -119,7 +96,7 @@ function parseRelatedVideo(details, lang) {
             },
             shortViewCountText: lang === 'en' ? SHORT_VIEW_COUNT_TEXT : FORMATTER.format(parseStringToNumber(SHORT_VIEW_COUNT_TEXT)),
             viewCount: parseInt(viewCount.replace(/,/g, '')),
-            lengthSeconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1000) : undefined,
+            lengthSeconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1000) : null,
             thumbnails: details.thumbnail.thumbnails || [],
             richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails.thumbnails : [],
             isLive: !!(details.badges && details.badges.find((b) => b.metadataBadgeRenderer.label === 'LIVE NOW')),
@@ -129,6 +106,7 @@ function parseRelatedVideo(details, lang) {
         return VIDEO;
     }
     catch (err) {
+        Log_1.Logger.debug(`<error>Failed</error> to parse related video (ID: ${details?.videoId || 'Unknown'}): <error>${err}</error>`);
         return null;
     }
 }

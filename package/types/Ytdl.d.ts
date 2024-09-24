@@ -60,17 +60,6 @@ export type YTDL_VideoDetails = YTDL_VideoDetailsAdditions & {
     isCrawlable: boolean;
     allowRatings: boolean;
     viewCount: number;
-    author: {
-        id: string;
-        name: string;
-        user: string;
-        channelUrl: string;
-        externalChannelUrl: string;
-        userUrl: string;
-        thumbnails: Array<YT_Thumbnail>;
-        subscriberCount: number;
-        verified: boolean;
-    };
     isPrivate: boolean;
     isUnpluggedCorpus: boolean;
     isLiveContent: boolean;
@@ -86,10 +75,10 @@ export type YTDL_RelatedVideo = {
     thumbnails: Array<YT_Thumbnail>;
     richThumbnails: Array<YT_Thumbnail>;
     isLive: boolean;
-    published?: string;
-    shortViewCountText?: string;
-    viewCount?: number;
-    lengthSeconds?: number;
+    published: string | null;
+    shortViewCountText: string | null;
+    viewCount: number | null;
+    lengthSeconds: number | null;
 };
 export type YTDL_VideoFormat = {
     itag: YT_Itag;
@@ -121,6 +110,7 @@ export type YTDL_VideoInfo = {
     relatedVideos: Array<YTDL_RelatedVideo>;
     formats: Array<YTDL_VideoFormat>;
     full: boolean;
+    live_chunk_readahead?: number;
     _metadata: {
         isMinimumMode: boolean;
         clients: Array<YTDL_ClientTypes>;
@@ -131,7 +121,6 @@ export type YTDL_VideoInfo = {
     _ytdl: {
         version: string;
     };
-    live_chunk_readahead?: number;
     _playerApiResponses?: {
         webCreator: YT_PlayerApiResponse | null;
         tvEmbedded: YT_PlayerApiResponse | null;

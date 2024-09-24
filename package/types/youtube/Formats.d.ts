@@ -4,6 +4,8 @@ export type YT_QualityLabel = '144p' | '144p 15fps' | '144p60 HDR' | '240p' | '2
 export type YT_StreamingAdaptiveFormat = {
     itag: YT_Itag;
     url: string;
+    signatureCipher?: string;
+    cipher?: string;
     mimeType?: string;
     bitrate?: number;
     audioBitrate?: number;

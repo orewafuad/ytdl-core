@@ -1,14 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getHtml5Player = getHtml5Player;
-const Platform_1 = require("@/platforms/Platform");
-const Signature_1 = require("@/core/Signature");
-const Fetcher_1 = require("@/core/Fetcher");
-const Url_1 = require("@/utils/Url");
-const Log_1 = require("@/utils/Log");
+const Platform_1 = require("../../../platforms/Platform");
+const Signature_1 = require("../../../core/Signature");
+const Fetcher_1 = require("../../../core/Fetcher");
+const Url_1 = require("../../../utils/Url");
+const Log_1 = require("../../../utils/Log");
 const FileCache = Platform_1.Platform.getShim().fileCache;
 function getPlayerId(body) {
-    const MATCH = body.match(/player\/([a-zA-Z0-9]+)\//);
+    const MATCH = body.match(/player\\\/([a-zA-Z0-9]+)\\\//);
     if (MATCH) {
         return MATCH[1];
     }
@@ -16,13 +16,14 @@ function getPlayerId(body) {
 }
 async function getHtml5Player(options) {
     const CACHE = await FileCache.get('html5Player');
-    if (CACHE) {
+    if (CACHE && CACHE.playerUrl) {
         return {
             playerUrl: CACHE.playerUrl,
             signatureTimestamp: CACHE.signatureTimestamp,
+            playerBody: CACHE.playerBody,
         };
     }
-    const PLAYER_BODY = await Fetcher_1.Fetcher.request(Url_1.Url.getIframeApiUrl(), options), PLAYER_ID = getPlayerId(PLAYER_BODY);
+    const IFRAME_API_BODY = await Fetcher_1.Fetcher.request(Url_1.Url.getIframeApiUrl(), options), PLAYER_ID = getPlayerId(IFRAME_API_BODY);
     let playerUrl = PLAYER_ID ? Url_1.Url.getPlayerJsUrl(PLAYER_ID) : null;
     if (!playerUrl && options.originalProxy) {
         Log_1.Logger.debug('Could not get html5Player using your own proxy. It is retrieved again with its own proxy disabled. (Other requests will not invalidate it.)');

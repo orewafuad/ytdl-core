@@ -10,10 +10,10 @@ interface YtdlCore_Shim {
     poToken: () => Promise<{ poToken: string; visitorData: string }>;
     default: {
         options: YTDL_DownloadOptions;
-        proxy: {
-            rewriteRequest: YTDL_DownloadOptions['rewriteRequest'];
-            originalProxy: YTDL_DownloadOptions['originalProxy'] | null;
-        };
+    };
+    requestRelated: {
+        rewriteRequest: YTDL_DownloadOptions['rewriteRequest'];
+        originalProxy: YTDL_DownloadOptions['originalProxy'] | null;
     };
     info: {
         version: string;

@@ -71,7 +71,7 @@ Platform.load({
             resolve({
                 poToken: '',
                 visitorData: '',
-            })
+            });
         });
     },
     default: {
@@ -87,12 +87,12 @@ Platform.load({
             disableFileCache: false,
             parsesHLSFormat: true,
         },
-        proxy: {
-            rewriteRequest: (url, options) => {
-                return { url, options };
-            },
-            originalProxy: null,
+    },
+    requestRelated: {
+        rewriteRequest: (url, options) => {
+            return { url, options };
         },
+        originalProxy: null,
     },
     info: {
         version: VERSION,

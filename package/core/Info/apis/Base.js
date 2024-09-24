@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Log_1 = require("@/utils/Log");
+const Log_1 = require("../../../utils/Log");
 class ApiBase {
     static checkResponse(res, client) {
         try {

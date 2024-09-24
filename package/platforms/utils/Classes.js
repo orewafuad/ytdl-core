@@ -5,7 +5,7 @@ class YtdlCore_Cache {
 }
 exports.YtdlCore_Cache = YtdlCore_Cache;
 class CacheWithMap {
-    constructor(ttl = 60000) {
+    constructor(ttl = 60) {
         this.ttl = ttl;
         this.cache = new Map();
         this.timeouts = new Map();
@@ -13,14 +13,14 @@ class CacheWithMap {
     async get(key) {
         return this.cache.get(key) || null;
     }
-    async set(key, value) {
+    async set(key, value, { ttl } = { ttl: this.ttl }) {
         this.cache.set(key, value);
         if (this.timeouts.has(key)) {
             clearTimeout(this.timeouts.get(key));
         }
         const timeout = setTimeout(() => {
             this.delete(key);
-        }, this.ttl);
+        }, ttl * 1000);
         this.timeouts.set(key, timeout);
         return true;
     }

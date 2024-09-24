@@ -1,27 +1,47 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Fetcher = void 0;
-const path_1 = __importDefault(require("path"));
-const Platform_1 = require("@/platforms/Platform");
-const Log_1 = require("@/utils/Log");
+const Platform_1 = require("../platforms/Platform");
+const Log_1 = require("../utils/Log");
 const errors_1 = require("./errors");
-const UserAgents_1 = require("@/utils/UserAgents");
-function getCaller() {
-    const ERROR_STACK = new Error().stack || '', STACK_LINES = ERROR_STACK.split('\n'), CALLER_INDEX = STACK_LINES.findIndex((line) => line.includes('getCaller')) + 2;
-    if (STACK_LINES[CALLER_INDEX]) {
-        const FILE_PATH = STACK_LINES[CALLER_INDEX].trim().split(' ')[1];
-        if (!FILE_PATH.includes('C:\\')) {
-            return FILE_PATH;
-        }
-        const PARSED = path_1.default.parse(FILE_PATH);
-        return PARSED.name + PARSED.ext;
-    }
-    return 'Unknown';
-}
+const UserAgents_1 = require("../utils/UserAgents");
 class Fetcher {
+    static async fetch(url, options, noProxyAdaptation = false) {
+        const SHIM = Platform_1.Platform.getShim(), { rewriteRequest, originalProxy } = SHIM.requestRelated;
+        if (!noProxyAdaptation) {
+            if (typeof rewriteRequest === 'function') {
+                const WROTE_REQUEST = rewriteRequest(url, options || {}, { isDownloadUrl: false });
+                options = WROTE_REQUEST.options;
+                url = WROTE_REQUEST.url;
+            }
+            if (originalProxy) {
+                try {
+                    const PARSED = new URL(originalProxy.base);
+                    if (!url.includes(PARSED.host)) {
+                        url = `${PARSED.protocol}//${PARSED.host}/?url=${encodeURIComponent(url)}`;
+                    }
+                }
+                catch { }
+            }
+        }
+        Log_1.Logger.debug(`[ Request ]: <magenta>${options?.method || 'GET'}</magenta> -> ${url}`);
+        const HEADERS = new Headers();
+        if (options?.headers) {
+            Object.entries(options.headers).forEach(([key, value]) => {
+                if (value) {
+                    HEADERS.append(key, value.toString());
+                }
+            });
+        }
+        if (!HEADERS.has('User-Agent')) {
+            HEADERS.append('User-Agent', UserAgents_1.UserAgent.getRandomUserAgent('desktop'));
+        }
+        return await SHIM.fetcher(url, {
+            method: options?.method || 'GET',
+            headers: HEADERS,
+            body: options?.body?.toString(),
+        });
+    }
     static async request(url, { requestOptions, rewriteRequest, originalProxy } = {}) {
         if (typeof rewriteRequest === 'function') {
             const WROTE_REQUEST = rewriteRequest(url, requestOptions || {}, { isDownloadUrl: false });
@@ -37,23 +57,11 @@ class Fetcher {
             }
             catch { }
         }
-        Log_1.Logger.debug(`[ Request ]: <magenta>${requestOptions?.method || 'GET'}</magenta> -> ${url} (From ${getCaller()})`);
-        const HEADERS = new Headers();
-        if (requestOptions?.headers) {
-            Object.entries(requestOptions.headers).forEach(([key, value]) => {
-                if (value) {
-                    HEADERS.append(key, value.toString());
-                }
-            });
-        }
-        if (!HEADERS.has('User-Agent')) {
-            HEADERS.append('User-Agent', UserAgents_1.UserAgent.getRandomUserAgent('desktop'));
-        }
-        const fetcher = Platform_1.Platform.getShim().fetcher, REQUEST_RESULTS = await fetcher(url, {
+        const REQUEST_RESULTS = await this.fetch(url, {
             method: requestOptions?.method || 'GET',
-            headers: HEADERS,
+            headers: requestOptions?.headers,
             body: requestOptions?.body?.toString(),
-        }), STATUS_CODE = REQUEST_RESULTS.status.toString(), LOCATION = REQUEST_RESULTS.headers.get('location') || null;
+        }, true), STATUS_CODE = REQUEST_RESULTS.status.toString(), LOCATION = REQUEST_RESULTS.headers.get('location') || null;
         if (STATUS_CODE.startsWith('2')) {
             const CONTENT_TYPE = REQUEST_RESULTS.headers.get('content-type') || '';
             if (CONTENT_TYPE.includes('application/json')) {

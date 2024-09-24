@@ -5,7 +5,6 @@ const Platform_1 = require("./platforms/Platform");
 const Download_1 = require("./core/Download");
 const Info_1 = require("./core/Info");
 const Html5Player_1 = require("./core/Info/parser/Html5Player");
-const Agent_1 = require("./core/Agent");
 const OAuth2_1 = require("./core/OAuth2");
 const Url_1 = require("./utils/Url");
 const Format_1 = require("./utils/Format");
@@ -26,7 +25,7 @@ class YtdlCore {
             Log_1.Logger.debug('PoToken loaded from cache.');
             this.poToken = PO_TOKEN_CACHE || undefined;
         }
-        FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
+        FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 });
     }
     async setVisitorData(visitorData) {
         const VISITOR_DATA_CACHE = await FileCache.get('visitorData');
@@ -37,16 +36,16 @@ class YtdlCore {
             Log_1.Logger.debug('VisitorData loaded from cache.');
             this.visitorData = VISITOR_DATA_CACHE || undefined;
         }
-        FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
+        FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 });
     }
-    async setOAuth2(oauth2Credentials, proxyOptions) {
+    async setOAuth2(oauth2Credentials) {
         const OAUTH2_CACHE = (await FileCache.get('oauth2')) || undefined;
         try {
             if (oauth2Credentials) {
-                this.oauth2 = new OAuth2_1.OAuth2(oauth2Credentials, proxyOptions) || undefined;
+                this.oauth2 = new OAuth2_1.OAuth2(oauth2Credentials) || undefined;
             }
             else if (OAUTH2_CACHE) {
-                this.oauth2 = new OAuth2_1.OAuth2(OAUTH2_CACHE, proxyOptions);
+                this.oauth2 = new OAuth2_1.OAuth2(OAUTH2_CACHE);
             }
             else {
                 this.oauth2 = null;
@@ -58,14 +57,14 @@ class YtdlCore {
     }
     automaticallyGeneratePoToken() {
         if (!this.poToken && !this.visitorData) {
-            Log_1.Logger.info('Since PoToken and VisitorData are not specified, they are generated automatically.');
+            Log_1.Logger.debug('Since PoToken and VisitorData are not specified, they are generated automatically.');
             const generatePoToken = Platform_1.Platform.getShim().poToken;
             generatePoToken()
                 .then(({ poToken, visitorData }) => {
                 this.poToken = poToken;
                 this.visitorData = visitorData;
-                FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
-                FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
+                FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 });
+                FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 });
             })
                 .catch(() => { });
         }
@@ -77,11 +76,10 @@ class YtdlCore {
             (0, Html5Player_1.getHtml5Player)({});
         }
     }
-    constructor({ hl, gl, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay } = {}) {
+    constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay } = {}) {
         /* Get Info Options */
         this.hl = 'en';
         this.gl = 'US';
-        this.requestOptions = {};
         this.disablePoTokenAutoGeneration = false;
         this.includesPlayerAPIResponse = false;
         this.includesNextAPIResponse = false;
@@ -99,6 +97,8 @@ class YtdlCore {
         if (fetcher) {
             const SHIM = Platform_1.Platform.getShim();
             SHIM.fetcher = fetcher;
+            SHIM.requestRelated.originalProxy = originalProxy;
+            SHIM.requestRelated.rewriteRequest = rewriteRequest;
             Platform_1.Platform.load(SHIM);
         }
         if (disableFileCache) {
@@ -107,9 +107,7 @@ class YtdlCore {
         /* Get Info Options */
         this.hl = hl || 'en';
         this.gl = gl || 'US';
-        this.requestOptions = requestOptions || {};
         this.rewriteRequest = rewriteRequest || undefined;
-        this.agent = agent || undefined;
         this.disablePoTokenAutoGeneration = disablePoTokenAutoGeneration ?? false;
         this.includesPlayerAPIResponse = includesPlayerAPIResponse ?? false;
         this.includesNextAPIResponse = includesNextAPIResponse ?? false;
@@ -126,11 +124,7 @@ class YtdlCore {
         }
         this.setPoToken(poToken);
         this.setVisitorData(visitorData);
-        this.setOAuth2(oauth2Credentials || null, {
-            agent: this.agent,
-            rewriteRequest: this.rewriteRequest,
-            originalProxy: this.originalProxy,
-        });
+        this.setOAuth2(oauth2Credentials || null);
         /* Format Selection Options */
         this.quality = quality || undefined;
         this.filter = filter || undefined;
@@ -156,9 +150,7 @@ class YtdlCore {
         const INTERNAL_OPTIONS = { ...options, oauth2: this.oauth2 };
         INTERNAL_OPTIONS.hl = options.hl || this.hl;
         INTERNAL_OPTIONS.gl = options.gl || this.gl;
-        INTERNAL_OPTIONS.requestOptions = options.requestOptions || this.requestOptions;
         INTERNAL_OPTIONS.rewriteRequest = options.rewriteRequest || this.rewriteRequest;
-        INTERNAL_OPTIONS.agent = options.agent || this.agent;
         INTERNAL_OPTIONS.poToken = options.poToken || this.poToken;
         INTERNAL_OPTIONS.disablePoTokenAutoGeneration = options.disablePoTokenAutoGeneration || this.disablePoTokenAutoGeneration;
         INTERNAL_OPTIONS.visitorData = options.visitorData || this.visitorData;
@@ -185,11 +177,7 @@ class YtdlCore {
         INTERNAL_OPTIONS.dlChunkSize = options.dlChunkSize || this.dlChunkSize || undefined;
         if (!INTERNAL_OPTIONS.oauth2 && options.oauth2Credentials) {
             Log_1.Logger.warning('The OAuth2 token should be specified when instantiating the YtdlCore class, not as a function argument.');
-            INTERNAL_OPTIONS.oauth2 = new OAuth2_1.OAuth2(options.oauth2Credentials, {
-                agent: INTERNAL_OPTIONS.agent,
-                rewriteRequest: INTERNAL_OPTIONS.rewriteRequest,
-                originalProxy: INTERNAL_OPTIONS.originalProxy,
-            });
+            INTERNAL_OPTIONS.oauth2 = new OAuth2_1.OAuth2(options.oauth2Credentials);
         }
         return INTERNAL_OPTIONS;
     }
@@ -217,6 +205,4 @@ YtdlCore.validateID = Url_1.Url.validateID;
 YtdlCore.validateURL = Url_1.Url.validateURL;
 YtdlCore.getURLVideoID = Url_1.Url.getURLVideoID;
 YtdlCore.getVideoID = Url_1.Url.getVideoID;
-YtdlCore.createAgent = Agent_1.Agent.createAgent;
-YtdlCore.createProxyAgent = Agent_1.Agent.createProxyAgent;
 //# sourceMappingURL=YtdlCore.js.map

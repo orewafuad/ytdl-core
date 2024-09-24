@@ -5,22 +5,25 @@
 ### Features
 * **YtdlCore:** Support for use in browsers. (To use, import `@ybd-project/ytdl-core/browser`)
 * **YtdlCore:** Add a processing-optimized YtdlCore for deployment to serverless functions such as Vercel Functions (just use `@ybd-project/ytdl-core/serverless` when importing)
-
-> [!NOTE]
-> YtdlCore for serverless functions no longer uses class instances, but individual functions. (No need to import `{ YtdlCore }`, just like `{ getFullInfo }`)
-
 * **YtdlCore:** Changed to be able to import types used in YtdlCore (To use, import `@ybd-project/ytdl-core/types`)
 * **YtdlCore:** Static methods such as the `getFullInfo` function have been eliminated in view of optional adaptations, etc.
+
+### Change
+* **Lang:** Remove the `lang` option and add the `hl` option.
+* **Debug:** Eliminated the use of the `YTDL_DEBUG` environment variable (For debug log display, use the `logDisplay` option instead.)
+* **Options:** The `requestOptions` option is obsolete.
+* **Request:** Eliminate the use of the internal Undici package
 * **Log:** Added `logDisplay` option to specify the type of log to display
 * **Country:** Add `gl` option
 * **Fetcher:** Add `fetcher` option to control requests (Allows proxy adaptation, etc. (returns a Response object))
 * **Agent:** Proxy adaptation to requests by YtdlCore has been discontinued due to specification issues.
+* **PoToken:** The auto-generated PoToken is not normal, so it is temporarily obsolete (Due to specification changes on the YouTube side)
 
-### Change
-* **Lang:** Remove the `lang` option and add the `hl` option.
-* **Debug:** Eliminated the use of the `YTDL_DEBUG` environment variable
-* **Options:** The `requestOptions` option is obsolete.
-* **Request:** Eliminate the use of the internal Undici package
+### Bug Fixes
+* **Types:** Fixed wrong type issue
+
+### Improvement
+* **YtdlCore:** Remove unnecessary packages and reduce package size
 
 ## v5.1.8 (2024/09/20)
 
