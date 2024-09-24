@@ -14,9 +14,9 @@ var CLIENTS_NUMBER;
     CLIENTS_NUMBER[CLIENTS_NUMBER["MWEB"] = 6] = "MWEB";
     CLIENTS_NUMBER[CLIENTS_NUMBER["TV"] = 7] = "TV";
 })(CLIENTS_NUMBER || (CLIENTS_NUMBER = {}));
-const clients_1 = require("@/core/clients");
-const errors_1 = require("@/core/errors");
-const Log_1 = require("@/utils/Log");
+const clients_1 = require("../../../core/clients");
+const errors_1 = require("../../../core/errors");
+const Log_1 = require("../../../utils/Log");
 const Base_1 = __importDefault(require("./Base"));
 const CONTINUES_NOT_POSSIBLE_ERRORS = ['This video is private'];
 class PlayerApi {
@@ -46,7 +46,7 @@ class PlayerApi {
         });
         const IS_MINIMUM_MODE = PLAYER_API_PROMISES.every((r) => r.status === 'rejected');
         if (IS_MINIMUM_MODE) {
-            const ERROR_TEXT = `All player APIs responded with an error. (Clients: ${clients.join(', ')})\nFor more information, specify YTDL_DEBUG as an environment variable.`;
+            const ERROR_TEXT = `All player APIs responded with an error. (Clients: ${clients.join(', ')})\nFor details, specify \`logDisplay: ["debug", "info", "success", "warning", "error"]\` in the constructor options of the YtdlCore class.`;
             if (PLAYER_API_RESPONSES.ios && (CONTINUES_NOT_POSSIBLE_ERRORS.includes(PLAYER_API_RESPONSES.ios?.playabilityStatus.reason || '') || !PLAYER_API_RESPONSES.ios.videoDetails)) {
                 throw new errors_1.UnrecoverableError(ERROR_TEXT + `\nNote: This error cannot continue processing. (Details: ${JSON.stringify(PLAYER_API_RESPONSES.ios.playabilityStatus.reason)})`);
             }

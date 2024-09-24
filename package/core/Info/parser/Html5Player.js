@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getHtml5Player = getHtml5Player;
-const Platform_1 = require("@/platforms/Platform");
-const Signature_1 = require("@/core/Signature");
-const Url_1 = require("@/utils/Url");
-const Log_1 = require("@/utils/Log");
-const Fetcher_1 = require("@/core/Fetcher");
+const Platform_1 = require("../../../platforms/Platform");
+const Signature_1 = require("../../../core/Signature");
+const Url_1 = require("../../../utils/Url");
+const Log_1 = require("../../../utils/Log");
+const Fetcher_1 = require("../../../core/Fetcher");
 const FileCache = Platform_1.Platform.getShim().fileCache;
 function getPlayerId(body) {
     const MATCH = body.match(/player\/([a-zA-Z0-9]+)\//);

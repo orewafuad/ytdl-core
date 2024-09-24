@@ -44,7 +44,7 @@ class Logger {
         return messages.map((m) => this.replaceColorTags(m));
     }
     static debug(...messages) {
-        if (Constants_1.VERSION.includes('dev') || Constants_1.VERSION.includes('beta') || Constants_1.VERSION.includes('test') || process.env.YTDL_DEBUG || this.logDisplay.includes('debug')) {
+        if (Constants_1.VERSION.includes('dev') || Constants_1.VERSION.includes('beta') || Constants_1.VERSION.includes('test') || this.logDisplay.includes('debug')) {
             console.log(this.convertMessage('<debug>[  DEBUG  ]:</debug>'), ...this.convertMessages(messages));
         }
     }

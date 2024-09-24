@@ -1,5 +1,5 @@
 export declare class Logger {
-    static logDisplay: string[];
+    static logDisplay: Array<'debug' | 'info' | 'success' | 'warning' | 'error'>;
     private static replaceColorTags;
     private static convertMessage;
     private static convertMessages;

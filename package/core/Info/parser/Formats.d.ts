@@ -12,7 +12,7 @@ type YTDL_DashManifestData = {
     height?: number;
     fps?: number;
 };
-import { YTDL_RequestOptions, YT_StreamingAdaptiveFormat, YT_PlayerApiResponse } from '@/types';
+import { YTDL_RequestOptions, YT_StreamingAdaptiveFormat, YT_PlayerApiResponse } from '../../../types';
 export declare class FormatParser {
     static parseFormats(playerResponse: YT_PlayerApiResponse | null): Array<YT_StreamingAdaptiveFormat>;
     static getM3U8(url: string, options: YTDL_RequestOptions): Promise<Record<string, YTDL_M3U8Data>>;

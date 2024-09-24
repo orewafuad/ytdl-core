@@ -1,5 +1,5 @@
-import { YtdlCore_Cache } from './utils/Cache';
-import { YTDL_DownloadOptions } from '@/types';
+import { YtdlCore_Cache } from './utils/Classes';
+import { YTDL_DownloadOptions } from '../types';
 interface YtdlCore_Shim {
     runtime: 'default' | 'browser' | 'serverless';
     server: boolean;

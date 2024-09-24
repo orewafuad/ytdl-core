@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FormatParser = void 0;
 const sax_1 = __importDefault(require("sax"));
-const Fetcher_1 = require("@/core/Fetcher");
-const Url_1 = require("@/utils/Url");
+const Fetcher_1 = require("../../../core/Fetcher");
+const Url_1 = require("../../../utils/Url");
 class FormatParser {
     static parseFormats(playerResponse) {
         let formats = [];

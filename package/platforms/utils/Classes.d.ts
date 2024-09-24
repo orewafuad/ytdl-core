@@ -3,6 +3,7 @@ export declare abstract class YtdlCore_Cache {
     abstract set(key: any, value: any, options?: any): Promise<boolean>;
     abstract has(key: string): Promise<boolean>;
     abstract delete(key: string): Promise<boolean>;
+    abstract disable(): void;
     abstract initialization(): void;
 }
 export declare class CacheWithMap implements YtdlCore_Cache {
@@ -14,5 +15,6 @@ export declare class CacheWithMap implements YtdlCore_Cache {
     set(key: string, value: any): Promise<boolean>;
     has(key: string): Promise<boolean>;
     delete(key: string): Promise<boolean>;
+    disable(): void;
     initialization(): void;
 }

@@ -34,7 +34,8 @@ class CacheWithMap {
         }
         return this.cache.delete(key);
     }
+    disable() { }
     initialization() { }
 }
 exports.CacheWithMap = CacheWithMap;
-//# sourceMappingURL=Cache.js.map
+//# sourceMappingURL=Classes.js.map

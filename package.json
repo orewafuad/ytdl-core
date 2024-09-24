@@ -44,7 +44,7 @@
         "update": "ncu && ncu -u && npm i",
         "publish:github": "npm run build && npm publish --registry=https://npm.pkg.github.com",
         "publish:npm": "npm run build && npm publish --registry=https://registry.npmjs.org/",
-        "create-node-bundle": "esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --external:jintr --external:undici --external:linkedom --external:tslib --banner:js=\"/* eslint-disable */\""
+        "create-node-bundle": "rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --external:chrono-node --external:http-cookie-agent --external:m3u8stream --external:miniget --external:sax --external:tough-cookie --external:undici --external:youtube-po-token-generator --banner:js=\"/* eslint-disable */\""
     },
     "dependencies": {
         "chrono-node": "^2.7.7",

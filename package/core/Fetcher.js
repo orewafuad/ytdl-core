@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Fetcher = void 0;
 const undici_1 = require("undici");
 const errors_1 = require("./errors");
-const Log_1 = require("@/utils/Log");
+const Log_1 = require("../utils/Log");
 const path_1 = __importDefault(require("path"));
 function getCaller() {
     const ERROR_STACK = new Error().stack || '', STACK_LINES = ERROR_STACK.split('\n'), CALLER_INDEX = STACK_LINES.findIndex((line) => line.includes('getCaller')) + 2;

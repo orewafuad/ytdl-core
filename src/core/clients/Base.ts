@@ -30,7 +30,7 @@ export default class Base {
                 HEADERS = {
                     'Content-Type': 'application/json',
                     cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                    'X-Goog-Visitor-Id': '6zpwvWUNAco' || params.options.visitorData,
+                    'X-Goog-Visitor-Id': params.options.visitorData,
                     ...requestOptions.headers,
                 },
                 OPTS: YTDL_GetInfoOptions = {

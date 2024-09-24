@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const errors_1 = require("@/core/errors");
-const Fetcher_1 = require("@/core/Fetcher");
+const errors_1 = require("../../core/errors");
+const Fetcher_1 = require("../../core/Fetcher");
 class Base {
     static playError(playerResponse) {
         const PLAYABILITY = playerResponse && playerResponse.playabilityStatus;
@@ -24,7 +24,7 @@ class Base {
             const { jar, dispatcher } = params.options.agent || {}, HEADERS = {
                 'Content-Type': 'application/json',
                 cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                'X-Goog-Visitor-Id': '6zpwvWUNAco' || params.options.visitorData,
+                'X-Goog-Visitor-Id': params.options.visitorData,
                 ...requestOptions.headers,
             }, OPTS = {
                 requestOptions: {

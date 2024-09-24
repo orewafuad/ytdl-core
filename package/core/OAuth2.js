@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OAuth2 = void 0;
 const undici_1 = require("undici");
-const Platform_1 = require("@/platforms/Platform");
-const Log_1 = require("@/utils/Log");
-const Url_1 = require("@/utils/Url");
-const UserAgents_1 = require("@/utils/UserAgents");
+const Platform_1 = require("../platforms/Platform");
+const Log_1 = require("../utils/Log");
+const Url_1 = require("../utils/Url");
+const UserAgents_1 = require("../utils/UserAgents");
 const clients_1 = require("./clients");
 /* Reference: LuanRT/YouTube.js */
 const REGEX = { tvScript: new RegExp('<script\\s+id="base-js"\\s+src="([^"]+)"[^>]*><\\/script>'), clientIdentity: new RegExp('clientId:"(?<client_id>[^"]+)",[^"]*?:"(?<client_secret>[^"]+)"') }, FileCache = Platform_1.Platform.getShim().fileCache;

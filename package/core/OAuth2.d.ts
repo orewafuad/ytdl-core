@@ -1,4 +1,4 @@
-import { YTDL_OAuth2Credentials, YTDL_ProxyOptions } from '@/types/Options';
+import { YTDL_OAuth2Credentials, YTDL_ProxyOptions } from '../types/Options';
 export declare class OAuth2 {
     private proxyOptions?;
     isEnabled: boolean;

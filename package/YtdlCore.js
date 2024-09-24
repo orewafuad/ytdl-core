@@ -1,22 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.YtdlCore = void 0;
+const Platform_1 = require("./platforms/Platform");
 const Download_1 = require("./core/Download");
 const Info_1 = require("./core/Info");
-const Search_1 = require("./core/Search");
 const Html5Player_1 = require("./core/Info/parser/Html5Player");
 const Agent_1 = require("./core/Agent");
 const OAuth2_1 = require("./core/OAuth2");
 const PoToken_1 = require("./core/PoToken");
-const Cache_1 = require("./core/Cache");
 const Url_1 = require("./utils/Url");
 const Format_1 = require("./utils/Format");
 const Constants_1 = require("./utils/Constants");
 const Log_1 = require("./utils/Log");
+const FileCache = Platform_1.Platform.getShim().fileCache;
+function isNodeVersionOk(version) {
+    return parseInt(version.replace('v', '').split('.')[0]) >= 16;
+}
 class YtdlCore {
     /* Setup */
-    setPoToken(poToken) {
-        const PO_TOKEN_CACHE = Cache_1.FileCache.get('poToken');
+    async setPoToken(poToken) {
+        const PO_TOKEN_CACHE = await FileCache.get('poToken');
         if (poToken) {
             this.poToken = poToken;
         }
@@ -24,10 +27,10 @@ class YtdlCore {
             Log_1.Logger.debug('PoToken loaded from cache.');
             this.poToken = PO_TOKEN_CACHE || undefined;
         }
-        Cache_1.FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
+        FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
     }
-    setVisitorData(visitorData) {
-        const VISITOR_DATA_CACHE = Cache_1.FileCache.get('visitorData');
+    async setVisitorData(visitorData) {
+        const VISITOR_DATA_CACHE = await FileCache.get('visitorData');
         if (visitorData) {
             this.visitorData = visitorData;
         }
@@ -35,15 +38,23 @@ class YtdlCore {
             Log_1.Logger.debug('VisitorData loaded from cache.');
             this.visitorData = VISITOR_DATA_CACHE || undefined;
         }
-        Cache_1.FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
+        FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
     }
-    setOAuth2(oauth2) {
-        const OAUTH2_CACHE = Cache_1.FileCache.get('oauth2') || undefined;
+    async setOAuth2(oauth2Credentials, proxyOptions) {
+        const OAUTH2_CACHE = (await FileCache.get('oauth2')) || undefined;
         try {
-            this.oauth2 = oauth2 || new OAuth2_1.OAuth2(OAUTH2_CACHE) || undefined;
+            if (oauth2Credentials) {
+                this.oauth2 = new OAuth2_1.OAuth2(oauth2Credentials, proxyOptions) || undefined;
+            }
+            else if (OAUTH2_CACHE) {
+                this.oauth2 = new OAuth2_1.OAuth2(OAUTH2_CACHE, proxyOptions);
+            }
+            else {
+                this.oauth2 = null;
+            }
         }
         catch {
-            this.oauth2 = undefined;
+            this.oauth2 = null;
         }
     }
     automaticallyGeneratePoToken() {
@@ -53,20 +64,20 @@ class YtdlCore {
                 .then(({ poToken, visitorData }) => {
                 this.poToken = poToken;
                 this.visitorData = visitorData;
-                Cache_1.FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
-                Cache_1.FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
+                FileCache.set('poToken', this.poToken || '', { ttl: 60 * 60 * 24 * 365 });
+                FileCache.set('visitorData', this.visitorData || '', { ttl: 60 * 60 * 24 * 365 });
             })
                 .catch(() => { });
         }
     }
     initializeHtml5PlayerCache() {
-        const HTML5_PLAYER = Cache_1.FileCache.get('html5Player');
-        if (!HTML5_PLAYER && !process.env._YTDL_DISABLE_HTML5_PLAYER_CACHE) {
+        const HTML5_PLAYER = FileCache.get('html5Player');
+        if (!HTML5_PLAYER) {
             Log_1.Logger.debug('To speed up processing, html5Player and signatureTimestamp are pre-fetched and cached.');
-            (0, Html5Player_1.getHtml5Player)('dQw4w9WgXcQ', {});
+            (0, Html5Player_1.getHtml5Player)({});
         }
     }
-    constructor({ lang, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2, parsesHLSFormat, originalProxyUrl, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, debug, disableFileCache } = {}) {
+    constructor({ hl, gl, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, logDisplay } = {}) {
         /* Get Info Options */
         this.hl = 'en';
         this.gl = 'US';
@@ -77,16 +88,20 @@ class YtdlCore {
         this.includesOriginalFormatData = false;
         this.includesRelatedVideo = true;
         this.disableDefaultClients = false;
+        this.oauth2 = null;
         this.parsesHLSFormat = false;
         this.excludingClients = [];
-        this.includingClients = ['web', 'webCreator', 'webEmbedded', 'android', 'ios', 'mweb', 'tv', 'tvEmbedded'];
+        this.includingClients = 'all';
         /* Metadata */
         this.version = Constants_1.VERSION;
         /* Other Options */
-        process.env.YTDL_DEBUG = (debug ?? false).toString();
-        process.env._YTDL_DISABLE_FILE_CACHE = (disableFileCache ?? false).toString();
+        Log_1.Logger.logDisplay = logDisplay || ['info', 'success', 'warning', 'error'];
+        if (disableFileCache) {
+            FileCache.disable();
+        }
         /* Get Info Options */
-        this.lang = lang || 'en';
+        this.hl = hl || 'en';
+        this.gl = gl || 'US';
         this.requestOptions = requestOptions || {};
         this.rewriteRequest = rewriteRequest || undefined;
         this.agent = agent || undefined;
@@ -99,19 +114,6 @@ class YtdlCore {
         this.disableDefaultClients = disableDefaultClients ?? false;
         this.parsesHLSFormat = parsesHLSFormat ?? false;
         this.originalProxy = originalProxy || undefined;
-        if (originalProxyUrl && !originalProxy) {
-            Log_1.Logger.info('<warning>`originalProxyUrl` is deprecated.</warning> Use `originalProxy` instead.');
-            if (!this.originalProxy) {
-                try {
-                    this.originalProxy = {
-                        base: originalProxyUrl,
-                        download: new URL(originalProxyUrl).origin + '/download',
-                        urlQueryName: 'url',
-                    };
-                }
-                catch { }
-            }
-        }
         if (this.originalProxy) {
             Log_1.Logger.debug(`<debug>"${this.originalProxy.base}"</debug> is used for <blue>API requests</blue>.`);
             Log_1.Logger.debug(`<debug>"${this.originalProxy.download}"</debug> is used for <blue>video downloads</blue>.`);
@@ -119,7 +121,11 @@ class YtdlCore {
         }
         this.setPoToken(poToken);
         this.setVisitorData(visitorData);
-        this.setOAuth2(oauth2);
+        this.setOAuth2(oauth2Credentials || null, {
+            agent: this.agent,
+            rewriteRequest: this.rewriteRequest,
+            originalProxy: this.originalProxy,
+        });
         /* Format Selection Options */
         this.quality = quality || undefined;
         this.filter = filter || undefined;
@@ -141,78 +147,71 @@ class YtdlCore {
             throw new Error(`You are using Node.js ${process.version} which is not supported. Minimum version required is v16.`);
         }
     }
-    setupOptions(options) {
-        options.lang = options.lang || this.lang;
-        options.requestOptions = options.requestOptions || this.requestOptions;
-        options.rewriteRequest = options.rewriteRequest || this.rewriteRequest;
-        options.agent = options.agent || this.agent;
-        options.poToken = options.poToken || this.poToken;
-        options.disablePoTokenAutoGeneration = options.disablePoTokenAutoGeneration || this.disablePoTokenAutoGeneration;
-        options.visitorData = options.visitorData || this.visitorData;
-        options.includesPlayerAPIResponse = options.includesPlayerAPIResponse || this.includesPlayerAPIResponse;
-        options.includesNextAPIResponse = options.includesNextAPIResponse || this.includesNextAPIResponse;
-        options.includesOriginalFormatData = options.includesOriginalFormatData || this.includesOriginalFormatData;
-        options.includesRelatedVideo = options.includesRelatedVideo || this.includesRelatedVideo;
-        options.clients = options.clients || this.clients;
-        options.disableDefaultClients = options.disableDefaultClients || this.disableDefaultClients;
-        options.oauth2Credentials = options.oauth2Credentials || this.oauth2.;
-        options.parsesHLSFormat = options.parsesHLSFormat || this.parsesHLSFormat;
-        options.originalProxy = options.originalProxy || this.originalProxy || undefined;
-        if (options.originalProxyUrl && !options.originalProxy) {
-            Log_1.Logger.info('<warning>originalProxyUrl is deprecated.</warning> Use `originalProxy` instead.');
-            try {
-                options.originalProxy = {
-                    base: options.originalProxyUrl,
-                    download: new URL(options.originalProxyUrl).origin + '/download',
-                    urlQueryName: 'url',
-                };
-            }
-            catch { }
-        }
+    initializeOptions(options) {
+        const INTERNAL_OPTIONS = { ...options, oauth2: this.oauth2 };
+        INTERNAL_OPTIONS.hl = options.hl || this.hl;
+        INTERNAL_OPTIONS.gl = options.gl || this.gl;
+        INTERNAL_OPTIONS.requestOptions = options.requestOptions || this.requestOptions;
+        INTERNAL_OPTIONS.rewriteRequest = options.rewriteRequest || this.rewriteRequest;
+        INTERNAL_OPTIONS.agent = options.agent || this.agent;
+        INTERNAL_OPTIONS.poToken = options.poToken || this.poToken;
+        INTERNAL_OPTIONS.disablePoTokenAutoGeneration = options.disablePoTokenAutoGeneration || this.disablePoTokenAutoGeneration;
+        INTERNAL_OPTIONS.visitorData = options.visitorData || this.visitorData;
+        INTERNAL_OPTIONS.includesPlayerAPIResponse = options.includesPlayerAPIResponse || this.includesPlayerAPIResponse;
+        INTERNAL_OPTIONS.includesNextAPIResponse = options.includesNextAPIResponse || this.includesNextAPIResponse;
+        INTERNAL_OPTIONS.includesOriginalFormatData = options.includesOriginalFormatData || this.includesOriginalFormatData;
+        INTERNAL_OPTIONS.includesRelatedVideo = options.includesRelatedVideo || this.includesRelatedVideo;
+        INTERNAL_OPTIONS.clients = options.clients || this.clients;
+        INTERNAL_OPTIONS.disableDefaultClients = options.disableDefaultClients || this.disableDefaultClients;
+        INTERNAL_OPTIONS.oauth2Credentials = options.oauth2Credentials || this.oauth2?.getCredentials();
+        INTERNAL_OPTIONS.parsesHLSFormat = options.parsesHLSFormat || this.parsesHLSFormat;
+        INTERNAL_OPTIONS.originalProxy = options.originalProxy || this.originalProxy || undefined;
         /* Format Selection Options */
-        options.quality = options.quality || this.quality || undefined;
-        options.filter = options.filter || this.filter || undefined;
-        options.excludingClients = options.excludingClients || this.excludingClients || [];
-        options.includingClients = options.includingClients || this.includingClients || 'all';
+        INTERNAL_OPTIONS.quality = options.quality || this.quality || undefined;
+        INTERNAL_OPTIONS.filter = options.filter || this.filter || undefined;
+        INTERNAL_OPTIONS.excludingClients = options.excludingClients || this.excludingClients || [];
+        INTERNAL_OPTIONS.includingClients = options.includingClients || this.includingClients || 'all';
         /* Download Options */
-        options.range = options.range || this.range || undefined;
-        options.begin = options.begin || this.begin || undefined;
-        options.liveBuffer = options.liveBuffer || this.liveBuffer || undefined;
-        options.highWaterMark = options.highWaterMark || this.highWaterMark || undefined;
-        options.IPv6Block = options.IPv6Block || this.IPv6Block || undefined;
-        options.dlChunkSize = options.dlChunkSize || this.dlChunkSize || undefined;
-        if (!this.oauth2 && options.oauth2Credentials) {
+        INTERNAL_OPTIONS.range = options.range || this.range || undefined;
+        INTERNAL_OPTIONS.begin = options.begin || this.begin || undefined;
+        INTERNAL_OPTIONS.liveBuffer = options.liveBuffer || this.liveBuffer || undefined;
+        INTERNAL_OPTIONS.highWaterMark = options.highWaterMark || this.highWaterMark || undefined;
+        INTERNAL_OPTIONS.IPv6Block = options.IPv6Block || this.IPv6Block || undefined;
+        INTERNAL_OPTIONS.dlChunkSize = options.dlChunkSize || this.dlChunkSize || undefined;
+        if (!INTERNAL_OPTIONS.oauth2 && options.oauth2Credentials) {
             Log_1.Logger.warning('The OAuth2 token should be specified when instantiating the YtdlCore class, not as a function argument.');
+            INTERNAL_OPTIONS.oauth2 = new OAuth2_1.OAuth2(options.oauth2Credentials, {
+                agent: INTERNAL_OPTIONS.agent,
+                rewriteRequest: INTERNAL_OPTIONS.rewriteRequest,
+                originalProxy: INTERNAL_OPTIONS.originalProxy,
+            });
         }
-        return options;
+        return INTERNAL_OPTIONS;
     }
+    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     download(link, options = {}) {
-        return (0, Download_1.download)(link, this.setupOptions(options));
+        return (0, Download_1.download)(link, this.initializeOptions(options));
     }
+    /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     downloadFromInfo(info, options = {}) {
-        return (0, Download_1.downloadFromInfo)(info, this.setupOptions(options));
+        return (0, Download_1.downloadFromInfo)(info, this.initializeOptions(options));
     }
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     getBasicInfo(link, options = {}) {
-        return (0, Info_1.getBasicInfo)(link, this.setupOptions(options));
+        return (0, Info_1.getBasicInfo)(link, this.initializeOptions(options));
     }
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     getFullInfo(link, options = {}) {
-        return (0, Info_1.getFullInfo)(link, this.setupOptions(options));
+        return (0, Info_1.getFullInfo)(link, this.initializeOptions(options));
     }
 }
 exports.YtdlCore = YtdlCore;
-YtdlCore.download = Download_1.download;
-YtdlCore.downloadFromInfo = Download_1.downloadFromInfo;
-YtdlCore.getBasicInfo = Info_1.getBasicInfo;
-YtdlCore.getFullInfo = Info_1.getFullInfo;
-YtdlCore.search = Search_1.search;
 YtdlCore.chooseFormat = Format_1.FormatUtils.chooseFormat;
 YtdlCore.filterFormats = Format_1.FormatUtils.filterFormats;
 YtdlCore.validateID = Url_1.Url.validateID;
 YtdlCore.validateURL = Url_1.Url.validateURL;
 YtdlCore.getURLVideoID = Url_1.Url.getURLVideoID;
 YtdlCore.getVideoID = Url_1.Url.getVideoID;
-YtdlCore.createAgent = Agent_1.createAgent;
-YtdlCore.createProxyAgent = Agent_1.createProxyAgent;
+YtdlCore.createAgent = Agent_1.Agent.createAgent;
+YtdlCore.createProxyAgent = Agent_1.Agent.createProxyAgent;
 //# sourceMappingURL=YtdlCore.js.map

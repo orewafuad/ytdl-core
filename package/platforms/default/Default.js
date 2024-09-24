@@ -21,10 +21,10 @@ exports.YtdlCore = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const os_1 = __importDefault(require("os"));
-const Platform_1 = require("@/platforms/Platform");
-const Cache_1 = require("@/platforms/utils/Cache");
-const Constants_1 = require("@/utils/Constants");
-const Log_1 = require("@/utils/Log");
+const Platform_1 = require("../../platforms/Platform");
+const Classes_1 = require("../../platforms/utils/Classes");
+const Constants_1 = require("../../utils/Constants");
+const Log_1 = require("../../utils/Log");
 class FileCache {
     constructor() {
         this.timeouts = new Map();
@@ -112,6 +112,9 @@ class FileCache {
             return false;
         }
     }
+    disable() {
+        this.isDisabled = true;
+    }
     initialization() {
         if (typeof process !== 'undefined') {
             this.isDisabled = !!(process.env._YTDL_DISABLE_FILE_CACHE !== 'false' && process.env._YTDL_DISABLE_FILE_CACHE);
@@ -138,7 +141,7 @@ class FileCache {
 Platform_1.Platform.load({
     runtime: 'default',
     server: true,
-    cache: new Cache_1.CacheWithMap(),
+    cache: new Classes_1.CacheWithMap(),
     fileCache: new FileCache(),
     default: {
         options: {
@@ -166,8 +169,8 @@ Platform_1.Platform.load({
         issuesUrl: Constants_1.ISSUES_URL,
     },
 });
-const YtdlCore_1 = require("@/YtdlCore");
+const YtdlCore_1 = require("../../YtdlCore");
 Object.defineProperty(exports, "YtdlCore", { enumerable: true, get: function () { return YtdlCore_1.YtdlCore; } });
-__exportStar(require("@/types/index"), exports);
+__exportStar(require("../../types/index"), exports);
 exports.default = YtdlCore_1.YtdlCore;
 //# sourceMappingURL=Default.js.map

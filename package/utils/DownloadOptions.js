@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DownloadOptionsUtils = void 0;
-const Agent_1 = require("@/core/Agent");
+const Agent_1 = require("../core/Agent");
 const Log_1 = require("./Log");
 const UserAgents_1 = require("./UserAgents");
 const Utils_1 = require("./Utils");
