@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const errors_1 = require("../../core/errors");
-const Fetcher_1 = require("../../core/Fetcher");
+const errors_1 = require("@/core/errors");
+const Fetcher_1 = require("@/core/Fetcher");
 class Base {
     static playError(playerResponse) {
         const PLAYABILITY = playerResponse && playerResponse.playabilityStatus;
@@ -21,15 +21,13 @@ class Base {
     }
     static request(url, requestOptions, params) {
         return new Promise(async (resolve, reject) => {
-            const { jar, dispatcher } = params.options.agent || {}, HEADERS = {
+            const HEADERS = {
                 'Content-Type': 'application/json',
-                cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                'X-Goog-Visitor-Id': params.options.visitorData,
+                'X-Goog-Visitor-Id': params.options.visitorData || '',
                 ...requestOptions.headers,
             }, OPTS = {
                 requestOptions: {
                     method: 'POST',
-                    dispatcher,
                     headers: HEADERS,
                     body: typeof requestOptions.payload === 'string' ? requestOptions.payload : JSON.stringify(requestOptions.payload),
                 },

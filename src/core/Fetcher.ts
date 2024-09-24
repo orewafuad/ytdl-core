@@ -1,10 +1,11 @@
-import { fetch, RequestInit, request as undiciRequest } from 'undici';
+import path from 'path';
 
-import { YTDL_RequestOptions } from '@/types/Options';
+import type { YTDL_RequestOptions } from '@/types/Options';
+import { Platform } from '@/platforms/Platform';
+import { Logger } from '@/utils/Log';
 
 import { RequestError } from './errors';
-import { Logger } from '@/utils/Log';
-import path from 'path';
+import { UserAgent } from '@/utils/UserAgents';
 
 function getCaller() {
     const ERROR_STACK = new Error().stack || '',
@@ -28,7 +29,7 @@ function getCaller() {
 class Fetcher {
     static async request<T = unknown>(url: string, { requestOptions, rewriteRequest, originalProxy }: YTDL_RequestOptions = {}): Promise<T> {
         if (typeof rewriteRequest === 'function') {
-            const WROTE_REQUEST = rewriteRequest(url, requestOptions, { isDownloadUrl: false });
+            const WROTE_REQUEST = rewriteRequest(url, requestOptions || {}, { isDownloadUrl: false });
             requestOptions = WROTE_REQUEST.options;
             url = WROTE_REQUEST.url;
         }
@@ -44,24 +45,42 @@ class Fetcher {
         }
 
         Logger.debug(`[ Request ]: <magenta>${requestOptions?.method || 'GET'}</magenta> -> ${url} (From ${getCaller()})`);
-        const REQUEST_RESULTS = await undiciRequest(url, requestOptions),
-            STATUS_CODE = REQUEST_RESULTS.statusCode.toString(),
-            LOCATION = REQUEST_RESULTS.headers['location'] || null;
+
+        const HEADERS = new Headers();
+        if (requestOptions?.headers) {
+            Object.entries(requestOptions.headers).forEach(([key, value]) => {
+                if (value) {
+                    HEADERS.append(key, value.toString());
+                }
+            });
+        }
+
+        if (!HEADERS.has('User-Agent')) {
+            HEADERS.append('User-Agent', UserAgent.getRandomUserAgent('desktop'));
+        }
+
+        const fetcher = Platform.getShim().fetcher,
+            REQUEST_RESULTS = await fetcher(url, {
+                method: requestOptions?.method || 'GET',
+                headers: HEADERS,
+                body: requestOptions?.body?.toString(),
+            }),
+            STATUS_CODE = REQUEST_RESULTS.status.toString(),
+            LOCATION = REQUEST_RESULTS.headers.get('location') || null;
 
         if (STATUS_CODE.startsWith('2')) {
-            const CONTENT_TYPE = REQUEST_RESULTS.headers['content-type'] || '';
+            const CONTENT_TYPE = REQUEST_RESULTS.headers.get('content-type') || '';
 
             if (CONTENT_TYPE.includes('application/json')) {
-                return REQUEST_RESULTS.body.json() as T;
+                return REQUEST_RESULTS.json() as T;
             }
 
-            return REQUEST_RESULTS.body.text() as T;
+            return REQUEST_RESULTS.text() as T;
         } else if (STATUS_CODE.startsWith('3') && LOCATION) {
             return this.request(LOCATION.toString(), { requestOptions, rewriteRequest, originalProxy });
         }
 
-        const ERROR = new RequestError(`Status Code: ${STATUS_CODE}`);
-        ERROR.statusCode = REQUEST_RESULTS.statusCode;
+        const ERROR = new RequestError(`Status Code: ${STATUS_CODE}`, REQUEST_RESULTS.status);
 
         throw ERROR;
     }

@@ -1,4 +1,5 @@
 type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
+    fetcher?: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
     logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'>;
 };
 
@@ -10,9 +11,7 @@ import { Platform } from './platforms/Platform';
 import { download, downloadFromInfo } from './core/Download';
 import { getBasicInfo, getFullInfo } from './core/Info';
 import { getHtml5Player } from './core/Info/parser/Html5Player';
-import { Agent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
-import { PoToken } from './core/PoToken';
 
 import { Url } from './utils/Url';
 import { FormatUtils } from './utils/Format';
@@ -34,13 +33,9 @@ class YtdlCore {
     public static getURLVideoID = Url.getURLVideoID;
     public static getVideoID = Url.getVideoID;
 
-    public static createAgent = Agent.createAgent;
-    public static createProxyAgent = Agent.createProxyAgent;
-
     /* Get Info Options */
     public hl: YTDL_Hreflang = 'en';
     public gl: YTDL_GeoCountry = 'US';
-    public requestOptions: any = {};
     public rewriteRequest: YTDL_GetInfoOptions['rewriteRequest'];
     public agent: YTDL_Agent | undefined;
     public poToken: string | undefined;
@@ -120,7 +115,9 @@ class YtdlCore {
         if (!this.poToken && !this.visitorData) {
             Logger.info('Since PoToken and VisitorData are not specified, they are generated automatically.');
 
-            PoToken.generatePoToken()
+            const generatePoToken = Platform.getShim().poToken;
+
+            generatePoToken()
                 .then(({ poToken, visitorData }) => {
                     this.poToken = poToken;
                     this.visitorData = visitorData;
@@ -141,9 +138,14 @@ class YtdlCore {
         }
     }
 
-    constructor({ hl, gl, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, logDisplay }: YTDL_Constructor = {}) {
+    constructor({ hl, gl,rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay }: YTDL_Constructor = {}) {
         /* Other Options */
         Logger.logDisplay = logDisplay || ['info', 'success', 'warning', 'error'];
+        if (fetcher) {
+            const SHIM = Platform.getShim();
+            SHIM.fetcher = fetcher;
+            Platform.load(SHIM);
+        }
         if (disableFileCache) {
             FileCache.disable();
         }
@@ -151,7 +153,6 @@ class YtdlCore {
         /* Get Info Options */
         this.hl = hl || 'en';
         this.gl = gl || 'US';
-        this.requestOptions = requestOptions || {};
         this.rewriteRequest = rewriteRequest || undefined;
         this.agent = agent || undefined;
         this.disablePoTokenAutoGeneration = disablePoTokenAutoGeneration ?? false;
@@ -208,7 +209,6 @@ class YtdlCore {
 
         INTERNAL_OPTIONS.hl = options.hl || this.hl;
         INTERNAL_OPTIONS.gl = options.gl || this.gl;
-        INTERNAL_OPTIONS.requestOptions = options.requestOptions || this.requestOptions;
         INTERNAL_OPTIONS.rewriteRequest = options.rewriteRequest || this.rewriteRequest;
         INTERNAL_OPTIONS.agent = options.agent || this.agent;
         INTERNAL_OPTIONS.poToken = options.poToken || this.poToken;

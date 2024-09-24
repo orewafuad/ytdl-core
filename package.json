@@ -29,6 +29,10 @@
             "types": "./package/types/index.d.ts",
             "default": "./package/Platforms/Browser/Browser.js"
         },
+        "./browser.bundle": {
+            "types": "./package/types/index.d.ts",
+            "default": "./bundle/browser.cjs"
+        },
         "./serverless": {
             "types": "./package/types/index.d.ts",
             "default": "./package/Platforms/Serverless/Serverless.js"
@@ -39,21 +43,25 @@
     ],
     "scripts": {
         "test": "npx jest ./test/main.test.ts",
-        "build": "rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-node-bundle",
+        "build": "rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-node-bundle && npm run create-browser-bundle",
         "clear-cache-files": "cd package/core && rmdir /s /q CacheFiles 2>nul & cd ../..",
         "update": "ncu && ncu -u && npm i",
         "publish:github": "npm run build && npm publish --registry=https://npm.pkg.github.com",
         "publish:npm": "npm run build && npm publish --registry=https://registry.npmjs.org/",
-        "create-node-bundle": "rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --external:chrono-node --external:http-cookie-agent --external:m3u8stream --external:miniget --external:sax --external:tough-cookie --external:undici --external:youtube-po-token-generator --banner:js=\"/* eslint-disable */\""
+        "create-node-bundle": "rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --external:chrono-node --external:http-cookie-agent --external:m3u8stream --external:miniget --external:sax --external:tough-cookie --external:undici --external:youtube-po-token-generator --banner:js=\"/* eslint-disable */\"",
+        "create-browser-bundle": "esbuild ./package/Platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser"
     },
     "dependencies": {
+        "@ybd-project/ytdl-core": "^5.1.9-2",
         "chrono-node": "^2.7.7",
         "http-cookie-agent": "^6.0.5",
+        "ky": "^1.7.2",
         "m3u8stream": "^0.8.6",
         "miniget": "^4.2.3",
+        "node-fetch": "^3.3.2",
         "sax": "^1.4.1",
         "tough-cookie": "^4.1.4",
-        "undici": "^6.19.8",
+        "undici": "^5.19.1",
         "youtube-po-token-generator": "^0.2.0"
     },
     "devDependencies": {

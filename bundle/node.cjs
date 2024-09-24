@@ -132,6 +132,10 @@ var require_package = __commonJS({
           types: "./package/types/index.d.ts",
           default: "./package/Platforms/Browser/Browser.js"
         },
+        "./browser.bundle": {
+          types: "./package/types/index.d.ts",
+          default: "./bundle/browser.cjs"
+        },
         "./serverless": {
           types: "./package/types/index.d.ts",
           default: "./package/Platforms/Serverless/Serverless.js"
@@ -142,12 +146,13 @@ var require_package = __commonJS({
       ],
       scripts: {
         test: "npx jest ./test/main.test.ts",
-        build: "rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-node-bundle",
+        build: "rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-node-bundle && npm run create-browser-bundle",
         "clear-cache-files": "cd package/core && rmdir /s /q CacheFiles 2>nul & cd ../..",
         update: "ncu && ncu -u && npm i",
         "publish:github": "npm run build && npm publish --registry=https://npm.pkg.github.com",
         "publish:npm": "npm run build && npm publish --registry=https://registry.npmjs.org/",
-        "create-node-bundle": 'rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --external:chrono-node --external:http-cookie-agent --external:m3u8stream --external:miniget --external:sax --external:tough-cookie --external:undici --external:youtube-po-token-generator --banner:js="/* eslint-disable */"'
+        "create-node-bundle": 'rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --external:chrono-node --external:http-cookie-agent --external:m3u8stream --external:miniget --external:sax --external:tough-cookie --external:undici --external:youtube-po-token-generator --banner:js="/* eslint-disable */"',
+        "create-browser-bundle": 'esbuild ./package/Platforms/Browser/Browser.js --banner:js="/* eslint-disable */" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser'
       },
       dependencies: {
         "chrono-node": "^2.7.7",
@@ -156,7 +161,7 @@ var require_package = __commonJS({
         miniget: "^4.2.3",
         sax: "^1.4.1",
         "tough-cookie": "^4.1.4",
-        undici: "^6.19.8",
+        undici: "^5.19.1",
         "youtube-po-token-generator": "^0.2.0"
       },
       devDependencies: {
@@ -1959,52 +1964,6 @@ var require_OAuth2 = __commonJS({
   }
 });
 
-// package/core/PoToken.js
-var require_PoToken = __commonJS({
-  "package/core/PoToken.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.PoToken = void 0;
-    var Platform_12 = require_Platform();
-    var Log_12 = require_Log();
-    var RUNTIME = Platform_12.Platform.getShim().runtime;
-    var _PoToken = class _PoToken {
-      static async generatePoToken() {
-        return new Promise((resolve) => {
-          if (RUNTIME !== "default") {
-            return {
-              poToken: "",
-              visitorData: ""
-            };
-          }
-          const { generate } = require("youtube-po-token-generator");
-          try {
-            generate().then((data) => {
-              Log_12.Logger.success("Successfully generated a poToken.");
-              resolve(data);
-            }).catch((err) => {
-              Log_12.Logger.error("Failed to generate a poToken.\nDetails: " + err);
-              resolve({
-                poToken: "",
-                visitorData: ""
-              });
-            });
-          } catch (err) {
-            Log_12.Logger.error("Failed to generate a poToken.\nDetails: " + err);
-            resolve({
-              poToken: "",
-              visitorData: ""
-            });
-          }
-        });
-      }
-    };
-    __name(_PoToken, "PoToken");
-    var PoToken = _PoToken;
-    exports2.PoToken = PoToken;
-  }
-});
-
 // package/meta/formats.js
 var require_formats = __commonJS({
   "package/meta/formats.js"(exports2) {
@@ -2777,7 +2736,6 @@ var require_YtdlCore = __commonJS({
     var Html5Player_1 = require_Html5Player();
     var Agent_1 = require_Agent();
     var OAuth2_1 = require_OAuth2();
-    var PoToken_1 = require_PoToken();
     var Url_1 = require_Url();
     var Format_1 = require_Format();
     var Constants_12 = require_Constants();
@@ -2826,7 +2784,8 @@ var require_YtdlCore = __commonJS({
       automaticallyGeneratePoToken() {
         if (!this.poToken && !this.visitorData) {
           Log_12.Logger.info("Since PoToken and VisitorData are not specified, they are generated automatically.");
-          PoToken_1.PoToken.generatePoToken().then(({ poToken, visitorData }) => {
+          const generatePoToken = Platform_12.Platform.getShim().poToken;
+          generatePoToken().then(({ poToken, visitorData }) => {
             this.poToken = poToken;
             this.visitorData = visitorData;
             FileCache2.set("poToken", this.poToken || "", { ttl: 60 * 60 * 24 * 365 });
@@ -3158,6 +3117,7 @@ exports.YtdlCore = void 0;
 var fs_1 = __importDefault(require("fs"));
 var path_1 = __importDefault(require("path"));
 var os_1 = __importDefault(require("os"));
+var youtube_po_token_generator_1 = require("youtube-po-token-generator");
 var Platform_1 = require_Platform();
 var Classes_1 = require_Classes();
 var Constants_1 = require_Constants();
@@ -3276,6 +3236,28 @@ Platform_1.Platform.load({
   server: true,
   cache: new Classes_1.CacheWithMap(),
   fileCache: new FileCache(),
+  poToken: /* @__PURE__ */ __name(() => {
+    return new Promise((resolve) => {
+      try {
+        (0, youtube_po_token_generator_1.generate)().then((data) => {
+          Log_1.Logger.success("Successfully generated a poToken.");
+          resolve(data);
+        }).catch((err) => {
+          Log_1.Logger.error("Failed to generate a poToken.\nDetails: " + err);
+          resolve({
+            poToken: "",
+            visitorData: ""
+          });
+        });
+      } catch (err) {
+        Log_1.Logger.error("Failed to generate a poToken.\nDetails: " + err);
+        resolve({
+          poToken: "",
+          visitorData: ""
+        });
+      }
+    });
+  }, "poToken"),
   default: {
     options: {
       hl: "en",

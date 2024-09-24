@@ -1,4 +1,4 @@
-import type { YTDL_GetInfoOptions, YT_PlayerApiResponse, YTDL_InnertubeResponseInfo } from '@/types';
+import type { YT_PlayerApiResponse, YTDL_InnertubeResponseInfo, YTDL_RequestOptions } from '@/types';
 
 import { PlayerRequestError, UnrecoverableError } from '@/core/errors';
 import { Fetcher } from '@/core/Fetcher';
@@ -26,17 +26,14 @@ export default class Base {
 
     static request<T = YT_PlayerApiResponse>(url: string, requestOptions: { payload: string; headers: Record<string, any> }, params: YTDL_ClientsParams): Promise<YTDL_InnertubeResponseInfo<T>> {
         return new Promise(async (resolve, reject) => {
-            const { jar, dispatcher } = params.options.agent || {},
-                HEADERS = {
+            const HEADERS: Record<string, string> = {
                     'Content-Type': 'application/json',
-                    cookie: jar?.getCookieStringSync('https://www.youtube.com'),
-                    'X-Goog-Visitor-Id': params.options.visitorData,
+                    'X-Goog-Visitor-Id': params.options.visitorData || '',
                     ...requestOptions.headers,
                 },
-                OPTS: YTDL_GetInfoOptions = {
+                OPTS: YTDL_RequestOptions = {
                     requestOptions: {
                         method: 'POST',
-                        dispatcher,
                         headers: HEADERS,
                         body: typeof requestOptions.payload === 'string' ? requestOptions.payload : JSON.stringify(requestOptions.payload),
                     },

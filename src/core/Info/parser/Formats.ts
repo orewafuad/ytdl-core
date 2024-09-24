@@ -12,7 +12,7 @@ type YTDL_DashManifestData = {
 
 import sax from 'sax';
 
-import { YTDL_RequestOptions, YT_StreamingAdaptiveFormat, YT_PlayerApiResponse } from '@/types';
+import type { YTDL_RequestOptions, YT_StreamingAdaptiveFormat, YT_PlayerApiResponse } from '@/types';
 
 import { Fetcher } from '@/core/Fetcher';
 

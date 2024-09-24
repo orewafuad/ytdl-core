@@ -116,4 +116,4 @@ class Agent {
 exports.Agent = Agent;
 _a = Agent;
 Agent.defaultAgent = _a.createAgent();
-//# sourceMappingURL=Agent.js.map
+//# sourceMappingURL=_Agent.js.map

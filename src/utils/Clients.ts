@@ -33,7 +33,7 @@ type YTDL_ClientsParams = {
 };
 
 import type { OAuth2 } from '@/core/OAuth2';
-import { YTDL_ClientTypes, YTDL_GetInfoOptions } from '@/types';
+import type { YTDL_ClientTypes, YTDL_GetInfoOptions } from '@/types';
 
 import utils from './Utils';
 import { UserAgent } from './UserAgents';

@@ -1,4 +1,4 @@
-import { YT_StreamingAdaptiveFormat, YTDL_ClientTypes, YTDL_VideoFormat, YTDL_ChooseFormatOptions } from '@/types';
+import type { YT_StreamingAdaptiveFormat, YTDL_ClientTypes, YTDL_VideoFormat, YTDL_ChooseFormatOptions } from '@/types';
 
 import { FORMATS } from '@/meta/formats';
 

@@ -2,7 +2,7 @@ import { ProxyAgent } from 'undici';
 import { Cookie, CookieJar, canonicalDomain } from 'tough-cookie';
 import { CookieAgent, CookieClient } from 'http-cookie-agent/undici';
 
-import { YTDL_Agent, YTDL_Cookie, YTDL_Cookies } from '@/types';
+import type { YTDL_Agent, YTDL_Cookie, YTDL_Cookies } from '@/types';
 
 /* Private Functions */
 function convertSameSite(sameSite: string) {

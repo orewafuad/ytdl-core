@@ -7,7 +7,7 @@ interface RefreshApiResponse {
 
 import { fetch } from 'undici';
 
-import { YTDL_OAuth2ClientData, YTDL_OAuth2Credentials } from '@/types/Options';
+import type { YTDL_OAuth2ClientData, YTDL_OAuth2Credentials } from '@/types/Options';
 
 import { Logger } from '@/utils/Log';
 import Url from '@/utils/Url';

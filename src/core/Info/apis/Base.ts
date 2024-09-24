@@ -1,4 +1,4 @@
-import { YT_NextApiResponse, YT_PlayerApiResponse, YTDL_InnertubeResponseInfo, YTDL_ClientTypes } from '@/types';
+import type { YT_NextApiResponse, YT_PlayerApiResponse, YTDL_InnertubeResponseInfo, YTDL_ClientTypes } from '@/types';
 import { Logger } from '@/utils/Log';
 
 export default class ApiBase {

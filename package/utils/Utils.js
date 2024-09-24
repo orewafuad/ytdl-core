@@ -10,9 +10,9 @@ exports.checkForUpdates = checkForUpdates;
 exports.getPropInsensitive = getPropInsensitive;
 exports.setPropInsensitive = setPropInsensitive;
 exports.generateClientPlaybackNonce = generateClientPlaybackNonce;
-const Fetcher_1 = require("../core/Fetcher");
-const Constants_1 = require("../utils/Constants");
-const Log_1 = require("../utils/Log");
+const Fetcher_1 = require("@/core/Fetcher");
+const Constants_1 = require("@/utils/Constants");
+const Log_1 = require("@/utils/Log");
 const ESCAPING_SEQUENCE = [
     { start: '"', end: '"' },
     { start: "'", end: "'" },

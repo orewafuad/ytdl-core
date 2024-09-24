@@ -140,6 +140,15 @@ Platform.load({
     server: true,
     cache: new CacheWithMap(),
     fileCache: new FileCache(),
+    fetcher: fetch,
+    poToken: () => {
+        return new Promise((resolve) => {
+            resolve({
+                poToken: '',
+                visitorData: '',
+            })
+        });
+    },
     default: {
         options: {
             hl: 'en',

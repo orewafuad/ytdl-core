@@ -4,10 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Fetcher = void 0;
-const undici_1 = require("undici");
-const errors_1 = require("./errors");
-const Log_1 = require("../utils/Log");
 const path_1 = __importDefault(require("path"));
+const Platform_1 = require("@/platforms/Platform");
+const Log_1 = require("@/utils/Log");
+const errors_1 = require("./errors");
+const UserAgents_1 = require("@/utils/UserAgents");
 function getCaller() {
     const ERROR_STACK = new Error().stack || '', STACK_LINES = ERROR_STACK.split('\n'), CALLER_INDEX = STACK_LINES.findIndex((line) => line.includes('getCaller')) + 2;
     if (STACK_LINES[CALLER_INDEX]) {
@@ -23,7 +24,7 @@ function getCaller() {
 class Fetcher {
     static async request(url, { requestOptions, rewriteRequest, originalProxy } = {}) {
         if (typeof rewriteRequest === 'function') {
-            const WROTE_REQUEST = rewriteRequest(url, requestOptions, { isDownloadUrl: false });
+            const WROTE_REQUEST = rewriteRequest(url, requestOptions || {}, { isDownloadUrl: false });
             requestOptions = WROTE_REQUEST.options;
             url = WROTE_REQUEST.url;
         }
@@ -37,19 +38,33 @@ class Fetcher {
             catch { }
         }
         Log_1.Logger.debug(`[ Request ]: <magenta>${requestOptions?.method || 'GET'}</magenta> -> ${url} (From ${getCaller()})`);
-        const REQUEST_RESULTS = await (0, undici_1.request)(url, requestOptions), STATUS_CODE = REQUEST_RESULTS.statusCode.toString(), LOCATION = REQUEST_RESULTS.headers['location'] || null;
+        const HEADERS = new Headers();
+        if (requestOptions?.headers) {
+            Object.entries(requestOptions.headers).forEach(([key, value]) => {
+                if (value) {
+                    HEADERS.append(key, value.toString());
+                }
+            });
+        }
+        if (!HEADERS.has('User-Agent')) {
+            HEADERS.append('User-Agent', UserAgents_1.UserAgent.getRandomUserAgent('desktop'));
+        }
+        const fetcher = Platform_1.Platform.getShim().fetcher, REQUEST_RESULTS = await fetcher(url, {
+            method: requestOptions?.method || 'GET',
+            headers: HEADERS,
+            body: requestOptions?.body?.toString(),
+        }), STATUS_CODE = REQUEST_RESULTS.status.toString(), LOCATION = REQUEST_RESULTS.headers.get('location') || null;
         if (STATUS_CODE.startsWith('2')) {
-            const CONTENT_TYPE = REQUEST_RESULTS.headers['content-type'] || '';
+            const CONTENT_TYPE = REQUEST_RESULTS.headers.get('content-type') || '';
             if (CONTENT_TYPE.includes('application/json')) {
-                return REQUEST_RESULTS.body.json();
+                return REQUEST_RESULTS.json();
             }
-            return REQUEST_RESULTS.body.text();
+            return REQUEST_RESULTS.text();
         }
         else if (STATUS_CODE.startsWith('3') && LOCATION) {
             return this.request(LOCATION.toString(), { requestOptions, rewriteRequest, originalProxy });
         }
-        const ERROR = new errors_1.RequestError(`Status Code: ${STATUS_CODE}`);
-        ERROR.statusCode = REQUEST_RESULTS.statusCode;
+        const ERROR = new errors_1.RequestError(`Status Code: ${STATUS_CODE}`, REQUEST_RESULTS.status);
         throw ERROR;
     }
 }

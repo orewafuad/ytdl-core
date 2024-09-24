@@ -13,10 +13,14 @@
 * **YtdlCore:** Static methods such as the `getFullInfo` function have been eliminated in view of optional adaptations, etc.
 * **Log:** Added `logDisplay` option to specify the type of log to display
 * **Country:** Add `gl` option
+* **Fetcher:** Add `fetcher` option to control requests (Allows proxy adaptation, etc. (returns a Response object))
+* **Agent:** Proxy adaptation to requests by YtdlCore has been discontinued due to specification issues.
 
 ### Change
 * **Lang:** Remove the `lang` option and add the `hl` option.
 * **Debug:** Eliminated the use of the `YTDL_DEBUG` environment variable
+* **Options:** The `requestOptions` option is obsolete.
+* **Request:** Eliminate the use of the internal Undici package
 
 ## v5.1.8 (2024/09/20)
 

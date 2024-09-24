@@ -1,7 +1,7 @@
 import { ProxyAgent } from 'undici';
 import { CookieJar } from 'tough-cookie';
 import { CookieAgent } from 'http-cookie-agent/undici';
-import { YTDL_Agent, YTDL_Cookies } from '../types';
+import type { YTDL_Agent, YTDL_Cookies } from '@/types';
 declare class Agent {
     static defaultAgent: YTDL_Agent;
     static addCookies(jar: CookieJar, cookies: YTDL_Cookies): void;

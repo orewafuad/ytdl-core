@@ -1,6 +1,6 @@
 import { request as undiciRequest } from 'undici';
 
-import { YTDL_RequestOptions } from '@/types/Options';
+import type { YTDL_RequestOptions } from '@/types/Options';
 
 import { RequestError } from './errors';
 import { Logger } from '@/utils/Log';

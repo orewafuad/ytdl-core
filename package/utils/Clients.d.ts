@@ -5,8 +5,8 @@ type YTDL_ClientsParams = {
         oauth2: OAuth2;
     };
 };
-import type { OAuth2 } from '../core/OAuth2';
-import { YTDL_GetInfoOptions } from '../types';
+import type { OAuth2 } from '@/core/OAuth2';
+import type { YTDL_GetInfoOptions } from '@/types';
 declare class Clients {
     static getAuthorizationHeader(oauth2?: OAuth2): {
         authorization: string;

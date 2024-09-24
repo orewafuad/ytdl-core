@@ -15,8 +15,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.YtdlCore = void 0;
-const Platform_1 = require("../../platforms/Platform");
-const Constants_1 = require("../../utils/Constants");
+const Platform_1 = require("@/platforms/Platform");
+const Constants_1 = require("@/utils/Constants");
 class CacheWithCacheStorage {
     async getCache() {
         return await caches.open('ytdlCoreCache');
@@ -67,6 +67,15 @@ Platform_1.Platform.load({
     server: false,
     cache: new CacheWithCacheStorage(),
     fileCache: new CacheWithCacheStorage(),
+    fetcher: fetch,
+    poToken: () => {
+        return new Promise((resolve) => {
+            resolve({
+                poToken: '',
+                visitorData: '',
+            });
+        });
+    },
     default: {
         options: {
             hl: 'en',
@@ -93,8 +102,8 @@ Platform_1.Platform.load({
         issuesUrl: Constants_1.ISSUES_URL,
     },
 });
-const YtdlCore_1 = require("../../YtdlCore");
+const YtdlCore_1 = require("@/YtdlCore");
 Object.defineProperty(exports, "YtdlCore", { enumerable: true, get: function () { return YtdlCore_1.YtdlCore; } });
-__exportStar(require("../../types/index"), exports);
+__exportStar(require("@/types/index"), exports);
 exports.default = YtdlCore_1.YtdlCore;
 //# sourceMappingURL=Browser.js.map

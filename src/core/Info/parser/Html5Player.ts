@@ -3,9 +3,9 @@ type Html5PlayerInfo = { playerUrl: string | null; signatureTimestamp: string };
 import type { YTDL_GetInfoOptions } from '@/types/Options';
 import { Platform } from '@/platforms/Platform';
 import { Signature } from '@/core/Signature';
+import { Fetcher } from '@/core/Fetcher';
 import { Url } from '@/utils/Url';
 import { Logger } from '@/utils/Log';
-import { Fetcher } from '@/core/Fetcher';
 
 const FileCache = Platform.getShim().fileCache;
 

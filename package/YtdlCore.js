@@ -7,7 +7,6 @@ const Info_1 = require("./core/Info");
 const Html5Player_1 = require("./core/Info/parser/Html5Player");
 const Agent_1 = require("./core/Agent");
 const OAuth2_1 = require("./core/OAuth2");
-const PoToken_1 = require("./core/PoToken");
 const Url_1 = require("./utils/Url");
 const Format_1 = require("./utils/Format");
 const Constants_1 = require("./utils/Constants");
@@ -60,7 +59,8 @@ class YtdlCore {
     automaticallyGeneratePoToken() {
         if (!this.poToken && !this.visitorData) {
             Log_1.Logger.info('Since PoToken and VisitorData are not specified, they are generated automatically.');
-            PoToken_1.PoToken.generatePoToken()
+            const generatePoToken = Platform_1.Platform.getShim().poToken;
+            generatePoToken()
                 .then(({ poToken, visitorData }) => {
                 this.poToken = poToken;
                 this.visitorData = visitorData;
@@ -77,7 +77,7 @@ class YtdlCore {
             (0, Html5Player_1.getHtml5Player)({});
         }
     }
-    constructor({ hl, gl, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, logDisplay } = {}) {
+    constructor({ hl, gl, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay } = {}) {
         /* Get Info Options */
         this.hl = 'en';
         this.gl = 'US';
@@ -96,6 +96,11 @@ class YtdlCore {
         this.version = Constants_1.VERSION;
         /* Other Options */
         Log_1.Logger.logDisplay = logDisplay || ['info', 'success', 'warning', 'error'];
+        if (fetcher) {
+            const SHIM = Platform_1.Platform.getShim();
+            SHIM.fetcher = fetcher;
+            Platform_1.Platform.load(SHIM);
+        }
         if (disableFileCache) {
             FileCache.disable();
         }

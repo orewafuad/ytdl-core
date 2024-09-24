@@ -8,8 +8,8 @@ type PlayerApiResponses = {
     mweb: YT_PlayerApiResponse | null;
     tv: YT_PlayerApiResponse | null;
 };
-import type { YT_PlayerApiResponse, YTDL_ClientTypes } from '../../../types';
-import type { YTDL_ClientsParams } from '../../../utils/Clients';
+import type { YT_PlayerApiResponse, YTDL_ClientTypes } from '@/types';
+import type { YTDL_ClientsParams } from '@/utils/Clients';
 export default class PlayerApi {
     static getApiResponses(playerApiParams: YTDL_ClientsParams, clients: Array<YTDL_ClientTypes>): Promise<{
         isMinimalMode: boolean;

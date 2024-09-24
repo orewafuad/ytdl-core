@@ -1,10 +1,15 @@
+import { YTDL_DownloadOptions } from '@/types';
 import { YtdlCore_Cache } from './utils/Classes';
-import { YTDL_DownloadOptions } from '../types';
 interface YtdlCore_Shim {
     runtime: 'default' | 'browser' | 'serverless';
     server: boolean;
     cache: YtdlCore_Cache;
     fileCache: YtdlCore_Cache;
+    fetcher: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
+    poToken: () => Promise<{
+        poToken: string;
+        visitorData: string;
+    }>;
     default: {
         options: YTDL_DownloadOptions;
         proxy: {

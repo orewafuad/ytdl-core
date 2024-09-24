@@ -1,5 +1,3 @@
-import { Dispatcher, request } from 'undici';
-
 import type { YTDL_ClientTypes } from './Clients';
 import { YTDL_Agent } from './Agent';
 import { YTDL_VideoFormat } from './Ytdl';
@@ -41,7 +39,7 @@ export type YTDL_ProxyOptions = {
     agent?: YTDL_Agent;
 
     /** API requests can be rewritten. (This is also a great way to debug what requests are being sent). */
-    rewriteRequest?: (url: string, options: Parameters<typeof request>[1], details: { isDownloadUrl: boolean }) => { url: string; options: Parameters<typeof request>[1] };
+    rewriteRequest?: (url: string, options: RequestInit, details: { isDownloadUrl: boolean }) => { url: string; options: RequestInit };
 
     /** You can specify your own proxy. (See "Proxy Support" in the README for details.)
      * @advance For advanced use, use the `rewriteRequest` function.
@@ -61,9 +59,6 @@ export type YTDL_GetInfoOptions = YTDL_ProxyOptions & {
 
     /* You can specify the country name to be specified when making a request to the API. */
     gl?: YTDL_GeoCountry;
-
-    /** You can specify the request options. */
-    requestOptions?: Parameters<typeof request>[1];
 
     /** You can specify a valid PoToken to avoid bot errors. */
     poToken?: string;
@@ -127,4 +122,4 @@ export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFo
     dlChunkSize?: number;
 }
 
-export type YTDL_RequestOptions = { rewriteRequest?: YTDL_GetInfoOptions['rewriteRequest']; requestOptions?: Omit<Dispatcher.RequestOptions, 'origin' | 'path' | 'method'> & Partial<Pick<Dispatcher.RequestOptions, 'method'>>; originalProxy?: YTDL_GetInfoOptions['originalProxy'] };
+export type YTDL_RequestOptions = { requestOptions?: RequestInit; rewriteRequest?: YTDL_GetInfoOptions['rewriteRequest']; originalProxy?: YTDL_GetInfoOptions['originalProxy'] };

@@ -2,7 +2,7 @@ type NextApiResponses = {
     web: YT_NextApiResponse | null;
 };
 
-import { YT_NextApiResponse } from '@/types';
+import type { YT_NextApiResponse } from '@/types';
 
 import { Web } from '@/core/clients';
 

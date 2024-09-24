@@ -65,6 +65,15 @@ Platform.load({
     server: false,
     cache: new CacheWithCacheStorage(),
     fileCache: new CacheWithCacheStorage(),
+    fetcher: fetch,
+    poToken: () => {
+        return new Promise((resolve) => {
+            resolve({
+                poToken: '',
+                visitorData: '',
+            })
+        });
+    },
     default: {
         options: {
             hl: 'en',

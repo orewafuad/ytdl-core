@@ -1,8 +1,8 @@
 type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
+    fetcher?: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
     logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'>;
 };
 import { YTDL_ChooseFormatOptions, YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_ClientTypes, YTDL_Agent, YTDL_Hreflang, YTDL_GeoCountry, YTDL_VideoInfo } from './types';
-import { Agent } from './core/Agent';
 import { OAuth2 } from './core/OAuth2';
 import { Url } from './utils/Url';
 import { FormatUtils } from './utils/Format';
@@ -13,8 +13,8 @@ declare class YtdlCore {
     static validateURL: typeof Url.validateURL;
     static getURLVideoID: typeof Url.getURLVideoID;
     static getVideoID: typeof Url.getVideoID;
-    static createAgent: typeof Agent.createAgent;
-    static createProxyAgent: typeof Agent.createProxyAgent;
+    static createAgent: any;
+    static createProxyAgent: any;
     hl: YTDL_Hreflang;
     gl: YTDL_GeoCountry;
     requestOptions: any;
@@ -48,7 +48,7 @@ declare class YtdlCore {
     private setOAuth2;
     private automaticallyGeneratePoToken;
     private initializeHtml5PlayerCache;
-    constructor({ hl, gl, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, logDisplay }?: YTDL_Constructor);
+    constructor({ hl, gl, requestOptions, rewriteRequest, agent, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay }?: YTDL_Constructor);
     private initializeOptions;
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     download(link: string, options?: YTDL_DownloadOptions): void;

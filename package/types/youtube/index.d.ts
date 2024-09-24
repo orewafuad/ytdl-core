@@ -1,4 +1,4 @@
-import type { PlayerRequestError } from '../../core/errors';
+import type { PlayerRequestError } from '@/core/errors';
 export * from './Renderers';
 export * from './Misc';
 export * from './Player';

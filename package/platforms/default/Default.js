@@ -21,10 +21,11 @@ exports.YtdlCore = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const os_1 = __importDefault(require("os"));
-const Platform_1 = require("../../platforms/Platform");
-const Classes_1 = require("../../platforms/utils/Classes");
-const Constants_1 = require("../../utils/Constants");
-const Log_1 = require("../../utils/Log");
+const youtube_po_token_generator_1 = require("youtube-po-token-generator");
+const Platform_1 = require("@/platforms/Platform");
+const Classes_1 = require("@/platforms/utils/Classes");
+const Constants_1 = require("@/utils/Constants");
+const Log_1 = require("@/utils/Log");
 class FileCache {
     constructor() {
         this.timeouts = new Map();
@@ -143,6 +144,32 @@ Platform_1.Platform.load({
     server: true,
     cache: new Classes_1.CacheWithMap(),
     fileCache: new FileCache(),
+    fetcher: fetch,
+    poToken: () => {
+        return new Promise((resolve) => {
+            try {
+                (0, youtube_po_token_generator_1.generate)()
+                    .then((data) => {
+                    Log_1.Logger.success('Successfully generated a poToken.');
+                    resolve(data);
+                })
+                    .catch((err) => {
+                    Log_1.Logger.error('Failed to generate a poToken.\nDetails: ' + err);
+                    resolve({
+                        poToken: '',
+                        visitorData: '',
+                    });
+                });
+            }
+            catch (err) {
+                Log_1.Logger.error('Failed to generate a poToken.\nDetails: ' + err);
+                resolve({
+                    poToken: '',
+                    visitorData: '',
+                });
+            }
+        });
+    },
     default: {
         options: {
             hl: 'en',
@@ -169,8 +196,8 @@ Platform_1.Platform.load({
         issuesUrl: Constants_1.ISSUES_URL,
     },
 });
-const YtdlCore_1 = require("../../YtdlCore");
+const YtdlCore_1 = require("@/YtdlCore");
 Object.defineProperty(exports, "YtdlCore", { enumerable: true, get: function () { return YtdlCore_1.YtdlCore; } });
-__exportStar(require("../../types/index"), exports);
+__exportStar(require("@/types/index"), exports);
 exports.default = YtdlCore_1.YtdlCore;
 //# sourceMappingURL=Default.js.map
