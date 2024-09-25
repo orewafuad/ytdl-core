@@ -1,6 +1,6 @@
 # Changelog
 
-## v5.2.0 (2024/09/20) *Not released, planned.
+## v6.0.0 (2024/09/20) *Not released, planned.
 
 ### Features
 * **YtdlCore:** Support for use in browsers. (To use, import `@ybd-project/ytdl-core/browser`)
