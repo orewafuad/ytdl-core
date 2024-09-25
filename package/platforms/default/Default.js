@@ -25,6 +25,11 @@ const Platform_1 = require("../../platforms/Platform");
 const Classes_1 = require("../../platforms/utils/Classes");
 const Constants_1 = require("../../utils/Constants");
 const Log_1 = require("../../utils/Log");
+import('./PoToken.mjs').then((m) => {
+    const SHIM = Platform_1.Platform.getShim();
+    SHIM.poToken = m.generatePoToken;
+    Platform_1.Platform.load(SHIM);
+});
 class FileCache {
     constructor() {
         this.timeouts = new Map();
@@ -57,7 +62,7 @@ class FileCache {
     }
     async set(cacheName, data, options = { ttl: 60 * 60 * 24 }) {
         if (this.isDisabled) {
-            Log_1.Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached by the _YTDL_DISABLE_FILE_CACHE option.`);
+            Log_1.Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached.`);
             return false;
         }
         try {
@@ -144,14 +149,7 @@ Platform_1.Platform.load({
     cache: new Classes_1.CacheWithMap(),
     fileCache: new FileCache(),
     fetcher: fetch,
-    poToken: () => {
-        return new Promise((resolve) => {
-            resolve({
-                poToken: '',
-                visitorData: '',
-            });
-        });
-    },
+    poToken: () => Promise.resolve({ poToken: '', visitorData: '' }),
     default: {
         options: {
             hl: 'en',

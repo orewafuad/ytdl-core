@@ -56,7 +56,7 @@ class FileCache {
     }
     async set(cacheName, data, options = { ttl: 60 * 60 * 24 }) {
         if (this.isDisabled) {
-            Log_1.Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached by the _YTDL_DISABLE_FILE_CACHE option.`);
+            Log_1.Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached.`);
             return false;
         }
         try {

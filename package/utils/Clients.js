@@ -51,11 +51,11 @@ const INNERTUBE_BASE_API_URL = 'https://www.youtube.com/youtubei/v1', INNERTUBE_
         context: {
             client: {
                 clientName: 'ANDROID',
-                clientVersion: '19.29.37',
-                androidSdkVersion: 30,
+                clientVersion: '18.48.37',
+                androidSdkVersion: 33,
                 userAgent: UserAgents_1.UserAgent.android,
                 osName: 'Android',
-                osVersion: '11',
+                osVersion: '13',
             },
         },
         clientName: 3,

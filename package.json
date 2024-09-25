@@ -19,15 +19,15 @@
         ".": {
             "types": "./package/types/index.d.ts",
             "node": {
-                "import": "./package/Platforms/Default/Default.js",
+                "import": "./package/Platforms/Default/Default.mjs",
                 "require": "./bundle/node.cjs"
             },
             "browser": "./package/Platforms/Browser/Browser.js",
-            "default": "./package/Platforms/Default/Default.js"
+            "default": "./package/Platforms/Default/Default.mjs"
         },
         "./browser": {
             "types": "./package/types/index.d.ts",
-            "default": "./package/Platforms/Browser/Browser.js"
+            "default": "./package/Platforms/Browser/Browser.mjs"
         },
         "./browser.bundle": {
             "types": "./package/types/index.d.ts",
@@ -56,13 +56,16 @@
         "create-browser-bundle": "esbuild ./package/Platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser --minify"
     },
     "dependencies": {
+        "bgutils-js": "^2.2.0",
         "buffer": "^6.0.3",
+        "jsdom": "^25.0.1",
         "node-fetch": "^3.3.2",
         "sax": "^1.4.1",
         "string_decoder": "^1.3.0"
     },
     "devDependencies": {
         "@types/jest": "^29.5.13",
+        "@types/jsdom": "^21.1.7",
         "@types/node": "^22.5.5",
         "@types/sax": "^1.2.7",
         "esbuild": "^0.24.0",

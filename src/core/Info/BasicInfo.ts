@@ -101,9 +101,8 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
     }
 
     if (!options.poToken && !options.disablePoTokenAutoGeneration) {
-        /* The logging is being stopped due to the inability to automatically generate a normal PoToken at this time. */
-        /* Logger.warning('Specify poToken for stable and fast operation. See README for details.');
-        Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.'); */
+        Logger.warning('Specify poToken for stable and fast operation. See README for details.');
+        Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.');
 
         const { poToken, visitorData } = await SHIM.poToken();
         options.poToken = poToken;
@@ -161,7 +160,7 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
     }
 
     const INCLUDE_STORYBOARDS = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'storyboards'),
-        VIDEO_DETAILS = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'videoDetails').videoDetails as YT_VideoDetails || {},
+        VIDEO_DETAILS = (getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'videoDetails').videoDetails as YT_VideoDetails) || {},
         MICROFORMAT = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'microformat').microformat || null,
         LIVE_BROADCAST_DETAILS = PLAYER_RESPONSES.web?.microformat?.playerMicroformatRenderer.liveBroadcastDetails || null;
 

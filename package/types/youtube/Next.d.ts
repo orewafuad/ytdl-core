@@ -1,5 +1,8 @@
 import { YT_ItemSectionRenderer, YT_VideoPrimaryInfoRenderer, YT_VideoSecondaryInfoRenderer } from './Renderers';
 export type YT_NextApiResponse = {
+    responseContext: {
+        visitorData: string;
+    };
     contents: {
         twoColumnWatchNextResults: {
             results: {

@@ -9,6 +9,12 @@ import { AvailableCacheFileNames, FileCacheOptions } from '@/platforms/types/Fil
 import { VERSION, REPO_URL, ISSUES_URL } from '@/utils/Constants';
 import { Logger } from '@/utils/Log';
 
+import('./PoToken.mjs').then((m) => {
+    const SHIM = Platform.getShim();
+    SHIM.poToken = m.generatePoToken;
+    Platform.load(SHIM);
+})
+
 class FileCache implements YtdlCore_Cache {
     private timeouts: Map<string, NodeJS.Timeout> = new Map();
     isDisabled: boolean = false;
@@ -45,7 +51,7 @@ class FileCache implements YtdlCore_Cache {
 
     async set(cacheName: AvailableCacheFileNames, data: string, options: FileCacheOptions = { ttl: 60 * 60 * 24 }): Promise<boolean> {
         if (this.isDisabled) {
-            Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached by the _YTDL_DISABLE_FILE_CACHE option.`);
+            Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached.`);
             return false;
         }
 
@@ -149,14 +155,7 @@ Platform.load({
     cache: new CacheWithMap(),
     fileCache: new FileCache(),
     fetcher: fetch,
-    poToken: () => {
-        return new Promise((resolve) => {
-            resolve({
-                poToken: '',
-                visitorData: '',
-            });
-        });
-    },
+    poToken: () => Promise.resolve({ poToken: '', visitorData: '' }),
     default: {
         options: {
             hl: 'en',

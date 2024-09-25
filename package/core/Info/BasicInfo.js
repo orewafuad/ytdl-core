@@ -85,9 +85,8 @@ async function _getBasicInfo(id, options, isFromGetInfo) {
         await options.oauth2.refreshAccessToken();
     }
     if (!options.poToken && !options.disablePoTokenAutoGeneration) {
-        /* The logging is being stopped due to the inability to automatically generate a normal PoToken at this time. */
-        /* Logger.warning('Specify poToken for stable and fast operation. See README for details.');
-        Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.'); */
+        Log_1.Logger.warning('Specify poToken for stable and fast operation. See README for details.');
+        Log_1.Logger.info('Automatically generates poToken, but stable operation cannot be guaranteed.');
         const { poToken, visitorData } = await SHIM.poToken();
         options.poToken = poToken;
         options.visitorData = visitorData;

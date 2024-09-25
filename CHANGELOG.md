@@ -17,7 +17,7 @@
 * **Country:** Add `gl` option
 * **Fetcher:** Add `fetcher` option to control requests (Allows proxy adaptation, etc. (returns a Response object))
 * **Agent:** Proxy adaptation to requests by YtdlCore has been discontinued due to specification issues.
-* **PoToken:** The auto-generated PoToken is not normal, so it is temporarily obsolete (Due to specification changes on the YouTube side)
+* **PoToken:** Stop using `youtube-po-token-generator` to generate PoToken, and use [`LuanRT/BgUtils`](https://github.com/LuanRT/BgUtils) instead, because it cannot generate PoToken correctly. (Experimental, not available in the browser and serverless versions).
 
 ### Bug Fixes
 * **Types:** Fixed wrong type issue

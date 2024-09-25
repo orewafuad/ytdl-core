@@ -44,7 +44,7 @@ class FileCache implements YtdlCore_Cache {
 
     async set(cacheName: AvailableCacheFileNames, data: string, options: FileCacheOptions = { ttl: 60 * 60 * 24 }): Promise<boolean> {
         if (this.isDisabled) {
-            Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached by the _YTDL_DISABLE_FILE_CACHE option.`);
+            Logger.debug(`[ FileCache ]: <blue>"${cacheName}"</blue> is not cached.`);
             return false;
         }
 
