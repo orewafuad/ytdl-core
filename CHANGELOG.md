@@ -25,6 +25,14 @@
 ### Improvement
 * **YtdlCore:** Remove unnecessary packages and reduce package size
 
+## v5.1.9, v5.1.9-2 (2024/09/22)
+
+### Features
+* **PoToken:** Added option `disablePoTokenAutoGeneration` to disable automatic generation of PoToken
+
+### Bug Fixes
+* **Bug:** Minor bug fixes
+
 ## v5.1.8 (2024/09/20)
 
 ### Features
