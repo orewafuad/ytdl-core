@@ -7,6 +7,7 @@ import { OAuth2 } from './core/OAuth2';
 import { Url } from './utils/Url';
 import { FormatUtils } from './utils/Format';
 declare class YtdlCore {
+    static writeStreamToFile?: (readableStream: ReadableStream, filePath: string) => Promise<void>;
     static chooseFormat: typeof FormatUtils.chooseFormat;
     static filterFormats: typeof FormatUtils.filterFormats;
     static validateID: typeof Url.validateID;
@@ -47,9 +48,9 @@ declare class YtdlCore {
     constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay }?: YTDL_Constructor);
     private initializeOptions;
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
-    download(link: string, options?: YTDL_DownloadOptions): void;
+    download(link: string, options?: YTDL_DownloadOptions): Promise<ReadableStream<Uint8Array>>;
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
-    downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): void;
+    downloadFromInfo(info: YTDL_VideoInfo, options?: YTDL_DownloadOptions): Promise<ReadableStream<Uint8Array>>;
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
     getBasicInfo(link: string, options?: YTDL_DownloadOptions): Promise<YTDL_VideoInfo>;
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */

@@ -186,6 +186,40 @@ Platform.load({
 
 import { YtdlCore } from '@/YtdlCore';
 
+YtdlCore.writeStreamToFile = async function (readableStream: ReadableStream, filePath: string) {
+    return new Promise((resolve, reject) => {
+        const WRITE_STREAM = fs.createWriteStream(filePath);
+
+        async function pump() {
+            const READER = readableStream.getReader();
+            try {
+                while (true) {
+                    const { done, value } = await READER.read();
+
+                    if (done) {
+                        WRITE_STREAM.end();
+                        break;
+                    }
+
+                    if (!WRITE_STREAM.write(Buffer.from(value))) {
+                        await new Promise((resolve) => WRITE_STREAM.once('drain', resolve));
+                    }
+                }
+            } catch (err: any) {
+                WRITE_STREAM.destroy(err);
+                reject(err);
+            } finally {
+                READER.releaseLock();
+            }
+        }
+
+        pump();
+
+        WRITE_STREAM.on('finish', resolve);
+        WRITE_STREAM.on('error', reject);
+    });
+};
+
 export * from '@/types/index';
 export { YtdlCore };
 export default YtdlCore;

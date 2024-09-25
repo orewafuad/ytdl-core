@@ -164,16 +164,6 @@ function cutAfterJS(mixedJson: string): string {
     throw new Error(`Can't cut unsupported JSON (no matching closing bracket found)`);
 }
 
-/** Temporary helper to help deprecating a few properties. */
-function deprecate(obj: Object, prop: string, value: Object, oldPath: string, newPath: string) {
-    Object.defineProperty(obj, prop, {
-        get: () => {
-            Logger.warning(`\`${oldPath}\` will be removed in a near future release, ` + `use \`${newPath}\` instead.`);
-            return value;
-        },
-    });
-}
-
 function getPropInsensitive<T = unknown>(obj: any, prop: string): T {
     const KEY = findPropKeyInsensitive(obj, prop);
     return KEY && obj[KEY];
@@ -222,5 +212,5 @@ function checkForUpdates() {
     return null;
 }
 
-export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
-export default { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+export default { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };

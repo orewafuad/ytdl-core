@@ -31,7 +31,7 @@ export type YT_CompactVideoRenderer = {
         ];
     };
     channelThumbnail: {
-        thumbnails: Array<YT_Thumbnail>;
+        thumbnails?: Array<YT_Thumbnail>;
     };
     lengthText: {
         simpleText: string;

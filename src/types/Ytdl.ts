@@ -59,6 +59,7 @@ export type YTDL_VideoDetailsAdditions = {
 export type YTDL_VideoDetails = YTDL_VideoDetailsAdditions & {
     videoId: string;
     title: string;
+    playabilityStatus: YT_PlayerApiResponse['playabilityStatus']['status'] | 'UNKNOWN';
     lengthSeconds: number;
     keywords: Array<string>;
     channelId: string;
@@ -70,9 +71,11 @@ export type YTDL_VideoDetails = YTDL_VideoDetailsAdditions & {
     isUnpluggedCorpus: boolean;
     isLiveContent: boolean;
     isUpcoming: boolean;
+    isLowLatencyLiveStream: boolean;
     liveBroadcastDetails: YT_MicroformatRenderer['liveBroadcastDetails'] | null;
     published: string | null;
     publishDate: string | null;
+    latencyClass: string | null;
 };
 
 export type YTDL_RelatedVideo = {

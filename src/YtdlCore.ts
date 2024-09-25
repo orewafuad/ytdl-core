@@ -3,7 +3,7 @@ type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
     logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'>;
 };
 
-import type { YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials, YTDL_ProxyOptions } from './types';
+import type { YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials } from './types';
 import type { InternalDownloadOptions } from './core/types';
 
 import { Platform } from './platforms/Platform';
@@ -25,6 +25,8 @@ function isNodeVersionOk(version: string): boolean {
 }
 
 class YtdlCore {
+    public static writeStreamToFile?: (readableStream: ReadableStream, filePath: string) => Promise<void> = undefined;
+
     public static chooseFormat = FormatUtils.chooseFormat;
     public static filterFormats = FormatUtils.filterFormats;
 

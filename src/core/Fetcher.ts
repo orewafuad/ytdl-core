@@ -62,7 +62,7 @@ class Fetcher {
                 const PARSED = new URL(originalProxy.base);
 
                 if (!url.includes(PARSED.host)) {
-                    url = `${PARSED.protocol}//${PARSED.host}/?url=${encodeURIComponent(url)}`;
+                    url = `${PARSED.protocol}//${PARSED.host}${PARSED.pathname}?${originalProxy.urlQueryName || 'url'}=${encodeURIComponent(url)}`;
                 }
             } catch {}
         }

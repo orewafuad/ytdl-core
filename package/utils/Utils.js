@@ -5,7 +5,6 @@ exports.between = between;
 exports.tryParseBetween = tryParseBetween;
 exports.parseAbbreviatedNumber = parseAbbreviatedNumber;
 exports.cutAfterJS = cutAfterJS;
-exports.deprecate = deprecate;
 exports.checkForUpdates = checkForUpdates;
 exports.getPropInsensitive = getPropInsensitive;
 exports.setPropInsensitive = setPropInsensitive;
@@ -134,15 +133,6 @@ function cutAfterJS(mixedJson) {
     }
     throw new Error(`Can't cut unsupported JSON (no matching closing bracket found)`);
 }
-/** Temporary helper to help deprecating a few properties. */
-function deprecate(obj, prop, value, oldPath, newPath) {
-    Object.defineProperty(obj, prop, {
-        get: () => {
-            Log_1.Logger.warning(`\`${oldPath}\` will be removed in a near future release, ` + `use \`${newPath}\` instead.`);
-            return value;
-        },
-    });
-}
 function getPropInsensitive(obj, prop) {
     const KEY = findPropKeyInsensitive(obj, prop);
     return KEY && obj[KEY];
@@ -179,5 +169,5 @@ function checkForUpdates() {
     }
     return null;
 }
-exports.default = { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+exports.default = { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
 //# sourceMappingURL=Utils.js.map

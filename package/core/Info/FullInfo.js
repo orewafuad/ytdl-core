@@ -45,17 +45,10 @@ async function getFullInfo(link, options) {
     if (await CACHE.has(CACHE_KEY)) {
         return CACHE.get(CACHE_KEY);
     }
-    throw new Error('AAAAAAAAAAAAAAA');
-    /*     try {
-        const RESULTS = await _getFullInfo(ID, options);
-
-        CACHE.set(CACHE_KEY, RESULTS, {
-            ttl: 60 * 30, //30Min
-        });
-
-        return RESULTS;
-    } catch (err) {
-        throw err;
-    } */
+    const RESULTS = await _getFullInfo(ID, options);
+    CACHE.set(CACHE_KEY, RESULTS, {
+        ttl: 60 * 30, //30Min
+    });
+    return RESULTS;
 }
 //# sourceMappingURL=FullInfo.js.map

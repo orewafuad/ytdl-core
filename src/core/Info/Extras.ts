@@ -107,7 +107,7 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, lang: YTDL_Hreflang
                     user: USER,
                     channelUrl: `https://www.youtube.com/channel/${CHANNEL_ID}`,
                     userUrl: `https://www.youtube.com/user/${USER}`,
-                    thumbnails: details.channelThumbnail.thumbnails.map((thumbnail) => {
+                    thumbnails: (details.channelThumbnail.thumbnails || [])?.map((thumbnail) => {
                         thumbnail.url = new URL(thumbnail.url, Url.getBaseUrl()).toString();
                         return thumbnail;
                     }),
@@ -118,14 +118,13 @@ function parseRelatedVideo(details: YT_CompactVideoRenderer, lang: YTDL_Hreflang
                 viewCount: parseInt(viewCount.replace(/,/g, '')),
                 lengthSeconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1000) : null,
                 thumbnails: details.thumbnail.thumbnails || [],
-                richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails.thumbnails : [],
+                richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails?.thumbnails || [] : [],
                 isLive: !!(details.badges && details.badges.find((b) => b.metadataBadgeRenderer.label === 'LIVE NOW')),
             };
 
-        utils.deprecate(VIDEO, 'author_thumbnail', VIDEO.author.thumbnails[0].url, 'relatedVideo.author_thumbnail', 'relatedVideo.author.thumbnails[0].url');
-        utils.deprecate(VIDEO, 'video_thumbnail', VIDEO.thumbnails[0].url, 'relatedVideo.video_thumbnail', 'relatedVideo.thumbnails[0].url');
         return VIDEO;
     } catch (err) {
+        console.log(err);
         Logger.debug(`<error>Failed</error> to parse related video (ID: ${details?.videoId || 'Unknown'}): <error>${err}</error>`);
         return null;
     }
@@ -227,10 +226,6 @@ export default class InfoExtras {
                 verified,
             };
 
-            if (thumbnails?.length) {
-                utils.deprecate(AUTHOR, 'avatar', AUTHOR.thumbnails[0]?.url, 'author.thumbnails', 'author.thumbnails[0].url');
-            }
-
             return AUTHOR;
         } catch (err) {
             return null;
@@ -277,10 +272,6 @@ export default class InfoExtras {
                 subscriberCount: subscriberCount,
                 verified,
             };
-
-            if (thumbnails?.length) {
-                utils.deprecate(AUTHOR, 'avatar', AUTHOR.thumbnails[0]?.url, 'author.thumbnails', 'author.thumbnails[0].url');
-            }
 
             return AUTHOR;
         } catch (err) {
@@ -359,15 +350,19 @@ export default class InfoExtras {
 
         if (DETAILS.thumbnail) {
             DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
-            delete DETAILS.thumbnail;
-            utils.deprecate(DETAILS, 'thumbnail', { thumbnails: DETAILS.thumbnails }, 'DETAILS.thumbnail.thumbnails', 'DETAILS.thumbnails');
         }
 
         const DESCRIPTION = DETAILS.shortDescription || getText(DETAILS.description);
         if (DESCRIPTION) {
             DETAILS.description = DESCRIPTION;
+        }
+
+        if (typeof DETAILS.thumbnail !== 'undefined') {
+            delete DETAILS.thumbnail;
+        }
+
+        if (typeof DETAILS.shortDescription !== 'undefined') {
             delete DETAILS.shortDescription;
-            utils.deprecate(DETAILS, 'shortDescription', DETAILS.description, 'DETAILS.shortDescription', 'DETAILS.description');
         }
 
         if (microformat) {

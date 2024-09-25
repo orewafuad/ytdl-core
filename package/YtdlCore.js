@@ -199,6 +199,7 @@ class YtdlCore {
     }
 }
 exports.YtdlCore = YtdlCore;
+YtdlCore.writeStreamToFile = undefined;
 YtdlCore.chooseFormat = Format_1.FormatUtils.chooseFormat;
 YtdlCore.filterFormats = Format_1.FormatUtils.filterFormats;
 YtdlCore.validateID = Url_1.Url.validateID;

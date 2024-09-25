@@ -293,47 +293,6 @@ var require_Log = __commonJS({
   }
 });
 
-// package/core/Download/Download.js
-var require_Download = __commonJS({
-  "package/core/Download/Download.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.download = download;
-    exports2.downloadFromInfo = downloadFromInfo;
-    function downloadFromInfo(info, options) {
-    }
-    __name(downloadFromInfo, "downloadFromInfo");
-    function download(link, options) {
-    }
-    __name(download, "download");
-  }
-});
-
-// package/core/Download/index.js
-var require_Download2 = __commonJS({
-  "package/core/Download/index.js"(exports2) {
-    "use strict";
-    var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: /* @__PURE__ */ __name(function() {
-          return m[k];
-        }, "get") };
-      }
-      Object.defineProperty(o, k2, desc);
-    } : function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    });
-    var __exportStar2 = exports2 && exports2.__exportStar || function(m, exports3) {
-      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports3, p)) __createBinding2(exports3, m, p);
-    };
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    __exportStar2(require_Download(), exports2);
-  }
-});
-
 // package/utils/Url.js
 var require_Url = __commonJS({
   "package/utils/Url.js"(exports2) {
@@ -629,7 +588,7 @@ var require_Fetcher = __commonJS({
           try {
             const PARSED = new URL(originalProxy.base);
             if (!url.includes(PARSED.host)) {
-              url = `${PARSED.protocol}//${PARSED.host}/?url=${encodeURIComponent(url)}`;
+              url = `${PARSED.protocol}//${PARSED.host}${PARSED.pathname}?${originalProxy.urlQueryName || "url"}=${encodeURIComponent(url)}`;
             }
           } catch {
           }
@@ -668,7 +627,6 @@ var require_Utils = __commonJS({
     exports2.tryParseBetween = tryParseBetween;
     exports2.parseAbbreviatedNumber = parseAbbreviatedNumber;
     exports2.cutAfterJS = cutAfterJS;
-    exports2.deprecate = deprecate;
     exports2.checkForUpdates = checkForUpdates;
     exports2.getPropInsensitive = getPropInsensitive;
     exports2.setPropInsensitive = setPropInsensitive;
@@ -783,15 +741,6 @@ var require_Utils = __commonJS({
       throw new Error(`Can't cut unsupported JSON (no matching closing bracket found)`);
     }
     __name(cutAfterJS, "cutAfterJS");
-    function deprecate(obj, prop, value, oldPath, newPath) {
-      Object.defineProperty(obj, prop, {
-        get: /* @__PURE__ */ __name(() => {
-          Log_13.Logger.warning(`\`${oldPath}\` will be removed in a near future release, use \`${newPath}\` instead.`);
-          return value;
-        }, "get")
-      });
-    }
-    __name(deprecate, "deprecate");
     function getPropInsensitive(obj, prop) {
       const KEY = findPropKeyInsensitive(obj, prop);
       return KEY && obj[KEY];
@@ -831,7 +780,7 @@ var require_Utils = __commonJS({
       return null;
     }
     __name(checkForUpdates, "checkForUpdates");
-    exports2.default = { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, deprecate, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
+    exports2.default = { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };
   }
 });
 
@@ -3744,12 +3693,8 @@ var require_Next = __commonJS({
 var require_Extras = __commonJS({
   "package/core/Info/Extras.js"(exports2) {
     "use strict";
-    var __importDefault2 = exports2 && exports2.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
     Object.defineProperty(exports2, "__esModule", { value: true });
     var Url_1 = require_Url();
-    var Utils_1 = __importDefault2(require_Utils());
     var Log_13 = require_Log();
     var NUMBER_FORMAT = /^\d+$/;
     var TIME_FORMAT = /^(?:(?:(\d+):)?(\d{1,2}):)?(\d{1,2})(?:\.(\d{3}))?$/;
@@ -3810,6 +3755,7 @@ var require_Extras = __commonJS({
     }
     __name(getRelativeTime, "getRelativeTime");
     function parseRelatedVideo(details, lang) {
+      var _a, _b;
       if (!details) {
         return null;
       }
@@ -3831,7 +3777,7 @@ var require_Extras = __commonJS({
             user: USER,
             channelUrl: `https://www.youtube.com/channel/${CHANNEL_ID}`,
             userUrl: `https://www.youtube.com/user/${USER}`,
-            thumbnails: details.channelThumbnail.thumbnails.map((thumbnail) => {
+            thumbnails: (_a = details.channelThumbnail.thumbnails || []) == null ? void 0 : _a.map((thumbnail) => {
               thumbnail.url = new URL(thumbnail.url, Url_1.Url.getBaseUrl()).toString();
               return thumbnail;
             }),
@@ -3842,13 +3788,12 @@ var require_Extras = __commonJS({
           viewCount: parseInt(viewCount.replace(/,/g, "")),
           lengthSeconds: details.lengthText ? Math.floor(parseTimestamp(getText(details.lengthText)) / 1e3) : null,
           thumbnails: details.thumbnail.thumbnails || [],
-          richThumbnails: details.richThumbnail ? details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails.thumbnails : [],
+          richThumbnails: details.richThumbnail ? ((_b = details.richThumbnail.movingThumbnailRenderer.movingThumbnailDetails) == null ? void 0 : _b.thumbnails) || [] : [],
           isLive: !!(details.badges && details.badges.find((b) => b.metadataBadgeRenderer.label === "LIVE NOW"))
         };
-        Utils_1.default.deprecate(VIDEO, "author_thumbnail", VIDEO.author.thumbnails[0].url, "relatedVideo.author_thumbnail", "relatedVideo.author.thumbnails[0].url");
-        Utils_1.default.deprecate(VIDEO, "video_thumbnail", VIDEO.thumbnails[0].url, "relatedVideo.video_thumbnail", "relatedVideo.thumbnails[0].url");
         return VIDEO;
       } catch (err) {
+        console.log(err);
         Log_13.Logger.debug(`<error>Failed</error> to parse related video (ID: ${(details == null ? void 0 : details.videoId) || "Unknown"}): <error>${err}</error>`);
         return null;
       }
@@ -3899,7 +3844,6 @@ var require_Extras = __commonJS({
         return media;
       }
       static getAuthor(info) {
-        var _a;
         if (!info) {
           return null;
         }
@@ -3934,16 +3878,13 @@ var require_Extras = __commonJS({
             subscriberCount,
             verified
           };
-          if (thumbnails == null ? void 0 : thumbnails.length) {
-            Utils_1.default.deprecate(AUTHOR, "avatar", (_a = AUTHOR.thumbnails[0]) == null ? void 0 : _a.url, "author.thumbnails", "author.thumbnails[0].url");
-          }
           return AUTHOR;
         } catch (err) {
           return null;
         }
       }
       static getAuthorFromPlayerResponse(info) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         let channelName = null, channelId = null, user = null, thumbnails = [], subscriberCount = null, verified = false, microformat = null, endscreen = null;
         try {
           microformat = ((_a = info.microformat) == null ? void 0 : _a.playerMicroformatRenderer) || null;
@@ -3974,9 +3915,6 @@ var require_Extras = __commonJS({
             subscriberCount,
             verified
           };
-          if (thumbnails == null ? void 0 : thumbnails.length) {
-            Utils_1.default.deprecate(AUTHOR, "avatar", (_d = AUTHOR.thumbnails[0]) == null ? void 0 : _d.url, "author.thumbnails", "author.thumbnails[0].url");
-          }
           return AUTHOR;
         } catch (err) {
           return null;
@@ -4035,14 +3973,16 @@ var require_Extras = __commonJS({
         const DETAILS = videoDetails;
         if (DETAILS.thumbnail) {
           DETAILS.thumbnails = DETAILS.thumbnail.thumbnails;
-          delete DETAILS.thumbnail;
-          Utils_1.default.deprecate(DETAILS, "thumbnail", { thumbnails: DETAILS.thumbnails }, "DETAILS.thumbnail.thumbnails", "DETAILS.thumbnails");
         }
         const DESCRIPTION = DETAILS.shortDescription || getText(DETAILS.description);
         if (DESCRIPTION) {
           DETAILS.description = DESCRIPTION;
+        }
+        if (typeof DETAILS.thumbnail !== "undefined") {
+          delete DETAILS.thumbnail;
+        }
+        if (typeof DETAILS.shortDescription !== "undefined") {
           delete DETAILS.shortDescription;
-          Utils_1.default.deprecate(DETAILS, "shortDescription", DETAILS.description, "DETAILS.shortDescription", "DETAILS.description");
         }
         if (microformat) {
           DETAILS.lengthSeconds = parseInt(microformat.lengthSeconds || videoDetails.lengthSeconds.toString());
@@ -4143,6 +4083,7 @@ var require_BasicInfo = __commonJS({
       videoDetails: {
         videoUrl: "",
         videoId: "",
+        playabilityStatus: "UNKNOWN",
         title: "",
         author: null,
         lengthSeconds: 0,
@@ -4163,12 +4104,14 @@ var require_BasicInfo = __commonJS({
         isUnpluggedCorpus: false,
         isLiveContent: false,
         isUpcoming: false,
+        isLowLatencyLiveStream: false,
         liveBroadcastDetails: {
           isLiveNow: false,
           startTimestamp: ""
         },
         published: null,
-        publishDate: null
+        publishDate: null,
+        latencyClass: null
       },
       relatedVideos: [],
       formats: [],
@@ -4198,7 +4141,7 @@ var require_BasicInfo = __commonJS({
     }
     __name(setupClients, "setupClients");
     async function _getBasicInfo(id, options, isFromGetInfo) {
-      var _a, _b, _c, _d;
+      var _a, _b, _c;
       const SHIM2 = Platform_13.Platform.getShim(), HTML5_PLAYER_PROMISE = (0, Html5Player_1.getHtml5Player)(options);
       if (options.oauth2 && options.oauth2 instanceof OAuth2_1.OAuth2 && options.oauth2.shouldRefreshToken()) {
         Log_13.Logger.info("The specified OAuth2 token has expired and will be renewed automatically.");
@@ -4237,7 +4180,11 @@ var require_BasicInfo = __commonJS({
       if (options.includesNextAPIResponse || isFromGetInfo) {
         VIDEO_INFO._nextApiResponses = NEXT_RESPONSES;
       }
-      const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_LIST.filter((p) => p == null ? void 0 : p.storyboards)[0], VIDEO_DETAILS = ((_a = PLAYER_RESPONSE_LIST.filter((p) => p == null ? void 0 : p.videoDetails)[0]) == null ? void 0 : _a.videoDetails) || {}, MICROFORMAT = ((_b = PLAYER_RESPONSE_LIST.filter((p) => p == null ? void 0 : p.microformat)[0]) == null ? void 0 : _b.microformat) || null, LIVE_BROADCAST_DETAILS = ((_d = (_c = PLAYER_RESPONSES.web) == null ? void 0 : _c.microformat) == null ? void 0 : _d.playerMicroformatRenderer.liveBroadcastDetails) || null;
+      function getValueWithSpecifiedKey(array, name) {
+        return array.filter((v) => v && v[name])[0];
+      }
+      __name(getValueWithSpecifiedKey, "getValueWithSpecifiedKey");
+      const INCLUDE_STORYBOARDS = getValueWithSpecifiedKey(PLAYER_RESPONSE_LIST, "storyboards"), VIDEO_DETAILS = getValueWithSpecifiedKey(PLAYER_RESPONSE_LIST, "videoDetails").videoDetails || {}, MICROFORMAT = getValueWithSpecifiedKey(PLAYER_RESPONSE_LIST, "microformat").microformat || null, LIVE_BROADCAST_DETAILS = ((_b = (_a = PLAYER_RESPONSES.web) == null ? void 0 : _a.microformat) == null ? void 0 : _b.playerMicroformatRenderer.liveBroadcastDetails) || null;
       const STORYBOARDS = Extras_1.default.getStoryboards(INCLUDE_STORYBOARDS), MEDIA = Extras_1.default.getMedia(PLAYER_RESPONSES.web) || Extras_1.default.getMedia(PLAYER_RESPONSES.webCreator) || Extras_1.default.getMedia(PLAYER_RESPONSES.ios) || Extras_1.default.getMedia(PLAYER_RESPONSES.android) || Extras_1.default.getMedia(PLAYER_RESPONSES.webEmbedded) || Extras_1.default.getMedia(PLAYER_RESPONSES.tvEmbedded) || Extras_1.default.getMedia(PLAYER_RESPONSES.mweb) || Extras_1.default.getMedia(PLAYER_RESPONSES.tv), AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === "string" && v.includes(url))), ADDITIONAL_DATA = {
         videoUrl: Url_1.Url.getWatchPageUrl(id),
         author: Extras_1.default.getAuthor(NEXT_RESPONSES.web),
@@ -4252,6 +4199,7 @@ var require_BasicInfo = __commonJS({
         return [...items, ...Formats_1.FormatParser.parseFormats(playerResponse)];
       }, []);
       VIDEO_INFO.videoDetails = Extras_1.default.cleanVideoDetails(Object.assign(VIDEO_INFO.videoDetails, VIDEO_DETAILS, ADDITIONAL_DATA), (MICROFORMAT == null ? void 0 : MICROFORMAT.playerMicroformatRenderer) || null, options.hl);
+      VIDEO_INFO.videoDetails.playabilityStatus = ((_c = getValueWithSpecifiedKey(PLAYER_RESPONSE_LIST, "playabilityStatus")) == null ? void 0 : _c.playabilityStatus.status) || "UNKNOWN";
       VIDEO_INFO.videoDetails.liveBroadcastDetails = LIVE_BROADCAST_DETAILS;
       VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? Extras_1.default.getRelatedVideos(NEXT_RESPONSES.web, options.hl || "en") : [];
       VIDEO_INFO.formats = isFromGetInfo ? FORMATS : [];
@@ -4268,16 +4216,12 @@ var require_BasicInfo = __commonJS({
       if (await CACHE.has(CACHE_KEY)) {
         return CACHE.get(CACHE_KEY);
       }
-      try {
-        const RESULTS = await _getBasicInfo(ID, options, false);
-        CACHE.set(CACHE_KEY, RESULTS, {
-          ttl: 60 * 30
-          //30Min
-        });
-        return RESULTS;
-      } catch (err) {
-        throw err;
-      }
+      const RESULTS = await _getBasicInfo(ID, options, false);
+      CACHE.set(CACHE_KEY, RESULTS, {
+        ttl: 60 * 30
+        //30Min
+      });
+      return RESULTS;
     }
     __name(getBasicInfo, "getBasicInfo");
   }
@@ -5061,6 +5005,30 @@ var require_FullInfo = __commonJS({
     var BasicInfo_1 = require_BasicInfo();
     var CACHE = Platform_13.Platform.getShim().cache;
     var SIGNATURE = new Signature_1.Signature();
+    async function _getFullInfo(id, options) {
+      var _a;
+      const INFO = await (0, BasicInfo_1._getBasicInfo)(id, options, true), FUNCTIONS = [];
+      try {
+        const FORMATS = INFO.formats;
+        FUNCTIONS.push(SIGNATURE.decipherFormats(FORMATS));
+        if (options.parsesHLSFormat && ((_a = INFO._playerApiResponses) == null ? void 0 : _a.ios)) {
+          FUNCTIONS.push(...Formats_1.FormatParser.parseAdditionalManifests(INFO._playerApiResponses.ios, options));
+        }
+      } catch {
+      }
+      const RESULTS = Object.values(Object.assign({}, ...await Promise.all(FUNCTIONS)));
+      INFO.formats = RESULTS.map((format) => Format_1.FormatUtils.addFormatMeta(format, options.includesOriginalFormatData ?? false));
+      INFO.formats.sort(Format_1.FormatUtils.sortFormats);
+      INFO.full = true;
+      if (!options.includesPlayerAPIResponse) {
+        delete INFO._playerApiResponses;
+      }
+      if (!options.includesNextAPIResponse) {
+        delete INFO._nextApiResponses;
+      }
+      return INFO;
+    }
+    __name(_getFullInfo, "_getFullInfo");
     async function getFullInfo(link, options) {
       Utils_1.default.checkForUpdates();
       const ID = Url_1.Url.getVideoID(link) || (Url_1.Url.validateID(link) ? link : null);
@@ -5071,7 +5039,12 @@ var require_FullInfo = __commonJS({
       if (await CACHE.has(CACHE_KEY)) {
         return CACHE.get(CACHE_KEY);
       }
-      throw new Error("AAAAAAAAAAAAAAA");
+      const RESULTS = await _getFullInfo(ID, options);
+      CACHE.set(CACHE_KEY, RESULTS, {
+        ttl: 60 * 30
+        //30Min
+      });
+      return RESULTS;
     }
     __name(getFullInfo, "getFullInfo");
   }
@@ -5100,6 +5073,252 @@ var require_Info = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     __exportStar2(require_BasicInfo(), exports2);
     __exportStar2(require_FullInfo(), exports2);
+  }
+});
+
+// package/core/Download/Download.js
+var require_Download = __commonJS({
+  "package/core/Download/Download.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.streamToIterable = streamToIterable;
+    exports2.download = download;
+    exports2.downloadFromInfo = downloadFromInfo;
+    var Info_1 = require_Info();
+    var Format_1 = require_Format();
+    var Log_13 = require_Log();
+    var Platform_13 = require_Platform();
+    var UserAgents_1 = require_UserAgents();
+    var DOWNLOAD_REQUEST_OPTIONS = {
+      method: "GET",
+      headers: {
+        accept: "*/*",
+        origin: "https://www.youtube.com",
+        referer: "https://www.youtube.com",
+        DNT: "?1"
+      },
+      redirect: "follow"
+    };
+    async function isDownloadUrlValid(format) {
+      return new Promise((resolve) => {
+        const successResponseHandler = /* @__PURE__ */ __name((res) => {
+          if (res.status === 200) {
+            Log_13.Logger.debug(`[ ${format.sourceClientName} ]: <success>Video URL is normal.</success> The response was received with status code <success>"${res.status}"</success>.`);
+            resolve({ valid: true });
+          } else {
+            errorResponseHandler(new Error(`Status code: ${res.status}`));
+          }
+        }, "successResponseHandler"), errorResponseHandler = /* @__PURE__ */ __name((reason) => {
+          Log_13.Logger.debug(`[ ${format.sourceClientName} ]: The URL for the video <error>did not return a successful response</error>. Got another format.
+Reason: ${reason.message}`);
+          resolve({ valid: false, reason: reason.message });
+        }, "errorResponseHandler");
+        try {
+          Platform_13.Platform.getShim().fetcher(format.url, {
+            method: "HEAD"
+          }).then((res) => successResponseHandler(res), (reason) => errorResponseHandler(reason));
+        } catch (err) {
+          errorResponseHandler(err);
+        }
+      });
+    }
+    __name(isDownloadUrlValid, "isDownloadUrlValid");
+    function getValidDownloadUrl(formats, options) {
+      return new Promise(async (resolve) => {
+        let excludingClients = ["web"], format, isOk = false;
+        try {
+          format = Format_1.FormatUtils.chooseFormat(formats, options);
+        } catch (e) {
+          throw e;
+        }
+        if (!format) {
+          throw new Error("Failed to retrieve format data.");
+        }
+        while (isOk === false) {
+          if (!format) {
+            throw new Error("Failed to retrieve format data.");
+          }
+          const { valid, reason } = await isDownloadUrlValid(format);
+          if (valid) {
+            isOk = true;
+          } else {
+            if (format.sourceClientName !== "unknown") {
+              excludingClients.push(format.sourceClientName);
+            }
+            try {
+              format = Format_1.FormatUtils.chooseFormat(formats, {
+                excludingClients,
+                includingClients: (reason == null ? void 0 : reason.includes("403")) ? ["ios", "android"] : "all",
+                quality: options.quality,
+                filter: options.filter
+              });
+            } catch (e) {
+              throw e;
+            }
+          }
+        }
+        resolve(format);
+      });
+    }
+    __name(getValidDownloadUrl, "getValidDownloadUrl");
+    async function* streamToIterable(stream) {
+      const READER = stream.getReader();
+      try {
+        while (true) {
+          const { done, value } = await READER.read();
+          if (done) {
+            return;
+          }
+          yield value;
+        }
+      } finally {
+        READER.releaseLock();
+      }
+    }
+    __name(streamToIterable, "streamToIterable");
+    async function downloadFromInfoCallback(info, options) {
+      if (!info.formats.length) {
+        throw new Error("This video is not available due to lack of video format.");
+      }
+      const DL_CHUNK_SIZE = typeof options.dlChunkSize === "number" ? options.dlChunkSize : 1024 * 1024 * 10, NO_NEED_SPECIFY_RANGE = (options.filter === "audioandvideo" || options.filter === "videoandaudio") && !options.range;
+      let format = Object.freeze(await getValidDownloadUrl(info.formats, options)), requestOptions = { ...DOWNLOAD_REQUEST_OPTIONS }, chunkStart = options.range ? options.range.start : 0, chunkEnd = options.range ? options.range.end || DL_CHUNK_SIZE : DL_CHUNK_SIZE, shouldEnd = false, cancel, firstFormatUrl = NO_NEED_SPECIFY_RANGE ? format.url : format.url + "&range=" + chunkStart + "-" + chunkEnd;
+      const AGENT_TYPE = format.sourceClientName === "ios" || format.sourceClientName === "android" ? format.sourceClientName : format.sourceClientName.includes("tv") ? "tv" : "desktop";
+      requestOptions.headers = {
+        ...requestOptions.headers,
+        "User-Agent": UserAgents_1.UserAgent.getRandomUserAgent(AGENT_TYPE)
+      };
+      if (options.rewriteRequest) {
+        const { url, options: reqOptions } = options.rewriteRequest(firstFormatUrl, requestOptions, {
+          isDownloadUrl: true
+        });
+        firstFormatUrl = url;
+        requestOptions = reqOptions;
+      }
+      if (options.originalProxy) {
+        try {
+          const PARSED = new URL(options.originalProxy.download);
+          if (!firstFormatUrl.includes(PARSED.host)) {
+            firstFormatUrl = `${PARSED.protocol}//${PARSED.host}${PARSED.pathname}?${options.originalProxy.urlQueryName || "url"}=${encodeURIComponent(firstFormatUrl)}`;
+          }
+        } catch {
+        }
+      }
+      if (NO_NEED_SPECIFY_RANGE) {
+        const RESPONSE = await Platform_13.Platform.getShim().fetcher(firstFormatUrl, requestOptions);
+        if (!RESPONSE.ok) {
+          throw new Error(`Download failed with status code <warning>"${RESPONSE.status}"</warning>.`);
+        }
+        const BODY = RESPONSE.body;
+        if (!BODY) {
+          throw new Error("Failed to retrieve response body.");
+        }
+        return BODY;
+      }
+      const READABLE_STREAM = new ReadableStream({
+        start() {
+        },
+        pull: /* @__PURE__ */ __name(async (controller) => {
+          if (shouldEnd) {
+            controller.close();
+            return;
+          }
+          const CONTENT_LENGTH = format.contentLength ? parseInt(format.contentLength) : 0;
+          if (chunkEnd >= CONTENT_LENGTH || options.range) {
+            shouldEnd = true;
+          }
+          return new Promise(async (resolve, reject) => {
+            try {
+              cancel = new AbortController();
+              let formatUrl = format.url + "&range=" + chunkStart + "-" + chunkEnd;
+              if (options.rewriteRequest) {
+                const { url, options: reqOptions } = options.rewriteRequest(formatUrl, requestOptions, {
+                  isDownloadUrl: true
+                });
+                formatUrl = url;
+                requestOptions = reqOptions;
+              }
+              if (options.originalProxy) {
+                try {
+                  const PARSED = new URL(options.originalProxy.download);
+                  if (!formatUrl.includes(PARSED.host)) {
+                    formatUrl = `${PARSED.protocol}//${PARSED.host}${PARSED.pathname}?${options.originalProxy.urlQueryName || "url"}=${encodeURIComponent(formatUrl)}`;
+                  }
+                } catch {
+                }
+              }
+              const RESPONSE = await Platform_13.Platform.getShim().fetcher(firstFormatUrl, requestOptions);
+              if (!RESPONSE.ok) {
+                throw new Error(`Download failed with status code <warning>"${RESPONSE.status}"</warning>.`);
+              }
+              const BODY = RESPONSE.body;
+              if (!BODY) {
+                throw new Error("Failed to retrieve response body.");
+              }
+              for await (const CHUNK of streamToIterable(BODY)) {
+                controller.enqueue(CHUNK);
+              }
+              chunkStart = chunkEnd + 1;
+              chunkEnd += DL_CHUNK_SIZE;
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          });
+        }, "pull"),
+        async cancel(reason) {
+          cancel.abort(reason);
+        }
+      }, {
+        highWaterMark: options.highWaterMark || 1024 * 512,
+        size(chunk) {
+          return (chunk == null ? void 0 : chunk.byteLength) || 0;
+        }
+      });
+      return READABLE_STREAM;
+    }
+    __name(downloadFromInfoCallback, "downloadFromInfoCallback");
+    async function downloadFromInfo(info, options) {
+      if (!info.full) {
+        throw new Error("Cannot use `ytdl.downloadFromInfo()` when called with info from `ytdl.getBasicInfo()`");
+      }
+      return await downloadFromInfoCallback(info, options);
+    }
+    __name(downloadFromInfo, "downloadFromInfo");
+    function download(link, options) {
+      return new Promise((resolve) => {
+        (0, Info_1.getFullInfo)(link, options).then((info) => {
+          resolve(downloadFromInfoCallback(info, options));
+        }).catch((err) => {
+          throw err;
+        });
+      });
+    }
+    __name(download, "download");
+  }
+});
+
+// package/core/Download/index.js
+var require_Download2 = __commonJS({
+  "package/core/Download/index.js"(exports2) {
+    "use strict";
+    var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: /* @__PURE__ */ __name(function() {
+          return m[k];
+        }, "get") };
+      }
+      Object.defineProperty(o, k2, desc);
+    } : function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    });
+    var __exportStar2 = exports2 && exports2.__exportStar || function(m, exports3) {
+      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports3, p)) __createBinding2(exports3, m, p);
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    __exportStar2(require_Download(), exports2);
   }
 });
 
@@ -5296,6 +5515,7 @@ var require_YtdlCore = __commonJS({
     __name(_YtdlCore, "YtdlCore");
     var YtdlCore = _YtdlCore;
     exports2.YtdlCore = YtdlCore;
+    YtdlCore.writeStreamToFile = void 0;
     YtdlCore.chooseFormat = Format_1.FormatUtils.chooseFormat;
     YtdlCore.filterFormats = Format_1.FormatUtils.filterFormats;
     YtdlCore.validateID = Url_1.Url.validateID;
@@ -5626,6 +5846,35 @@ var YtdlCore_1 = require_YtdlCore();
 Object.defineProperty(exports, "YtdlCore", { enumerable: true, get: /* @__PURE__ */ __name(function() {
   return YtdlCore_1.YtdlCore;
 }, "get") });
+YtdlCore_1.YtdlCore.writeStreamToFile = async function(readableStream, filePath) {
+  return new Promise((resolve, reject) => {
+    const WRITE_STREAM = fs_1.default.createWriteStream(filePath);
+    async function pump() {
+      const READER = readableStream.getReader();
+      try {
+        while (true) {
+          const { done, value } = await READER.read();
+          if (done) {
+            WRITE_STREAM.end();
+            break;
+          }
+          if (!WRITE_STREAM.write(Buffer.from(value))) {
+            await new Promise((resolve2) => WRITE_STREAM.once("drain", resolve2));
+          }
+        }
+      } catch (err) {
+        WRITE_STREAM.destroy(err);
+        reject(err);
+      } finally {
+        READER.releaseLock();
+      }
+    }
+    __name(pump, "pump");
+    pump();
+    WRITE_STREAM.on("finish", resolve);
+    WRITE_STREAM.on("error", reject);
+  });
+};
 __exportStar(require_types(), exports);
 exports.default = YtdlCore_1.YtdlCore;
 /*! Bundled license information:

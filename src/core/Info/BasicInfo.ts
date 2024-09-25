@@ -1,4 +1,4 @@
-import { YT_StreamingAdaptiveFormat, YT_VideoDetails, YTDL_ClientTypes, YTDL_VideoDetailsAdditions, YTDL_VideoInfo } from '@/types';
+import { YT_PlayerApiResponse, YT_StreamingAdaptiveFormat, YT_VideoDetails, YTDL_ClientTypes, YTDL_VideoDetailsAdditions, YTDL_VideoInfo } from '@/types';
 import { InternalDownloadOptions } from '@/core/types';
 
 import { OAuth2 } from '@/core/OAuth2';
@@ -25,6 +25,7 @@ const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', '
         videoDetails: {
             videoUrl: '',
             videoId: '',
+            playabilityStatus: 'UNKNOWN',
             title: '',
             author: null,
             lengthSeconds: 0,
@@ -45,12 +46,14 @@ const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', '
             isUnpluggedCorpus: false,
             isLiveContent: false,
             isUpcoming: false,
+            isLowLatencyLiveStream: false,
             liveBroadcastDetails: {
                 isLiveNow: false,
                 startTimestamp: '',
             },
             published: null,
             publishDate: null,
+            latencyClass: null,
         },
         relatedVideos: [],
         formats: [],
@@ -153,9 +156,13 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
     }
 
     /** Filter out null values */
-    const INCLUDE_STORYBOARDS = PLAYER_RESPONSE_LIST.filter((p) => p?.storyboards)[0],
-        VIDEO_DETAILS = (PLAYER_RESPONSE_LIST.filter((p) => p?.videoDetails)[0]?.videoDetails as YT_VideoDetails) || {},
-        MICROFORMAT = PLAYER_RESPONSE_LIST.filter((p) => p?.microformat)[0]?.microformat || null,
+    function getValueWithSpecifiedKey<T = unknown>(array: Array<any>, name: string): T {
+        return array.filter((v) => v && v[name])[0] as T;
+    }
+
+    const INCLUDE_STORYBOARDS = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'storyboards'),
+        VIDEO_DETAILS = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'videoDetails').videoDetails as YT_VideoDetails || {},
+        MICROFORMAT = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'microformat').microformat || null,
         LIVE_BROADCAST_DETAILS = PLAYER_RESPONSES.web?.microformat?.playerMicroformatRenderer.liveBroadcastDetails || null;
 
     /* Data Processing */
@@ -178,6 +185,7 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
         }, []);
 
     VIDEO_INFO.videoDetails = InfoExtras.cleanVideoDetails(Object.assign(VIDEO_INFO.videoDetails, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT?.playerMicroformatRenderer || null, options.hl);
+    VIDEO_INFO.videoDetails.playabilityStatus = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'playabilityStatus')?.playabilityStatus.status || 'UNKNOWN';
     VIDEO_INFO.videoDetails.liveBroadcastDetails = LIVE_BROADCAST_DETAILS;
 
     VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? InfoExtras.getRelatedVideos(NEXT_RESPONSES.web, options.hl || 'en') : [];

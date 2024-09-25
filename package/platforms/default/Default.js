@@ -180,6 +180,36 @@ Platform_1.Platform.load({
 });
 const YtdlCore_1 = require("../../YtdlCore");
 Object.defineProperty(exports, "YtdlCore", { enumerable: true, get: function () { return YtdlCore_1.YtdlCore; } });
+YtdlCore_1.YtdlCore.writeStreamToFile = async function (readableStream, filePath) {
+    return new Promise((resolve, reject) => {
+        const WRITE_STREAM = fs_1.default.createWriteStream(filePath);
+        async function pump() {
+            const READER = readableStream.getReader();
+            try {
+                while (true) {
+                    const { done, value } = await READER.read();
+                    if (done) {
+                        WRITE_STREAM.end();
+                        break;
+                    }
+                    if (!WRITE_STREAM.write(Buffer.from(value))) {
+                        await new Promise((resolve) => WRITE_STREAM.once('drain', resolve));
+                    }
+                }
+            }
+            catch (err) {
+                WRITE_STREAM.destroy(err);
+                reject(err);
+            }
+            finally {
+                READER.releaseLock();
+            }
+        }
+        pump();
+        WRITE_STREAM.on('finish', resolve);
+        WRITE_STREAM.on('error', reject);
+    });
+};
 __exportStar(require("../../types/index"), exports);
 exports.default = YtdlCore_1.YtdlCore;
 //# sourceMappingURL=Default.js.map
