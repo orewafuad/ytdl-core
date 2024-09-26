@@ -1,13 +1,19 @@
 import { Platform } from '@/platforms/Platform';
-import { CacheWithMap, YtdlCore_Cache } from '@/platforms/utils/Classes';
+import { YtdlCore_Cache } from '@/platforms/utils/Classes';
 import { VERSION, REPO_URL, ISSUES_URL } from '@/utils/Constants';
 
 class CacheWithCacheStorage implements YtdlCore_Cache {
+    isDisabled: boolean = false;
+
     private async getCache(): Promise<Cache> {
         return await caches.open('ytdlCoreCache');
     }
 
     async get<T = unknown>(key: string): Promise<T | null> {
+        if (this.isDisabled) {
+            return null;
+        }
+
         const cache = await this.getCache();
         const response = await cache.match(key);
 
@@ -24,6 +30,10 @@ class CacheWithCacheStorage implements YtdlCore_Cache {
     }
 
     async set(key: string, value: any): Promise<boolean> {
+        if (this.isDisabled) {
+            return true;
+        }
+
         const CACHE = await this.getCache();
         let response: Response;
 
@@ -43,6 +53,10 @@ class CacheWithCacheStorage implements YtdlCore_Cache {
     }
 
     async has(key: string): Promise<boolean> {
+        if (this.isDisabled) {
+            return false;
+        }
+
         const CACHE = await this.getCache(),
             RESPONSE = await CACHE.match(key);
 
@@ -50,12 +64,18 @@ class CacheWithCacheStorage implements YtdlCore_Cache {
     }
 
     async delete(key: string): Promise<boolean> {
+        if (this.isDisabled) {
+            return true;
+        }
+
         const CACHE = await this.getCache();
 
         return await CACHE.delete(key);
     }
 
-    disable(): void {}
+    disable(): void {
+        this.isDisabled = true;
+    }
 
     initialization(): void {}
 }
@@ -65,7 +85,7 @@ Platform.load({
     server: false,
     cache: new CacheWithCacheStorage(),
     fileCache: new CacheWithCacheStorage(),
-    fetcher: fetch,
+    fetcher: (url, options) => fetch(url, options),
     poToken: () => {
         return new Promise((resolve) => {
             resolve({

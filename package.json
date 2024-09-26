@@ -47,7 +47,7 @@
     ],
     "scripts": {
         "test": "npx jest ./test/main.test.ts",
-        "build": "rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-node-bundle && npm run create-browser-bundle",
+        "build": "node ./scripts/getPlayerId.js && pause && rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-node-bundle && npm run create-browser-bundle",
         "clear-cache-files": "cd package/core && rmdir /s /q CacheFiles 2>nul & cd ../..",
         "update": "ncu && ncu -u && npm i",
         "publish:github": "npm run build && npm publish --registry=https://npm.pkg.github.com",

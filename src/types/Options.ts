@@ -94,6 +94,9 @@ export type YTDL_GetInfoOptions = YTDL_ProxyOptions & {
     /** You can disable the default client. (If clients is not specified, it will be included.) */
     disableDefaultClients?: boolean;
 
+    /** You can specify whether or not to disable the normal cache.  */
+    disableBasicCache?: boolean;
+
     /** You can specify whether to disable the file cache. Disable this if you encounter errors.  */
     disableFileCache?: boolean;
 

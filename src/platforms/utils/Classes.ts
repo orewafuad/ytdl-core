@@ -12,6 +12,7 @@ export abstract class YtdlCore_Cache {
 export class CacheWithMap implements YtdlCore_Cache {
     private cache: Map<string, any>;
     private timeouts: Map<string, NodeJS.Timeout>;
+    isDisabled: boolean = false;
 
     constructor(private ttl: number = 60) {
         this.cache = new Map();
@@ -19,10 +20,18 @@ export class CacheWithMap implements YtdlCore_Cache {
     }
 
     async get<T = unknown>(key: string): Promise<T | null> {
+        if (this.isDisabled) {
+            return null;
+        }
+
         return this.cache.get(key) || null;
     }
 
     async set(key: string, value: any, { ttl }: { ttl: number } = { ttl: this.ttl }): Promise<boolean> {
+        if (this.isDisabled) {
+            return true;
+        }
+
         this.cache.set(key, value);
 
         if (this.timeouts.has(key)) {
@@ -39,10 +48,17 @@ export class CacheWithMap implements YtdlCore_Cache {
     }
 
     async has(key: string): Promise<boolean> {
+        if (this.isDisabled) {
+            return false;
+        }
         return this.cache.has(key);
     }
 
     async delete(key: string): Promise<boolean> {
+        if (this.isDisabled) {
+            return true;
+        }
+
         if (this.timeouts.has(key)) {
             clearTimeout(this.timeouts.get(key)!);
             this.timeouts.delete(key);
@@ -51,7 +67,9 @@ export class CacheWithMap implements YtdlCore_Cache {
         return this.cache.delete(key);
     }
 
-    disable(): void {}
+    disable(): void {
+        this.isDisabled = true;
+    }
 
     initialization() {}
 }

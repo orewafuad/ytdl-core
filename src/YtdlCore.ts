@@ -18,9 +18,15 @@ import { FormatUtils } from './utils/Format';
 import { VERSION } from './utils/Constants';
 import { Logger } from './utils/Log';
 
-const FileCache = Platform.getShim().fileCache;
+const SHIM = Platform.getShim(),
+    Cache = SHIM.cache,
+    FileCache = SHIM.fileCache;
 
 function isNodeVersionOk(version: string): boolean {
+    if (SHIM.runtime === 'browser') {
+        return true;
+    }
+
     return parseInt(version.replace('v', '').split('.')[0]) >= 16;
 }
 
@@ -139,9 +145,10 @@ class YtdlCore {
         }
     }
 
-    constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableFileCache, fetcher, logDisplay }: YTDL_Constructor = {}) {
+    constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableBasicCache, disableFileCache, fetcher, logDisplay }: YTDL_Constructor = {}) {
         /* Other Options */
         Logger.logDisplay = logDisplay || ['info', 'success', 'warning', 'error'];
+
         if (fetcher) {
             const SHIM = Platform.getShim();
             SHIM.fetcher = fetcher;
@@ -149,6 +156,11 @@ class YtdlCore {
             SHIM.requestRelated.rewriteRequest = rewriteRequest;
             Platform.load(SHIM);
         }
+
+        if (disableBasicCache) {
+            Cache.disable();
+        }
+
         if (disableFileCache) {
             FileCache.disable();
         }

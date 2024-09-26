@@ -140,7 +140,7 @@ Platform.load({
     server: true,
     cache: new CacheWithMap(),
     fileCache: new FileCache(),
-    fetcher: fetch,
+    fetcher: (url, options) => fetch(url, options),
     poToken: () => {
         return new Promise((resolve) => {
             resolve({

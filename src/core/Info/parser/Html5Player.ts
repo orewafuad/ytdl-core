@@ -46,6 +46,11 @@ async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5Player
         playerId = getPlayerId(BODY);
     }
 
+    if (!playerId) {
+        // TIP: c9dd45ed is the most recent player ID as of 09/26/2024.
+        playerId = 'c9dd45ed';
+    }
+
     const PLAYER_URL = playerId ? Url.getPlayerJsUrl(playerId) : null;
 
     const HTML5_PLAYER_BODY = PLAYER_URL ? await Fetcher.request<string>(PLAYER_URL, options) : '',
