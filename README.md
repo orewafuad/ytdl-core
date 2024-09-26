@@ -1,4 +1,4 @@
-# @ybd-project/ytdl-core
+# @ybd-project/ytdl-core - v6
 
 YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube downloader that is fast, stable, and takes into account various use cases, with reference to LuanRT/YouTube.js and yt-dlp.
 

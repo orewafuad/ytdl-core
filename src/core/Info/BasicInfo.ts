@@ -116,7 +116,7 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
     options.clients = setupClients(options.clients || BASE_CLIENTS, options.disableDefaultClients ?? false);
 
     const HTML5_PLAYER_RESPONSE = await HTML5_PLAYER_PROMISE,
-        HTML5_PLAYER_URL = HTML5_PLAYER_RESPONSE.playerUrl;
+        HTML5_PLAYER_URL = HTML5_PLAYER_RESPONSE.url;
 
     if (!HTML5_PLAYER_URL) {
         throw new Error(`HTML5Player was not found, please report it via Issues (${SHIM.info.issuesUrl}).`);

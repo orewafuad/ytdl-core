@@ -1,4 +1,4 @@
-type Html5PlayerInfo = { playerUrl: string | null; signatureTimestamp: string; playerBody: string | null };
+type Html5PlayerInfo = { url: string | null; body: string | null; id: string | null; signatureTimestamp: string };
 
 import type { YTDL_GetInfoOptions } from '@/types/Options';
 import { Platform } from '@/platforms/Platform';
@@ -22,37 +22,38 @@ function getPlayerId(body: string): string | null {
 async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5PlayerInfo> {
     const CACHE = await FileCache.get<Html5PlayerInfo>('html5Player');
 
-    if (CACHE && CACHE.playerUrl) {
+    if (CACHE && CACHE.url) {
         return {
-            playerUrl: CACHE.playerUrl,
+            url: CACHE.url,
+            body: CACHE.body,
+            id: CACHE.id,
             signatureTimestamp: CACHE.signatureTimestamp,
-            playerBody: CACHE.playerBody,
         };
     }
 
-    const IFRAME_API_BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), options),
-        PLAYER_ID = getPlayerId(IFRAME_API_BODY);
+    const IFRAME_API_BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), options);
+    let playerId = getPlayerId(IFRAME_API_BODY);
 
-    let playerUrl = PLAYER_ID ? Url.getPlayerJsUrl(PLAYER_ID) : null;
-
-    if (!playerUrl && options.originalProxy) {
+    if (!playerId && options.originalProxy) {
         Logger.debug('Could not get html5Player using your own proxy. It is retrieved again with its own proxy disabled. (Other requests will not invalidate it.)');
 
         const BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), {
-                ...options,
-                rewriteRequest: undefined,
-                originalProxy: undefined,
-            }),
-            PLAYER_ID = getPlayerId(BODY);
+            ...options,
+            rewriteRequest: undefined,
+            originalProxy: undefined,
+        });
 
-        playerUrl = PLAYER_ID ? Url.getPlayerJsUrl(PLAYER_ID) : null;
+        playerId = getPlayerId(BODY);
     }
 
-    const HTML5_PLAYER_BODY = playerUrl ? await Fetcher.request<string>(playerUrl, options) : '',
+    const PLAYER_URL = playerId ? Url.getPlayerJsUrl(playerId) : null;
+
+    const HTML5_PLAYER_BODY = PLAYER_URL ? await Fetcher.request<string>(PLAYER_URL, options) : '',
         DATA = {
-            playerUrl,
-            signatureTimestamp: playerUrl ? Signature.getSignatureTimestamp(HTML5_PLAYER_BODY) || '' : '',
-            playerBody: HTML5_PLAYER_BODY || null,
+            url: PLAYER_URL,
+            body: HTML5_PLAYER_BODY || null,
+            id: playerId,
+            signatureTimestamp: PLAYER_URL ? Signature.getSignatureTimestamp(HTML5_PLAYER_BODY) || '' : '',
         };
 
     FileCache.set('html5Player', JSON.stringify(DATA));

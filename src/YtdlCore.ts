@@ -114,7 +114,7 @@ class YtdlCore {
 
     private automaticallyGeneratePoToken() {
         if (!this.poToken && !this.visitorData) {
-            Logger.debug('Since PoToken and VisitorData are not specified, they are generated automatically.');
+            Logger.debug('Since PoToken and VisitorData are <warning>not specified</warning>, they are generated <info>automatically</info>.');
 
             const generatePoToken = Platform.getShim().poToken;
 

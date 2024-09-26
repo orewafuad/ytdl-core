@@ -43,7 +43,8 @@ const N_TRANSFORM_REGEXP = 'function\\(\\s*(\\w+)\\s*\\)\\s*\\{' + 'var\\s*(\\w+
 /* ----------- */
 
 const SIGNATURE_TIMESTAMP_REGEX = /signatureTimestamp:(\d+)/g,
-    SHIM = Platform.getShim();
+    SHIM = Platform.getShim(),
+    Jinter = require('jintr').default;
 
 let decipherWarning = false,
     nTransformWarning = false;
@@ -152,44 +153,45 @@ function extractNTransformWithName(body: string): string | null {
     }
 }
 
-/* Eval */
+/* Eval, Reference: LuanRT/YouTube.js - jintr.ts */
 function runInNewContext(code: string, contextObject = {}) {
-    // コンテキストオブジェクトのプロパティをローカル変数として定義
-    const CONTEXT_VARIABLE = Object.keys(contextObject)
-            .map((key) => `let ${key} = contextObject.${key};`)
-            .join('\n'),
-        RESULTS_VARIABLE = '__result__',
-        FULL_CODE = `
-            ${CONTEXT_VARIABLE}
-            ${RESULTS_VARIABLE} = (function() {${code}})();
-        `;
+    const RUNTIME = new Jinter();
 
-    eval(FULL_CODE);
-    return eval(RESULTS_VARIABLE);
+    for (const [KEY, VALUE] of Object.entries(contextObject)) {
+        RUNTIME.scope.set(KEY, VALUE);
+    }
+
+    return RUNTIME.evaluate(code);
 }
 
 /* Decipher */
-function getDownloadURL(format: YT_StreamingAdaptiveFormat, decipherFunction: string | null, nTransformFunction: string | null) {
+function setDownloadURL(format: YT_StreamingAdaptiveFormat, decipherFunction: string | null, nTransformFunction: string | null) {
     if (!decipherFunction) {
         return;
     }
 
     const decipher = (url: string): string => {
-            const SEARCH_PARAMS = new URLSearchParams(url),
-                PARAMS_URL = SEARCH_PARAMS.get('url')?.toString() || '';
+            const SEARCH_PARAMS = new URLSearchParams('?' + url),
+                PARAMS_URL = SEARCH_PARAMS.get('url')?.toString() || '',
+                PARAMS_S = SEARCH_PARAMS.get('s');
 
-            if (!SEARCH_PARAMS.get('s')) {
+            if (!PARAMS_S) {
                 return PARAMS_URL;
             }
 
-            const COMPONENTS = new URL(decodeURIComponent(PARAMS_URL)),
-                CONTEXT: Record<string, string> = {};
+            try {
+                const COMPONENTS = new URL(decodeURIComponent(PARAMS_URL)),
+                    CONTEXT: Record<string, string> = {};
 
-            CONTEXT[DECIPHER_ARGUMENT] = decodeURIComponent(PARAMS_URL);
+                CONTEXT[DECIPHER_ARGUMENT] = decodeURIComponent(PARAMS_S);
 
-            COMPONENTS.searchParams.set(SEARCH_PARAMS.get('sp')?.toString() || 'sig', runInNewContext(decipherFunction, CONTEXT));
+                COMPONENTS.searchParams.set(SEARCH_PARAMS.get('sp')?.toString() || 'sig', runInNewContext(decipherFunction, CONTEXT));
 
-            return COMPONENTS.toString();
+                return COMPONENTS.toString();
+            } catch (err) {
+                Logger.debug(`[ Decipher ]: <error>Failed</error> to decipher URL: <error>${err}</error>`);
+                return PARAMS_URL;
+            }
         },
         nTransform = (url: string): string => {
             const COMPONENTS = new URL(decodeURIComponent(url)),
@@ -241,7 +243,7 @@ class Signature {
                 return;
             }
 
-            getDownloadURL(format, this.decipherFunction, this.nTransformFunction);
+            setDownloadURL(format, this.decipherFunction, this.nTransformFunction);
 
             DECIPHERED_FORMATS[format.url] = format;
         });
