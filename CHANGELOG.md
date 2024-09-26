@@ -19,6 +19,7 @@
 * **Agent:** Proxy adaptation to requests by YtdlCore has been discontinued due to specification issues.
 * **PoToken:** Stop using `youtube-po-token-generator` to generate PoToken, and use [`LuanRT/BgUtils`](https://github.com/LuanRT/BgUtils) instead, because it cannot generate PoToken correctly. (Experimental, not available in the browser and serverless versions).
 * **Cache:** Add `disableBasicCache`option
+* **Player:** Changed to use the default ID if the latest player ID could not be obtained (specify the latest ID at the time of build).
 
 ### Bug Fixes
 * **Types:** Fixed wrong type issue
