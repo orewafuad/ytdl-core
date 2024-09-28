@@ -1,11 +1,15 @@
 type Html5PlayerInfo = { url: string | null; body: string | null; id: string | null; signatureTimestamp: string };
 
 import type { YTDL_GetInfoOptions } from '@/types/Options';
+
 import { Platform } from '@/platforms/Platform';
+
 import { Signature } from '@/core/Signature';
 import { Fetcher } from '@/core/Fetcher';
+
 import { Url } from '@/utils/Url';
 import { Logger } from '@/utils/Log';
+import { CURRENT_PLAYER_ID } from '@/utils/Constants';
 
 const FileCache = Platform.getShim().fileCache;
 
@@ -47,8 +51,7 @@ async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5Player
     }
 
     if (!playerId) {
-        // TIP: c9dd45ed is the most recent player ID as of 09/26/2024.
-        playerId = 'c9dd45ed';
+        playerId = CURRENT_PLAYER_ID;
     }
 
     const PLAYER_URL = playerId ? Url.getPlayerJsUrl(playerId) : null;

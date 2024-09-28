@@ -20,6 +20,7 @@
 * **PoToken:** Stop using `youtube-po-token-generator` to generate PoToken, and use [`LuanRT/BgUtils`](https://github.com/LuanRT/BgUtils) instead, because it cannot generate PoToken correctly. (Experimental, not available in the browser and serverless versions).
 * **Cache:** Add `disableBasicCache`option
 * **Player:** Changed to use the default ID if the latest player ID could not be obtained (specify the latest ID at the time of build).
+* **VideoDetails:** Added `playabilityStatus` to video details. The value `OK` takes precedence.
 
 ### Bug Fixes
 * **Types:** Fixed wrong type issue

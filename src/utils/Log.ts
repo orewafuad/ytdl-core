@@ -1,14 +1,25 @@
+import { Platform } from '@/platforms/Platform';
 import { VERSION } from './Constants';
 
-const OUTPUT_CONTROL_CHARACTER = {
-    red: '\x1b[31m',
-    green: '\x1b[32m',
-    yellow: '\x1b[33m',
-    blue: '\x1b[34m',
-    magenta: '\x1b[35m',
-
-    reset: '\x1b[0m',
-};
+const RUNTIME = Platform.getShim().runtime,
+    IS_BROWSER_RUNTIME = RUNTIME === 'browser',
+    BROWSER_CONTROL_CHARACTER = {
+        red: '',
+        green: '',
+        yellow: '',
+        blue: '',
+        magenta: '',
+        reset: '',
+    },
+    NORMAL_CONTROL_CHARACTER = {
+        red: '\x1b[31m',
+        green: '\x1b[32m',
+        yellow: '\x1b[33m',
+        blue: '\x1b[34m',
+        magenta: '\x1b[35m',
+        reset: '\x1b[0m',
+    },
+    OUTPUT_CONTROL_CHARACTER = IS_BROWSER_RUNTIME ? BROWSER_CONTROL_CHARACTER : NORMAL_CONTROL_CHARACTER;
 
 export class Logger {
     static logDisplay: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> = ['info', 'success', 'warning', 'error'];

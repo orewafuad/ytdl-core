@@ -155,13 +155,13 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
     }
 
     /** Filter out null values */
-    function getValueWithSpecifiedKey<T = unknown>(array: Array<any>, name: string): T {
-        return array.filter((v) => v && v[name])[0] as T;
+    function getValue<T = unknown>(array: Array<any>, name: string, value?: string): T {
+        return array.filter((v) => v && v[name] && (value ? v[name] === value : true))[0] as T;
     }
 
-    const INCLUDE_STORYBOARDS = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'storyboards'),
-        VIDEO_DETAILS = (getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'videoDetails').videoDetails as YT_VideoDetails) || {},
-        MICROFORMAT = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'microformat').microformat || null,
+    const INCLUDE_STORYBOARDS = getValue<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'storyboards'),
+        VIDEO_DETAILS = (getValue<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'videoDetails').videoDetails as YT_VideoDetails) || {},
+        MICROFORMAT = getValue<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'microformat').microformat || null,
         LIVE_BROADCAST_DETAILS = PLAYER_RESPONSES.web?.microformat?.playerMicroformatRenderer.liveBroadcastDetails || null;
 
     /* Data Processing */
@@ -184,7 +184,7 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
         }, []);
 
     VIDEO_INFO.videoDetails = InfoExtras.cleanVideoDetails(Object.assign(VIDEO_INFO.videoDetails, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT?.playerMicroformatRenderer || null, options.hl);
-    VIDEO_INFO.videoDetails.playabilityStatus = getValueWithSpecifiedKey<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'playabilityStatus')?.playabilityStatus.status || 'UNKNOWN';
+    VIDEO_INFO.videoDetails.playabilityStatus = getValue<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'playabilityStatus', 'OK')?.playabilityStatus.status || PLAYER_RESPONSE_LIST[0]?.playabilityStatus.status || 'UNKNOWN';
     VIDEO_INFO.videoDetails.liveBroadcastDetails = LIVE_BROADCAST_DETAILS;
 
     VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? InfoExtras.getRelatedVideos(NEXT_RESPONSES.web, options.hl || 'en') : [];
