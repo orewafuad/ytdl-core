@@ -7,6 +7,29 @@
 * **YtdlCore:** Add a processing-optimized YtdlCore for deployment to serverless functions such as Vercel Functions (just use `@ybd-project/ytdl-core/serverless` when importing)
 * **YtdlCore:** Changed to be able to import types used in YtdlCore (To use, import `@ybd-project/ytdl-core/types`)
 * **YtdlCore:** Static methods such as the `getFullInfo` function have been eliminated in view of optional adaptations, etc.
+* **Stream:** Added option `streamType` to specify the type of stream to receive (ReadableStream or Readable (for Node.js)) in `download` functions, etc. (The type specification of the stream is done as follows)
+```ts
+import { YtdlCore, YTDL_NodejsStreamType } from '@ybd-project/ytdl-core';
+
+const ytdl = new YtdlCore({
+    streamType: 'nodejs',
+});
+
+ytdl.download<YTDL_NodejsStreamType>('https://www.youtube.com/watch?v=ID', { filter: 'audioandvideo' }).then((stream) => {
+    stream.pipe(fs.createWriteStream(process.cwd() + '/results/video.mp4'));
+});
+
+// If not Node.js, import `YTDL_DefaultStreamType`.
+import { YtdlCore, YTDL_DefaultStreamType } from '@ybd-project/ytdl-core';
+
+const ytdl = new YtdlCore({
+    streamType: 'default',
+});
+
+ytdl.download<YTDL_DefaultStreamType>('https://www.youtube.com/watch?v=ID', { filter: 'audioandvideo' }).then((stream) => {
+    ...
+});
+```
 
 ### Change
 * **Lang:** Remove the `lang` option and add the `hl` option.

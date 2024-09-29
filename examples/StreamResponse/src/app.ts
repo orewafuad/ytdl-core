@@ -1,9 +1,11 @@
 import express from 'express';
-import { YtdlCore } from '@ybd-project/ytdl-core';
+import { YtdlCore, YTDL_NodejsStreamType } from '@ybd-project/ytdl-core';
 
 const app = express(),
     ytdl = new YtdlCore({
-        lang: 'en',
+        hl: 'en',
+        gl: 'US',
+        streamType: 'nodejs',
     });
 
 app.get('/api/download', (req, res) => {
@@ -12,9 +14,17 @@ app.get('/api/download', (req, res) => {
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', 'attachment; filename="video.mp4"');
 
-    ytdl.download(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
+    ytdl.download<YTDL_NodejsStreamType>(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
         filter: 'audioandvideo',
-    }).pipe(res);
+    })
+        .then((stream) => {
+            stream.pipe(res);
+        })
+        .catch((err) => {
+            res.json({
+                error: err.message,
+            });
+        });
 });
 
 app.get('/api/download/audio', (req, res) => {
@@ -23,9 +33,17 @@ app.get('/api/download/audio', (req, res) => {
     res.setHeader('Content-Type', 'audio/mp3');
     res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
 
-    ytdl.download(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
+    ytdl.download<YTDL_NodejsStreamType>(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
         filter: 'audioonly',
-    }).pipe(res);
+    })
+        .then((stream) => {
+            stream.pipe(res);
+        })
+        .catch((err) => {
+            res.json({
+                error: err.message,
+            });
+        });
 });
 
 app.get('/api/download', (req, res) => {
@@ -34,9 +52,17 @@ app.get('/api/download', (req, res) => {
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', 'attachment; filename="video.mp4"');
 
-    ytdl.download(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
+    ytdl.download<YTDL_NodejsStreamType>(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
         filter: 'videoonly',
-    }).pipe(res);
+    })
+        .then((stream) => {
+            stream.pipe(res);
+        })
+        .catch((err) => {
+            res.json({
+                error: err.message,
+            });
+        });
 });
 
 app.listen(3000, () => {

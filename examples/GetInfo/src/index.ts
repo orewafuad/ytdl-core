@@ -1,14 +1,15 @@
 import { YtdlCore } from '@ybd-project/ytdl-core';
 
 const ytdl = new YtdlCore({
-    lang: 'en',
+    hl: 'en',
+    gl: 'US',
 });
 
 // Video: Never Gonna give you up
-const VIDEO_ID = 'dQw4w9WgXcQ';
+const VIDEO_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 
 /* Normal usage (Basic Info) */
-ytdl.getBasicInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`)
+ytdl.getBasicInfo(VIDEO_URL)
     .then((results) => {
         // ...
     })
@@ -17,15 +18,15 @@ ytdl.getBasicInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`)
     });
 
 /* Normal usage (Full Info) */
-ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`);
+ytdl.getFullInfo(VIDEO_URL);
 
 /* Specify the client (player) to use */
-ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
+ytdl.getFullInfo(VIDEO_URL, {
     clients: ['web', 'mweb', 'webCreator', 'android', 'ios', 'tv', 'tvEmbedded'], // <- All available clients
 });
 
 /* Specify PoToken and VisitorData */
-ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
+ytdl.getFullInfo(VIDEO_URL, {
     poToken: 'PO_TOKEN',
     visitorData: 'VISITOR_DATA',
 });
@@ -39,7 +40,7 @@ const OAUTH2 = new YtdlCore.OAuth2({
     expiryDate: 'EXPIRY_DATE',
 });
 
-ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
+ytdl.getFullInfo(VIDEO_URL, {
     oauth2: OAUTH2,
 });
 
@@ -54,6 +55,6 @@ const YOUR_OWN_OAUTH2 = new YtdlCore.OAuth2({
     },
 });
 
-ytdl.getFullInfo(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
+ytdl.getFullInfo(VIDEO_URL, {
     oauth2: YOUR_OWN_OAUTH2,
 });

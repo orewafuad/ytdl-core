@@ -1,6 +1,6 @@
 {
     "name": "@ybd-project/ytdl-core",
-    "version": "6.0.0",
+    "version": "6.0.0-beta.7",
     "description": "YBD Project fork of ytdl-core.",
     "author": "YBD Project",
     "repository": {
@@ -14,10 +14,10 @@
         "node": ">=16.0"
     },
     "main": "./package/Platforms/Default/Default.js",
-    "types": "./package/types/index.d.ts",
+    "types": "./package/Platforms/Default/Default.d.ts",
     "exports": {
         ".": {
-            "types": "./package/types/index.d.ts",
+            "types": "./package/Platforms/Default/Default.d.ts",
             "node": {
                 "import": "./package/Platforms/Default/Default.mjs",
                 "require": "./bundle/node.cjs"
@@ -26,15 +26,15 @@
             "default": "./package/Platforms/Default/Default.mjs"
         },
         "./browser": {
-            "types": "./package/types/index.d.ts",
+            "types": "./package/Platforms/Browser/Browser.d.ts",
             "default": "./package/Platforms/Browser/Browser.mjs"
         },
         "./browser.bundle": {
-            "types": "./package/types/index.d.ts",
+            "types": "./package/Platforms/Browser/Browser.d.ts",
             "default": "./bundle/browser.cjs"
         },
         "./serverless": {
-            "types": "./package/types/index.d.ts",
+            "types": "./package/Platforms/Serverless/Serverless.d.ts",
             "default": "./package/Platforms/Serverless/Serverless.js"
         },
         "./types": {
@@ -43,24 +43,30 @@
         }
     },
     "files": [
-        "package"
+        "package",
+        "bundle"
     ],
     "scripts": {
         "test": "npx jest ./test/main.test.ts",
-        "build": "node ./scripts/getPlayerId.js && pause && rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-node-bundle && npm run create-browser-bundle",
-        "clear-cache-files": "cd package/core && rmdir /s /q CacheFiles 2>nul & cd ../..",
-        "update": "ncu && ncu -u && npm i",
-        "publish:github": "npm run build && npm publish --registry=https://npm.pkg.github.com",
-        "publish:npm": "npm run build && npm publish --registry=https://registry.npmjs.org/",
+        "build": "node ./scripts/getPlayerId.js && rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-bundles",
+        "publish:github": "node ./scripts/publish.mjs latest github && npm run build && npm publish --registry=https://npm.pkg.github.com && node ./scripts/publish-github-tag.mjs",
+        "publish:npm": "node ./scripts/publish.mjs latest npm && npm run build && npm publish --registry=https://registry.npmjs.org/",
+        "publish:npm-alpha": "node ./scripts/publish.mjs alpha npm && npm run build && npm publish --registry=https://registry.npmjs.org/ --tag alpha",
+        "publish:npm-beta": "node ./scripts/publish.mjs beta npm && npm run build && npm publish --registry=https://registry.npmjs.org/ --tag beta",
+        "create-bundles": "npm run create-node-bundle && npm run create-browser-bundle",
         "create-node-bundle": "rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --banner:js=\"/* eslint-disable */\"",
-        "create-browser-bundle": "esbuild ./package/Platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser --minify"
+        "create-browser-bundle": "esbuild ./package/Platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser --minify",
+        "clear-cache-files": "cd package/core && rmdir /s /q CacheFiles 2>nul & cd ../..",
+        "update": "ncu && ncu -u && npm i"
     },
     "dependencies": {
+        "@inquirer/prompts": "^6.0.1",
         "bgutils-js": "^2.2.0",
         "buffer": "^6.0.3",
         "jintr": "^2.1.1",
         "jsdom": "^25.0.1",
         "node-fetch": "^3.3.2",
+        "readable-stream": "^4.5.2",
         "sax": "^1.4.1",
         "string_decoder": "^1.3.0"
     },
@@ -68,6 +74,7 @@
         "@types/jest": "^29.5.13",
         "@types/jsdom": "^21.1.7",
         "@types/node": "^22.5.5",
+        "@types/readable-stream": "^4.0.15",
         "@types/sax": "^1.2.7",
         "esbuild": "^0.24.0",
         "eslint": "^9.11.0",

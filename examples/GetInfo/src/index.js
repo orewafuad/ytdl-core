@@ -1,6 +1,7 @@
 const { YtdlCore } = require('@ybd-project/ytdl-core'),
     ytdl = new YtdlCore({
-        lang: 'en',
+        hl: 'en',
+        gl: 'US',
     });
 
 // Video: Never Gonna give you up

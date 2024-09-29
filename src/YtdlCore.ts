@@ -1,9 +1,10 @@
 type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
     fetcher?: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
     logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'>;
+    noUpdate?: boolean;
 };
 
-import type { YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials } from './types';
+import type { YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials, YTDL_DefaultStreamType, YTDL_NodejsStreamType } from './types';
 import type { InternalDownloadOptions } from './core/types';
 
 import { Platform } from './platforms/Platform';
@@ -23,7 +24,7 @@ const SHIM = Platform.getShim(),
     FileCache = SHIM.fileCache;
 
 function isNodeVersionOk(version: string): boolean {
-    if (SHIM.runtime === 'browser') {
+    if (SHIM.runtime === 'browser' || SHIM.runtime === 'serverless') {
         return true;
     }
 
@@ -31,8 +32,6 @@ function isNodeVersionOk(version: string): boolean {
 }
 
 class YtdlCore {
-    public static writeStreamToFile?: (readableStream: ReadableStream, filePath: string) => Promise<void> = undefined;
-
     public static chooseFormat = FormatUtils.chooseFormat;
     public static filterFormats = FormatUtils.filterFormats;
 
@@ -71,6 +70,7 @@ class YtdlCore {
     public highWaterMark: YTDL_DownloadOptions['highWaterMark'] | undefined;
     public IPv6Block: YTDL_DownloadOptions['IPv6Block'] | undefined;
     public dlChunkSize: YTDL_DownloadOptions['dlChunkSize'] | undefined;
+    public streamType: YTDL_DownloadOptions['streamType'] = 'default';
 
     /* Metadata */
     public version = VERSION;
@@ -145,16 +145,20 @@ class YtdlCore {
         }
     }
 
-    constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableBasicCache, disableFileCache, fetcher, logDisplay }: YTDL_Constructor = {}) {
+    constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, streamType, disableBasicCache, disableFileCache, fetcher, logDisplay, noUpdate }: YTDL_Constructor = {}) {
+        const SHIM = Platform.getShim();
+
         /* Other Options */
-        Logger.logDisplay = logDisplay || ['info', 'success', 'warning', 'error'];
+        const LOG_DISPLAY = logDisplay || ['info', 'success', 'warning', 'error'];
+        SHIM.options.other.logDisplay = LOG_DISPLAY;
+        Logger.logDisplay = LOG_DISPLAY;
+
+        SHIM.options.other.noUpdate = noUpdate ?? false;
 
         if (fetcher) {
-            const SHIM = Platform.getShim();
             SHIM.fetcher = fetcher;
             SHIM.requestRelated.originalProxy = originalProxy;
             SHIM.requestRelated.rewriteRequest = rewriteRequest;
-            Platform.load(SHIM);
         }
 
         if (disableBasicCache) {
@@ -202,6 +206,7 @@ class YtdlCore {
         this.highWaterMark = highWaterMark || undefined;
         this.IPv6Block = IPv6Block || undefined;
         this.dlChunkSize = dlChunkSize || undefined;
+        this.streamType = streamType || 'default';
 
         if (!this.disablePoTokenAutoGeneration) {
             this.automaticallyGeneratePoToken();
@@ -212,6 +217,10 @@ class YtdlCore {
         if (!isNodeVersionOk(process.version)) {
             throw new Error(`You are using Node.js ${process.version} which is not supported. Minimum version required is v16.`);
         }
+
+        /* Load */
+        SHIM.options.download = { hl: this.hl, gl: this.gl, rewriteRequest: this.rewriteRequest, poToken: this.poToken, disablePoTokenAutoGeneration: this.disablePoTokenAutoGeneration, visitorData: this.visitorData, includesPlayerAPIResponse: this.includesPlayerAPIResponse, includesNextAPIResponse: this.includesNextAPIResponse, includesOriginalFormatData: this.includesOriginalFormatData, includesRelatedVideo: this.includesRelatedVideo, clients: this.clients, disableDefaultClients: this.disableDefaultClients, oauth2Credentials, parsesHLSFormat: this.parsesHLSFormat, originalProxy: this.originalProxy, quality: this.quality, filter: this.filter, excludingClients: this.excludingClients, includingClients: this.includingClients, range: this.range, begin: this.begin, liveBuffer: this.liveBuffer, highWaterMark: this.highWaterMark, IPv6Block: this.IPv6Block, dlChunkSize: this.dlChunkSize };
+        Platform.load(SHIM);
     }
 
     private initializeOptions(options: YTDL_DownloadOptions): InternalDownloadOptions {
@@ -246,6 +255,7 @@ class YtdlCore {
         INTERNAL_OPTIONS.highWaterMark = options.highWaterMark || this.highWaterMark || undefined;
         INTERNAL_OPTIONS.IPv6Block = options.IPv6Block || this.IPv6Block || undefined;
         INTERNAL_OPTIONS.dlChunkSize = options.dlChunkSize || this.dlChunkSize || undefined;
+        INTERNAL_OPTIONS.streamType = options.streamType || this.streamType || 'default';
 
         if (!INTERNAL_OPTIONS.oauth2 && options.oauth2Credentials) {
             Logger.warning('The OAuth2 token should be specified when instantiating the YtdlCore class, not as a function argument.');
@@ -257,12 +267,12 @@ class YtdlCore {
     }
 
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
-    public download(link: string, options: YTDL_DownloadOptions = {}) {
-        return download(link, this.initializeOptions(options));
+    public download<T = YTDL_DefaultStreamType | YTDL_NodejsStreamType>(link: string, options: YTDL_DownloadOptions = {}): Promise<T> {
+        return download(link, this.initializeOptions(options)) as Promise<T>;
     }
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
-    public downloadFromInfo(info: YTDL_VideoInfo, options: YTDL_DownloadOptions = {}) {
-        return downloadFromInfo(info, this.initializeOptions(options));
+    public downloadFromInfo<T = YTDL_DefaultStreamType | YTDL_NodejsStreamType>(info: YTDL_VideoInfo, options: YTDL_DownloadOptions = {}): Promise<T> {
+        return downloadFromInfo(info, this.initializeOptions(options)) as Promise<T>;
     }
 
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */

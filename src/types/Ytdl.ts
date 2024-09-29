@@ -1,6 +1,8 @@
-import { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail } from './YouTube';
-import { YTDL_ClientTypes } from './Clients';
-import { YTDL_GetInfoOptions } from './Options';
+import type { Readable } from 'readable-stream';
+
+import type { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail } from './YouTube';
+import type { YTDL_ClientTypes } from './Clients';
+import type { YTDL_GetInfoOptions } from './Options';
 
 export type YTDL_Author = {
     id: string;
@@ -148,3 +150,6 @@ export type YTDL_VideoInfo = {
         web: YT_NextApiResponse | null;
     };
 };
+
+export type YTDL_DefaultStreamType = ReadableStream<any>;
+export type YTDL_NodejsStreamType = Readable;

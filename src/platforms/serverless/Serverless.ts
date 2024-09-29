@@ -1,12 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { Readable } from 'stream';
 
-import { AvailableCacheFileNames, FileCacheOptions } from '@/platforms/types/FileCache';
+import type { AvailableCacheFileNames, FileCacheOptions } from '@/platforms/types/FileCache';
 
 import { Platform } from '@/platforms/Platform';
 import { CacheWithMap, YtdlCore_Cache } from '@/platforms/utils/Classes';
+
 import { VERSION, REPO_URL, ISSUES_URL } from '@/utils/Constants';
+import { Logger } from '@/utils/Log';
 
 class FileCache implements YtdlCore_Cache {
     private timeouts: Map<string, NodeJS.Timeout> = new Map();
@@ -149,8 +152,8 @@ Platform.load({
             });
         });
     },
-    default: {
-        options: {
+    options: {
+        download: {
             hl: 'en',
             gl: 'US',
             includesPlayerAPIResponse: false,
@@ -161,6 +164,10 @@ Platform.load({
             disableDefaultClients: false,
             disableFileCache: false,
             parsesHLSFormat: true,
+        },
+        other: {
+            logDisplay: ['info', 'success', 'warning', 'error'],
+            noUpdate: false,
         },
     },
     requestRelated: {
@@ -177,7 +184,6 @@ Platform.load({
 });
 
 import { YtdlCore } from '@/YtdlCore';
-import { Logger } from '@/utils/Log';
 
 export * from '@/types/index';
 export { YtdlCore };

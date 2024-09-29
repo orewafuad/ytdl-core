@@ -1,9 +1,7 @@
 import { Platform } from '@/platforms/Platform';
 import { VERSION } from './Constants';
 
-const RUNTIME = Platform.getShim().runtime,
-    IS_BROWSER_RUNTIME = RUNTIME === 'browser',
-    BROWSER_CONTROL_CHARACTER = {
+const OTHER_CONTROL_CHARACTER = {
         red: '',
         green: '',
         yellow: '',
@@ -11,45 +9,45 @@ const RUNTIME = Platform.getShim().runtime,
         magenta: '',
         reset: '',
     },
-    NORMAL_CONTROL_CHARACTER = {
+    DEFAULT_CONTROL_CHARACTER = {
         red: '\x1b[31m',
         green: '\x1b[32m',
         yellow: '\x1b[33m',
         blue: '\x1b[34m',
         magenta: '\x1b[35m',
         reset: '\x1b[0m',
-    },
-    OUTPUT_CONTROL_CHARACTER = IS_BROWSER_RUNTIME ? BROWSER_CONTROL_CHARACTER : NORMAL_CONTROL_CHARACTER;
+    };
 
 export class Logger {
     static logDisplay: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> = ['info', 'success', 'warning', 'error'];
+    static outputControlCharacter = OTHER_CONTROL_CHARACTER;
 
     private static replaceColorTags(message: string): string {
         try {
-            message = message.replace(/<magenta>/g, OUTPUT_CONTROL_CHARACTER.magenta);
-            message = message.replace(/<\/magenta>/g, OUTPUT_CONTROL_CHARACTER.reset);
-            message = message.replace(/<debug>/g, OUTPUT_CONTROL_CHARACTER.magenta);
-            message = message.replace(/<\/debug>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<magenta>/g, this.outputControlCharacter.magenta);
+            message = message.replace(/<\/magenta>/g, this.outputControlCharacter.reset);
+            message = message.replace(/<debug>/g, this.outputControlCharacter.magenta);
+            message = message.replace(/<\/debug>/g, this.outputControlCharacter.reset);
 
-            message = message.replace(/<blue>/g, OUTPUT_CONTROL_CHARACTER.blue);
-            message = message.replace(/<\/blue>/g, OUTPUT_CONTROL_CHARACTER.reset);
-            message = message.replace(/<info>/g, OUTPUT_CONTROL_CHARACTER.blue);
-            message = message.replace(/<\/info>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<blue>/g, this.outputControlCharacter.blue);
+            message = message.replace(/<\/blue>/g, this.outputControlCharacter.reset);
+            message = message.replace(/<info>/g, this.outputControlCharacter.blue);
+            message = message.replace(/<\/info>/g, this.outputControlCharacter.reset);
 
-            message = message.replace(/<green>/g, OUTPUT_CONTROL_CHARACTER.green);
-            message = message.replace(/<\/green>/g, OUTPUT_CONTROL_CHARACTER.reset);
-            message = message.replace(/<success>/g, OUTPUT_CONTROL_CHARACTER.green);
-            message = message.replace(/<\/success>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<green>/g, this.outputControlCharacter.green);
+            message = message.replace(/<\/green>/g, this.outputControlCharacter.reset);
+            message = message.replace(/<success>/g, this.outputControlCharacter.green);
+            message = message.replace(/<\/success>/g, this.outputControlCharacter.reset);
 
-            message = message.replace(/<yellow>/g, OUTPUT_CONTROL_CHARACTER.yellow);
-            message = message.replace(/<\/yellow>/g, OUTPUT_CONTROL_CHARACTER.reset);
-            message = message.replace(/<warning>/g, OUTPUT_CONTROL_CHARACTER.yellow);
-            message = message.replace(/<\/warning>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<yellow>/g, this.outputControlCharacter.yellow);
+            message = message.replace(/<\/yellow>/g, this.outputControlCharacter.reset);
+            message = message.replace(/<warning>/g, this.outputControlCharacter.yellow);
+            message = message.replace(/<\/warning>/g, this.outputControlCharacter.reset);
 
-            message = message.replace(/<red>/g, OUTPUT_CONTROL_CHARACTER.red);
-            message = message.replace(/<\/red>/g, OUTPUT_CONTROL_CHARACTER.reset);
-            message = message.replace(/<error>/g, OUTPUT_CONTROL_CHARACTER.red);
-            message = message.replace(/<\/error>/g, OUTPUT_CONTROL_CHARACTER.reset);
+            message = message.replace(/<red>/g, this.outputControlCharacter.red);
+            message = message.replace(/<\/red>/g, this.outputControlCharacter.reset);
+            message = message.replace(/<error>/g, this.outputControlCharacter.red);
+            message = message.replace(/<\/error>/g, this.outputControlCharacter.reset);
         } catch {}
 
         return message;
@@ -61,6 +59,15 @@ export class Logger {
 
     private static convertMessages(messages: Array<any>): Array<any> {
         return messages.map((m) => this.replaceColorTags(m));
+    }
+
+    public static initialization() {
+        const RUNTIME = Platform.getShim().runtime,
+            IS_DEFAULT_RUNTIME = RUNTIME === 'default';
+
+        if (IS_DEFAULT_RUNTIME) {
+            this.outputControlCharacter = DEFAULT_CONTROL_CHARACTER;
+        }
     }
 
     public static debug(...messages: Array<any>) {

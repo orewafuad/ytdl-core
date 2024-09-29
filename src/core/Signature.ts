@@ -225,7 +225,11 @@ class Signature {
     public decipherFunction: string | null = null;
     public nTransformFunction: string | null = null;
 
-    public static getSignatureTimestamp(body: string): string {
+    public static getSignatureTimestamp(body?: string): string {
+        if (!body) {
+            return '0';
+        }
+
         const MATCH = body.match(SIGNATURE_TIMESTAMP_REGEX);
 
         if (MATCH) {

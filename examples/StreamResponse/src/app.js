@@ -2,7 +2,9 @@ const express = require('express'),
     { YtdlCore } = require('@ybd-project/ytdl-core'),
     app = express(),
     ytdl = new YtdlCore({
-        lang: 'en',
+        hl: 'en',
+        gl: 'US',
+        streamType: 'nodejs',
     });
 
 app.get('/api/download', (req, res) => {
@@ -13,7 +15,15 @@ app.get('/api/download', (req, res) => {
 
     ytdl.download(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
         filter: 'audioandvideo',
-    }).pipe(res);
+    })
+        .then((stream) => {
+            stream.pipe(res);
+        })
+        .catch((err) => {
+            res.json({
+                error: err.message,
+            });
+        });
 });
 
 app.get('/api/download/audio', (req, res) => {
@@ -24,7 +34,15 @@ app.get('/api/download/audio', (req, res) => {
 
     ytdl.download(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
         filter: 'audioonly',
-    }).pipe(res);
+    })
+        .then((stream) => {
+            stream.pipe(res);
+        })
+        .catch((err) => {
+            res.json({
+                error: err.message,
+            });
+        });
 });
 
 app.get('/api/download', (req, res) => {
@@ -35,7 +53,15 @@ app.get('/api/download', (req, res) => {
 
     ytdl.download(`https://www.youtube.com/watch?v=${VIDEO_ID}`, {
         filter: 'videoonly',
-    }).pipe(res);
+    })
+        .then((stream) => {
+            stream.pipe(res);
+        })
+        .catch((err) => {
+            res.json({
+                error: err.message,
+            });
+        });
 });
 
 app.listen(3000, () => {

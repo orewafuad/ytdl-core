@@ -13,7 +13,11 @@ import { CURRENT_PLAYER_ID } from '@/utils/Constants';
 
 const FileCache = Platform.getShim().fileCache;
 
-function getPlayerId(body: string): string | null {
+function getPlayerId(body?: string): string | null {
+    if (!body) {
+        return null;
+    }
+
     const MATCH = body.match(/player\\\/([a-zA-Z0-9]+)\\\//);
 
     if (MATCH) {
@@ -35,19 +39,24 @@ async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5Player
         };
     }
 
-    const IFRAME_API_BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), options);
-    let playerId = getPlayerId(IFRAME_API_BODY);
+    let playerId = undefined;
+
+    try {
+        const IFRAME_API_BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), options);
+        playerId = getPlayerId(IFRAME_API_BODY);
+    } catch {}
 
     if (!playerId && options.originalProxy) {
         Logger.debug('Could not get html5Player using your own proxy. It is retrieved again with its own proxy disabled. (Other requests will not invalidate it.)');
 
-        const BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), {
-            ...options,
-            rewriteRequest: undefined,
-            originalProxy: undefined,
-        });
-
-        playerId = getPlayerId(BODY);
+        try {
+            const BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), {
+                ...options,
+                rewriteRequest: undefined,
+                originalProxy: undefined,
+            });
+            playerId = getPlayerId(BODY);
+        } catch {}
     }
 
     if (!playerId) {

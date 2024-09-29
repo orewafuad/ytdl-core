@@ -94,8 +94,8 @@ Platform.load({
             });
         });
     },
-    default: {
-        options: {
+    options: {
+        download: {
             hl: 'en',
             gl: 'US',
             includesPlayerAPIResponse: false,
@@ -106,6 +106,10 @@ Platform.load({
             disableDefaultClients: false,
             disableFileCache: false,
             parsesHLSFormat: true,
+        },
+        other: {
+            logDisplay: ['info', 'success', 'warning', 'error'],
+            noUpdate: false,
         },
     },
     requestRelated: {

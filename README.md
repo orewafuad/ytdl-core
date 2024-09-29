@@ -7,44 +7,14 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 <ol>
    <li><a href="#ℹ️announcements-at-this-timeℹ️">ℹ️Announcements at this timeℹ️</a></li>
    <li><a href="#prerequisite">Prerequisite</a></li>
-   <li>
-      <a href="#operating-environment">Operating Environment</a>
-      <ul>
-         <li><a href="#🪟windows">🪟Windows</a></li>
-         <li><a href="#🍎macos">🍎MacOS</a></li>
-         <li>
-            <a href="#🐧linux">🐧Linux</a>
-            <ul>
-               <li><a href="#🛞ubuntu">🛞Ubuntu</a></li>
-               <li><a href="#💠centos">💠CentOS</a></li>
-            </ul>
-         </li>
-      </ul>
-    </li>
+   <li><a href="#operating-environment">Operating Environment</a></li>
    <li><a href="#installation">Installation</a></li>
    <li>
       <a href="#usage">Usage</a>
       <ul>
-         <li><a href="#usage-before-v510">Usage before v5.1.0</a></li>
-         <li>
-            <a href="#oauth2-support">OAuth2 Support</a>
-            <ul>
-               <li><a href="#oauth2-access-token-generation">Oauth2 Access Token generation</a></li>
-            </ul>
-         </li>
+         <li><a href="#oauth2-support">OAuth2 Support</a></li>
          <li><a href="#potoken-support">PoToken Support</a></li>
-         <li><a href="#cookies-support">Cookies Support</a></li>
-         <li>
-            <a href="#proxy-support">Proxy Support</a>
-            <ul>
-               <li>
-                  <a href="#build-and-use-your-own-proxy">Build and use your own proxy</a>
-                  <ul>
-                     <li><a href="#use-of-proprietary-proxies">Use of proprietary proxies</a></li>
-                  </ul>
-               </li>
-            </ul>
-         </li>
+         <li><a href="#proxy-support">Proxy Support</a></li>
          <li><a href="#ip-rotation">IP Rotation</a></li>
       </ul>
    </li>
@@ -57,10 +27,7 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 
 ## ℹ️Announcements at this timeℹ️
 
-> [!NOTE]
-> We are investigating a problem where the video URL can be retrieved but the download fails with a 403.
-
-<!-- There are no announcements at this time. -->
+There are no announcements at this time.
 
 <!-- > [!NOTE]
 > As of v5.0.5, related videos cannot be retrieved. This will be fixed later.
@@ -86,30 +53,36 @@ To use `@ybd-project/ytdl-core` without problems, **use Node.js 16 or higher.** 
 
 ## Operating Environment
 
-If you have an operating system that works or does not work other than those listed here, please let us know at https://github.com/ybd-project/ytdl-core/issues/25.
+### Default (Node.js)
+
+As usual, when using Node.js, as noted in the prerequisites, v16 or higher will work fine.
+If you have an example that does not work with 16 or higher versions, please create an [Issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=).
+
+### Browser
+
+The following are the major browsers (Chrome, Edge, Firefox, Brave, Opera, and Safari) that have now been tested.
 
 > [!IMPORTANT]
-> Developers will only test on currently supported operating systems and versions. Older versions (e.g. Windows 7) will not be tested.
+> The minimum version of the browser to be tested is the version that can use YouTube; versions that cannot use YouTube will not be tested. (The minimum version will be described in the section for each browser.)
 
-### 🪟Windows
+#### List
 
-1. Windows 11
+|    Browser Name     | Supported Versions  | Minimum Version |
+| :-----------------: | :-----------------: | :-------------: |
+|  **Google Chrome**  | v? - latest (v129)  |     Unknown     |
+| **Microsoft Edge**  | Under investigation |     Unknown     |
+| **Mozilla FireFox** | Under investigation |     Unknown     |
+|  **Apple Safari**   | Under investigation |     Unknown     |
+|      **Brave**      | Under investigation |     Unknown     |
+|      **Opera**      | Under investigation |     Unknown     |
 
-### 🍎MacOS
+### Serverless
 
-> [!NOTE]
-> **MacOS is under testing.**
+We have confirmed that `ytdl-core` for serverless functions works properly in the following environment.
 
-### 🐧Linux
-
-#### 🛞Ubuntu
-
-1. 22.04
-2. 24.04
-
-#### 💠CentOS
-
-1. 9 Stream
+|      Service Name      |                 Remarks                 |
+| :--------------------: | :-------------------------------------: |
+| **Cloudflare Workers** | With `nodejs_compat` compatibility flag |
 
 ## Installation
 
@@ -119,13 +92,18 @@ npm install @ybd-project/ytdl-core@latest
 
 Make sure you're installing the latest version of `@ybd-project/ytdl-core` to keep up with the latest fixes.
 
-## Usage
+## API Documentation
 
-For more detailed information on how to use and specify options, please see the [Wiki](https://github.com/ybd-project/ytdl-core/wiki).
+For details API documentation, see the [Wiki](https://github.com/ybd-project/ytdl-core/wiki).
+
+## Usage
 
 ```ts
 import fs from 'fs';
 import { YtdlCore } from '@ybd-project/ytdl-core';
+// For browser: import { YtdlCore } from '@ybd-project/ytdl-core/browser';
+// For serverless functions: import { YtdlCore } from '@ybd-project/ytdl-core/serverless';
+
 // JavaScript: const { YtdlCore } = require('@ybd-project/ytdl-core');
 
 const ytdl = new YtdlCore({
@@ -146,16 +124,6 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((info) => {
 });
 ```
 
-### Usage before v5.1.0
-
-Starting with v5.1.0, ytdl-core now uses classes. To use the old usage, you will need to change your package imports.
-You can use ytdl-core in the conventional way by adding `/old` at the end.
-
-```ts
-import ytdlCore from '@ybd-project/ytdl-core/old';
-const ytdlCore = require('@ybd-project/ytdl-core/old');
-```
-
 ### OAuth2 Support
 
 `@ybd-project/ytdl-core` supports OAuth2 Token.
@@ -164,51 +132,45 @@ These can be used to avoid age restrictions and bot errors. See below for instru
 
 > [!IMPORTANT]
 > **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
+> Note that OAuth2 may expire soon these days. In this case, do not use OAuth2.
 
 > [!NOTE]
 > The specified OAuth2 token is automatically updated by ytdl-core, so you do not need to update it yourself.
-
-> [!TIP]
-> Do not specify OAuth2 directly as an argument. If you specify it directly, the token will be renewed repeatedly when it expires. Be sure to assign the OAuth2 token to a variable or specify it as an option when initializing the YtdlCore class.
 
 ```ts
 import { YtdlCore } from '@ybd-project/ytdl-core';
 
 /* Normal usage */
-const NORMAL_OAUTH2 = new YtdlCore.OAuth2({
-    accessToken: '...',
-    refreshToken: '...',
-    expiryDate: 'yyyy-MM-ddThh-mm-ssZ',
-});
-
 const ytdl = new YtdlCore({
-    oauth2: NORMAL_OAUTH2,
-});
-
-/* If you need to specify a client ID and secret */
-const OAUTH2_SPECIFY_CLIENT_DATA = new YtdlCore.OAuth2({
-    accessToken: '...',
-    refreshToken: '...',
-    expiryDate: 'yyyy-MM-ddThh-mm-ssZ',
-    clientData: {
-        clientId: '...',
-        clientSecret: '...',
+    oauth2Credentials: {
+        accessToken: '...',
+        refreshToken: '...',
+        expiryDate: 'yyyy-MM-ddThh-mm-ssZ',
     },
 });
 
+/* If you need to specify a client ID and secret */
 const ytdl = new YtdlCore({
-    oauth2: OAUTH2_SPECIFY_CLIENT_DATA,
+    oauth2Credentials: {
+        accessToken: '...',
+        refreshToken: '...',
+        expiryDate: 'yyyy-MM-ddThh-mm-ssZ',
+        clientData: {
+            clientId: '...',
+            clientSecret: '...',
+        },
+    },
 });
 
 /* Specify to the function if there is a need to override what was specified during class initialization. */
-const OVERRIDE_OAUTH2 = new YtdlCore.OAuth2({
-    accessToken: '...',
-    refreshToken: '...',
-    expiryDate: 'yyyy-MM-ddThh-mm-ssZ',
-});
-
 // This `ytdl` is already initialized as in the other examples.
-ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { oauth2: OVERRIDE_OAUTH2 });
+ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ', {
+    oauth2Credentials: {
+        accessToken: '...',
+        refreshToken: '...',
+        expiryDate: 'yyyy-MM-ddThh-mm-ssZ',
+    },
+});
 ```
 
 #### Oauth2 Access Token generation
@@ -237,16 +199,16 @@ If you wish to generate your own, please refer to the example folder for an exam
 
 ### PoToken Support
 
-`@ybd-project/ytdl-core` supports `poToken`.
+`@ybd-project/ytdl-core` supports `PoToken`.
 
-The `poToken` can be used to avoid bot errors and must be specified with `visitorData`. If you need to obtain `poToken` or `visitorData`, please use the following repository to generate them.
+The `PoToken` can be used to avoid bot errors and must be specified with `VisitorData`. If you need to obtain `PoToken` or `VisitorData`, please use the following repository to generate them.
 
 1. https://github.com/iv-org/youtube-trusted-session-generator
-2. https://github.com/fsholehan/scrape-youtube
+2. https://github.com/LuanRT/BgUtils
+3. https://github.com/fsholehan/scrape-youtube
 
 ```ts
 import { YtdlCore } from '@ybd-project/ytdl-core';
-// JavaScript: const { YtdlCore } = require('@ybd-project/ytdl-core');
 
 /* Basic Method */
 const ytdl = new YtdlCore({ poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
@@ -258,15 +220,17 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 // Specified as function arguments take precedence over those specified at the time of class instantiation.
 // PoToken used: OVERRIDE_PO_TOKEN
 ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { poToken: 'OVERRIDE_PO_TOKEN', visitorData: 'OVERRIDE_VISITOR_DATA' });
-
-/* Using static method */
-YtdlCore.createProxyAgent({ uri: 'my.proxy.server' });
-YtdlCore.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { poToken: 'PO_TOKEN', visitorData: 'VISITOR_DATA' });
 ```
 
-### Cookies Support
+#### Disable automatic PoToken generation
 
-The use of cookies is deprecated. Use `PoToken`, `OAuth2`, or both.
+The `PoToken` is automatically generated if not specified by default. To disable this, set the option `disablePoTokenAutoGeneration` to `true`.
+
+```ts
+import { YtdlCore } from '@ybd-project/ytdl-core';
+
+const ytdl = new YtdlCore({ disablePoTokenAutoGeneration: true });
+```
 
 ### Proxy Support
 
@@ -275,14 +239,23 @@ The use of cookies is deprecated. Use `PoToken`, `OAuth2`, or both.
 > [!IMPORTANT]
 > Try PoToken or OAuth2 before using a proxy. These may have the same effect as proxies.
 
-The following `createProxyAgent` function cannot be used with the own proxy in the example folder.
+Starting with v6.0.0, the `createProxyAgent` function and others are obsolete. Proxies must be implemented independently through the `fetcher` function.
 
 ```ts
 import { YtdlCore } from '@ybd-project/ytdl-core';
+import { fetch, ProxyAgent } from 'undici';
 
-const ytdl = new YtdlCore({
-    agent: YtdlCore.createProxyAgent({ uri: 'my.proxy.server' }),
-});
+const AGENT = new ProxyAgent('http://xxx.xxx.xxx.xxx:PORT'),
+	ytdl = new YtdlCore({
+		fetcher: (url, options) => {
+			const REQUEST_OPTIONS: RequestInit = {
+				...options,
+				dispatcher: AGENT,
+			};
+
+			return fetch(url, REQUEST_OPTIONS);
+		},
+	});
 
 ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 ```
@@ -331,11 +304,7 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 ### IP Rotation
 
 The `getRandomIPv6` function has been removed in v5.1.0. Currently, there is no stable implementation method for IPv6, as the detailed use case for IPv6-related rotation is unknown.
-If you wish to use rotation, please create a new issue.
-
-## API Documentation
-
-For API documentation, see the [Wiki](https://github.com/ybd-project/ytdl-core/wiki).
+If you wish to use rotation, [please create a new issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=feature&projects=&template=feature_request.md&title=).
 
 ## Limitations
 
