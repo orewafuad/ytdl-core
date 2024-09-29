@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 
-const BASE_DIR = 'C:/ybd-project-products/ytdl-core',
+const BASE_DIR = process.cwd(),
     PKG = JSON.parse(fs.readFileSync(BASE_DIR + '/package.json', 'utf-8'));
 
 let version = PKG.version;

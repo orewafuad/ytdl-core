@@ -1,4 +1,4 @@
-import type { Readable } from 'readable-stream';
+import { Readable } from 'readable-stream';
 
 import type { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail } from './YouTube';
 import type { YTDL_ClientTypes } from './Clients';
@@ -151,5 +151,5 @@ export type YTDL_VideoInfo = {
     };
 };
 
-export type YTDL_DefaultStreamType = ReadableStream<any>;
-export type YTDL_NodejsStreamType = Readable;
+export class YTDL_DefaultStreamType extends ReadableStream<any> {}
+export class YTDL_NodejsStreamType extends Readable {}

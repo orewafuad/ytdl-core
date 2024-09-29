@@ -267,12 +267,12 @@ class YtdlCore {
     }
 
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
-    public download<T = YTDL_DefaultStreamType | YTDL_NodejsStreamType>(link: string, options: YTDL_DownloadOptions = {}): Promise<T> {
-        return download(link, this.initializeOptions(options)) as Promise<T>;
+    public download<T = YTDL_DefaultStreamType | YTDL_NodejsStreamType>(link: string, options: YTDL_DownloadOptions = {}): Promise<T extends YTDL_NodejsStreamType ? YTDL_NodejsStreamType : YTDL_DefaultStreamType> {
+        return download(link, this.initializeOptions(options)) as any;
     }
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */
-    public downloadFromInfo<T = YTDL_DefaultStreamType | YTDL_NodejsStreamType>(info: YTDL_VideoInfo, options: YTDL_DownloadOptions = {}): Promise<T> {
-        return downloadFromInfo(info, this.initializeOptions(options)) as Promise<T>;
+    public downloadFromInfo<T = YTDL_DefaultStreamType | YTDL_NodejsStreamType>(info: YTDL_VideoInfo, options: YTDL_DownloadOptions = {}): Promise<T extends YTDL_NodejsStreamType ? YTDL_NodejsStreamType : YTDL_DefaultStreamType> {
+        return downloadFromInfo(info, this.initializeOptions(options)) as any;
     }
 
     /** TIP: The options specified in new YtdlCore() are applied by default. (The function arguments specified will take precedence.) */

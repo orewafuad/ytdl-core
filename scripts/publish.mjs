@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { input } from '@inquirer/prompts';
 
-const BASE_DIR = 'C:/ybd-project-products/ytdl-core',
+const BASE_DIR = process.cwd(),
     PUBLISH_TYPE = process.argv[2] || 'latest',
     PKG = JSON.parse(fs.readFileSync(BASE_DIR + '/package.json', 'utf-8'));
 

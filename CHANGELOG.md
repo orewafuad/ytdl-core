@@ -4,7 +4,7 @@
 
 ### Features
 * **YtdlCore:** Support for use in browsers. (To use, import `@ybd-project/ytdl-core/browser`)
-* **YtdlCore:** Add a processing-optimized YtdlCore for deployment to serverless functions such as Vercel Functions (just use `@ybd-project/ytdl-core/serverless` when importing)
+* **YtdlCore:** Added a processing-optimized YtdlCore for deployment to serverless functions such as Vercel Functions (just use `@ybd-project/ytdl-core/serverless` when importing)
 * **YtdlCore:** Changed to be able to import types used in YtdlCore (To use, import `@ybd-project/ytdl-core/types`)
 * **YtdlCore:** Static methods such as the `getFullInfo` function have been eliminated in view of optional adaptations, etc.
 * **Stream:** Added option `streamType` to specify the type of stream to receive (ReadableStream or Readable (for Node.js)) in `download` functions, etc. (The type specification of the stream is done as follows)
@@ -16,6 +16,7 @@ const ytdl = new YtdlCore({
 });
 
 ytdl.download<YTDL_NodejsStreamType>('https://www.youtube.com/watch?v=ID', { filter: 'audioandvideo' }).then((stream) => {
+    // If the default (ReadableStream), it cannot be piped.
     stream.pipe(fs.createWriteStream(process.cwd() + '/results/video.mp4'));
 });
 

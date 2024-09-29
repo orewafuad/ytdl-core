@@ -1,4 +1,6 @@
 import { YtdlCore } from '@ybd-project/ytdl-core';
+// For browser: import { YtdlCore, YTDL_NodejsStreamType } from '@ybd-project/ytdl-core/browser';
+// For serverless: import { YtdlCore, YTDL_NodejsStreamType } from '@ybd-project/ytdl-core/serverless';
 
 const ytdl = new YtdlCore({
     hl: 'en',
@@ -33,28 +35,35 @@ ytdl.getFullInfo(VIDEO_URL, {
 
 /* Specify OAuth2 Access Token */
 
-//TIP: When using OAuth2, be sure to assign it to a variable before specifying it as an argument.
-const OAUTH2 = new YtdlCore.OAuth2({
-    accessToken: 'ACCESS_TOKEN',
-    refreshToken: 'REFRESH_TOKEN',
-    expiryDate: 'EXPIRY_DATE',
-});
-
-ytdl.getFullInfo(VIDEO_URL, {
-    oauth2: OAUTH2,
-});
-
-/* Specify OAuth2 Access Token with your own client */
-const YOUR_OWN_OAUTH2 = new YtdlCore.OAuth2({
-    accessToken: 'ACCESS_TOKEN',
-    refreshToken: 'REFRESH_TOKEN',
-    expiryDate: 'EXPIRY_DATE',
-    clientData: {
-        clientId: 'CLIENT_ID',
-        clientSecret: 'CLIENT_SECRET',
+/* Normal usage */
+const ytdl_withOAuth2 = new YtdlCore({
+    oauth2Credentials: {
+        accessToken: 'ACCESS_TOKEN',
+        refreshToken: 'REFRESH_TOKEN',
+        expiryDate: 'EXPIRY_DATE',
     },
 });
 
+ytdl_withOAuth2.getFullInfo(VIDEO_URL);
+
+/* Override default options */
+ytdl_withOAuth2.getFullInfo(VIDEO_URL, {
+    oauth2Credentials: {
+        accessToken: 'ACCESS_TOKEN_2',
+        refreshToken: 'REFRESH_TOKEN_2',
+        expiryDate: 'EXPIRY_DATE_2',
+    },
+});
+
+/* Specify OAuth2 Access Token with your own client */
 ytdl.getFullInfo(VIDEO_URL, {
-    oauth2: YOUR_OWN_OAUTH2,
+    oauth2Credentials: {
+        accessToken: 'ACCESS_TOKEN',
+        refreshToken: 'REFRESH_TOKEN',
+        expiryDate: 'EXPIRY_DATE',
+        clientData: {
+            clientId: 'CLIENT_ID',
+            clientSecret: 'CLIENT_SECRET',
+        },
+    },
 });

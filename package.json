@@ -48,13 +48,13 @@
     ],
     "scripts": {
         "test": "npx jest ./test/main.test.ts",
-        "build": "node ./scripts/getPlayerId.js && rmdir /s /q package && tsc && tsc-alias && npm run clear-cache-files && npm run create-bundles",
+        "build": "node ./scripts/getPlayerId.js && rmdir /s /q package & tsc && tsc-alias && npm run clear-cache-files && npm run create-bundles",
         "publish:github": "node ./scripts/publish.mjs latest github && npm run build && npm publish --registry=https://npm.pkg.github.com && node ./scripts/publish-github-tag.mjs",
         "publish:npm": "node ./scripts/publish.mjs latest npm && npm run build && npm publish --registry=https://registry.npmjs.org/",
         "publish:npm-alpha": "node ./scripts/publish.mjs alpha npm && npm run build && npm publish --registry=https://registry.npmjs.org/ --tag alpha",
         "publish:npm-beta": "node ./scripts/publish.mjs beta npm && npm run build && npm publish --registry=https://registry.npmjs.org/ --tag beta",
         "create-bundles": "npm run create-node-bundle && npm run create-browser-bundle",
-        "create-node-bundle": "rmdir /s /q bundle && mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --banner:js=\"/* eslint-disable */\"",
+        "create-node-bundle": "rmdir /s /q bundle & mkdir bundle && esbuild ./package/Platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --banner:js=\"/* eslint-disable */\"",
         "create-browser-bundle": "esbuild ./package/Platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser --minify",
         "clear-cache-files": "cd package/core && rmdir /s /q CacheFiles 2>nul & cd ../..",
         "update": "ncu && ncu -u && npm i"
