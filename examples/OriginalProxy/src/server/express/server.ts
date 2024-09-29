@@ -7,7 +7,8 @@ const app = express(),
         ANDROID: 'com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip',
         TV: 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
         DEFAULT: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
-    };
+    },
+    ALLOWED_HOSTNAMES = ['youtube.com', 'googlevideo.com'];
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -16,9 +17,10 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', '*');
     res.setHeader('Cache-Control', 'public, max-age=2592000');
 
-    const REQUEST_URL = (req.query.url || '').toString();
+    const REQUEST_URL = (req.query.url || '').toString(),
+        PARSED_URL = new URL(REQUEST_URL);
 
-    if (!REQUEST_URL || !/(youtube\.com|googlevideo\.com)/.test(REQUEST_URL)) {
+    if (!REQUEST_URL || !ALLOWED_HOSTNAMES.includes(PARSED_URL.hostname)) {
         res.status(400);
         res.end();
 
