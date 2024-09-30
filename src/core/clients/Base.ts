@@ -50,10 +50,6 @@ export default class Base {
                     const PLAY_ERROR = this.playError(response);
 
                     if (PLAY_ERROR) {
-                        if (ALLOW_RETRY_REQUEST) {
-                            return retryRequest();
-                        }
-
                         return reject({
                             isError: true,
                             error: PLAY_ERROR,

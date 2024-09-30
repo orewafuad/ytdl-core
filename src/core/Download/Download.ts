@@ -34,7 +34,7 @@ async function isDownloadUrlValid(format: YTDL_VideoFormat): Promise<{ valid: bo
                 }
             },
             errorResponseHandler = (reason: Error) => {
-                Logger.debug(`[ ${format.sourceClientName} ]: The URL for the video <error>did not return a successful response</error>. Got another format.\nReason: ${reason.message}`);
+                Logger.debug(`[ ${format.sourceClientName} ]: The URL for the video <error>did not return a successful response</error>. Got another format.\nReason: <error>${reason.message}</error>`);
                 resolve({ valid: false, reason: reason.message });
             };
 

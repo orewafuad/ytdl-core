@@ -62,19 +62,16 @@ If you have an example that does not work with 16 or higher versions, please cre
 
 The following are the major browsers (Chrome, Edge, Firefox, Brave, Opera, and Safari) that have now been tested.
 
-> [!IMPORTANT]
-> The minimum version of the browser to be tested is the version that can use YouTube; versions that cannot use YouTube will not be tested. (The minimum version will be described in the section for each browser.)
-
 #### List
 
-|    Browser Name     | Supported Versions  | Minimum Version |
-| :-----------------: | :-----------------: | :-------------: |
-|  **Google Chrome**  | v? - latest (v129)  |     Unknown     |
-| **Microsoft Edge**  | Under investigation |     Unknown     |
-| **Mozilla FireFox** | Under investigation |     Unknown     |
-|  **Apple Safari**   | Under investigation |     Unknown     |
-|      **Brave**      | Under investigation |     Unknown     |
-|      **Opera**      | Under investigation |     Unknown     |
+|    Browser Name     | Supported Versions  |
+| :-----------------: | :-----------------: |
+|  **Google Chrome**  | v76 - latest (v129)  |
+| **Microsoft Edge**  | Under investigation |
+| **Mozilla FireFox** | Under investigation |
+|  **Apple Safari**   | Under investigation |
+|      **Brave**      | Under investigation |
+|      **Opera**      | Under investigation |
 
 ### Serverless
 
@@ -83,6 +80,7 @@ We have confirmed that `ytdl-core` for serverless functions works properly in th
 |      Service Name      |                 Remarks                 |
 | :--------------------: | :-------------------------------------: |
 | **Cloudflare Workers** | With `nodejs_compat` compatibility flag |
+| **Vercel Functions**   | Streaming doesn't work.                 |
 
 ## Installation
 
