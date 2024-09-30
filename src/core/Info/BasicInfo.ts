@@ -187,7 +187,7 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
     VIDEO_INFO.videoDetails.playabilityStatus = getValue<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'playabilityStatus', 'OK')?.playabilityStatus.status || PLAYER_RESPONSE_LIST[0]?.playabilityStatus.status || 'UNKNOWN';
     VIDEO_INFO.videoDetails.liveBroadcastDetails = LIVE_BROADCAST_DETAILS;
 
-    VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? InfoExtras.getRelatedVideos(NEXT_RESPONSES.web, options.hl || 'en') : [];
+    VIDEO_INFO.relatedVideos = options.includesRelatedVideo ? InfoExtras.getRelatedVideos(NEXT_RESPONSES.web) : [];
     VIDEO_INFO.formats = isFromGetInfo ? (FORMATS as any) : [];
 
     return VIDEO_INFO;

@@ -24,11 +24,12 @@ const SHIM = Platform.getShim(),
     FileCache = SHIM.fileCache;
 
 function isNodeVersionOk(version: string): boolean {
-    if (SHIM.runtime === 'browser' || SHIM.runtime === 'serverless') {
-        return true;
-    }
-
     return parseInt(version.replace('v', '').split('.')[0]) >= 16;
+}
+
+function isBrowserVersionOk(userAgent: string): boolean {
+    //TODO ブラウザ判定（まず、どこまでのバージョンが利用できるかを調べる）
+    return true;
 }
 
 class YtdlCore {
@@ -214,8 +215,14 @@ class YtdlCore {
         this.initializeHtml5PlayerCache();
 
         /* Version Check */
-        if (!isNodeVersionOk(process.version)) {
-            throw new Error(`You are using Node.js ${process.version} which is not supported. Minimum version required is v16.`);
+        if (SHIM.runtime === 'default') {
+            if (!isNodeVersionOk(process.version)) {
+                throw new Error(`You are using Node.js ${process.version} which is not supported. Minimum version required is v16.`);
+            }
+        } else if (SHIM.runtime === 'browser') {
+            if (!isBrowserVersionOk(navigator.userAgent)) {
+
+            }
         }
 
         /* Load */

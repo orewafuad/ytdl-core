@@ -11,7 +11,8 @@ import { Url } from '@/utils/Url';
 import { Logger } from '@/utils/Log';
 import { CURRENT_PLAYER_ID } from '@/utils/Constants';
 
-const FileCache = Platform.getShim().fileCache;
+const SHIM = Platform.getShim(),
+    FileCache = SHIM.fileCache;
 
 function getPlayerId(body?: string): string | null {
     if (!body) {
@@ -46,7 +47,7 @@ async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5Player
         playerId = getPlayerId(IFRAME_API_BODY);
     } catch {}
 
-    if (!playerId && options.originalProxy) {
+    if (!playerId && options.originalProxy && SHIM.runtime !== 'browser') {
         Logger.debug('Could not get html5Player using your own proxy. It is retrieved again with its own proxy disabled. (Other requests will not invalidate it.)');
 
         try {
