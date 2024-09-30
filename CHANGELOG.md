@@ -4,8 +4,8 @@
 
 ### Features
 * **YtdlCore:** Support for use in browsers. (To use, import `@ybd-project/ytdl-core/browser`)
-* **YtdlCore:** Added a processing-optimized YtdlCore for deployment to serverless functions such as Vercel Functions (just use `@ybd-project/ytdl-core/serverless` when importing)
-* **YtdlCore:** Changed to be able to import types used in YtdlCore (To use, import `@ybd-project/ytdl-core/types`)
+* **YtdlCore:** Added a processing-optimized YtdlCore for deployment to serverless functions such as Vercel Functions. (just use `@ybd-project/ytdl-core/serverless` when importing)
+* **YtdlCore:** Changed to be able to import types used in YtdlCore. (To use, import `@ybd-project/ytdl-core/types`)
 * **YtdlCore:** Static methods such as the `getFullInfo` function have been eliminated in view of optional adaptations, etc.
 * **Stream:** Added option `streamType` to specify the type of stream to receive (ReadableStream or Readable (for Node.js)) in `download` functions, etc. (The type specification of the stream is done as follows)
 ```ts
@@ -34,23 +34,25 @@ ytdl.download<YTDL_DefaultStreamType>('https://www.youtube.com/watch?v=ID', { fi
 
 ### Change
 * **Lang:** Remove the `lang` option and add the `hl` option.
-* **Debug:** Eliminated the use of the `YTDL_DEBUG` environment variable (For debug log display, use the `logDisplay` option instead.)
+* **Country:** Add `gl` option.
+* **Debug:** Eliminated the use of the `YTDL_DEBUG` environment variable. (For debug log display, use the `logDisplay` option instead.)
+* **Log:** Added `logDisplay` option to specify the type of log to display.
 * **Options:** The `requestOptions` option is obsolete.
-* **Request:** Eliminate the use of the internal Undici package
-* **Log:** Added `logDisplay` option to specify the type of log to display
-* **Country:** Add `gl` option
-* **Fetcher:** Add `fetcher` option to control requests (Allows proxy adaptation, etc. (returns a Response object))
+* **Request:** Eliminate the use of the internal Undici package.
+* **Fetcher:** Add `fetcher` option to control requests. (Allows proxy adaptation, etc. (returns a Response object))
 * **Agent:** Proxy adaptation to requests by YtdlCore has been discontinued due to specification issues.
-* **PoToken:** Stop using `youtube-po-token-generator` to generate PoToken, and use [`LuanRT/BgUtils`](https://github.com/LuanRT/BgUtils) instead, because it cannot generate PoToken correctly. (Experimental, not available in the browser and serverless versions).
-* **Cache:** Add `disableBasicCache`option
+* **PoToken:** Stop using `youtube-po-token-generator` to generate PoToken, and use [`LuanRT/BgUtils`](https://github.com/LuanRT/BgUtils) instead, because it cannot generate PoToken correctly. (Experimental, not available in the browser and serverless versions)
 * **Player:** Changed to use the default ID if the latest player ID could not be obtained (specify the latest ID at the time of build).
 * **VideoDetails:** Added `playabilityStatus` to video details. The value `OK` takes precedence.
+* **Cache:** Added `disableBasicCache` option to disable basic cache.
+* **Version:** Added `disableVersionCheck` option to disable version check (In `@ybd-project/ytdl-core`, the Node.js version and browser version are checked).
 
 ### Bug Fixes
-* **Types:** Fixed wrong type issue
+* **Types:** Fixed wrong type issue.
+* **README:** Fixed incorrect README documentation.
 
 ### Improvement
-* **YtdlCore:** Remove unnecessary packages and reduce package size
+* **YtdlCore:** Remove unnecessary packages and reduce package size.
 
 ## v5.1.9, v5.1.9-2 (2024/09/22)
 

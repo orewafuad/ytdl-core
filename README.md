@@ -58,15 +58,22 @@ To use `@ybd-project/ytdl-core` without problems, **use Node.js 16 or higher.** 
 As usual, when using Node.js, as noted in the prerequisites, v16 or higher will work fine.
 If you have an example that does not work with 16 or higher versions, please create an [Issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=).
 
+> [!NOTE]
+> If the Node.js version is less than v16, an error will occur when creating an instance of YtdlCore. To disable it, set the option `disableVersionCheck` to `true`. **(Deprecated)**
+
 ### Browser
 
-The following are the major browsers (Chrome, Edge, Firefox, Brave, Opera, and Safari) that have now been tested.
+When using a browser, the latest version is preferred due to the API used.
+However, when operating a website or other site, it is unknown which version and browser the client will use, so the following are the main browsers (Chrome, Edge, Firefox, Brave, Opera, Safari) that are currently confirmed to work.
+
+> [!NOTE]
+> In `@ybd-project/ytdl-core`, if a browser is determined to be not in line with the following versions, an error will be raised when instantiating the YtdlCore class, stating that the version is not supported. To disable it, set the option `disableVersionCheck` to `true`. **(Deprecated)**
 
 #### List
 
 |    Browser Name     | Supported Versions  |
 | :-----------------: | :-----------------: |
-|  **Google Chrome**  | v76 - latest (v129)  |
+|  **Google Chrome**  | v76 - latest (v129) |
 | **Microsoft Edge**  | Under investigation |
 | **Mozilla FireFox** | Under investigation |
 |  **Apple Safari**   | Under investigation |
@@ -76,6 +83,9 @@ The following are the major browsers (Chrome, Edge, Firefox, Brave, Opera, and S
 ### Serverless
 
 We have confirmed that `ytdl-core` for serverless functions works properly in the following environment.
+
+> [!TIP]
+> We recommend deploying to Cloudflare Workers because of its simplicity and lower cost compared to other platforms.
 
 |      Service Name      |                 Remarks                 |
 | :--------------------: | :-------------------------------------: |
@@ -113,7 +123,7 @@ ytdl.download('https://www.youtube.com/watch?v=dQw4w9WgXcQ').pipe(fs.createWrite
 
 // Get video info
 ytdl.getBasicInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((info) => {
-    console.log(info.title);
+    console.log(info.videoDetails.title);
 });
 
 // Get video info with download formats
