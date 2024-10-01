@@ -1,10 +1,4 @@
-type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
-    fetcher?: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
-    logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'>;
-    noUpdate?: boolean;
-};
-
-import type { YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials, YTDL_DefaultStreamType, YTDL_NodejsStreamType } from './types';
+import type { YTDL_Constructor, YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials, YTDL_DefaultStreamType, YTDL_NodejsStreamType } from './types';
 import type { InternalDownloadOptions } from './core/types';
 
 import { Platform } from './platforms/Platform';

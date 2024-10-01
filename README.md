@@ -1,5 +1,8 @@
 # @ybd-project/ytdl-core - v6
 
+[![npm version](https://badge.fury.io/js/@ybd-project%2Fytdl-core.svg)](https://badge.fury.io/js/@ybd-project%2Fytdl-core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube downloader that is fast, stable, and takes into account various use cases, with reference to LuanRT/YouTube.js and yt-dlp.
 
 ## Table of Contents
@@ -7,8 +10,16 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 <ol>
    <li><a href="#ℹ️announcements-at-this-timeℹ️">ℹ️Announcements at this timeℹ️</a></li>
    <li><a href="#prerequisite">Prerequisite</a></li>
-   <li><a href="#operating-environment">Operating Environment</a></li>
+   <li>
+      <a href="#operating-environment">Operating Environment</a>
+      <ul>
+         <li><a href="#default-node.js">Default (Node.js)</a></li>
+         <li><a href="#proxy-support">Browser</a></li>
+         <li><a href="#serverless">Serverless</a></li>
+      </ul>
+   </li>
    <li><a href="#installation">Installation</a></li>
+   <li><a href="#api-documentation">API Documentation</a></li>
    <li>
       <a href="#usage">Usage</a>
       <ul>
@@ -18,7 +29,6 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
          <li><a href="#ip-rotation">IP Rotation</a></li>
       </ul>
    </li>
-   <li><a href="#api-documentation">API Documentation</a></li>
    <li><a href="#limitations">Limitations</a></li>
    <li><a href="#rate-limiting">Rate Limiting</a></li>
    <li><a href="#update-checks">Update Checks</a></li>
@@ -90,7 +100,7 @@ We have confirmed that `ytdl-core` for serverless functions works properly in th
 |      Service Name      |                 Remarks                 |
 | :--------------------: | :-------------------------------------: |
 | **Cloudflare Workers** | With `nodejs_compat` compatibility flag |
-| **Vercel Functions**   | Streaming doesn't work.                 |
+|  **Vercel Functions**  |         Streaming doesn't work.         |
 
 ## Installation
 
@@ -103,6 +113,10 @@ Make sure you're installing the latest version of `@ybd-project/ytdl-core` to ke
 ## API Documentation
 
 For details API documentation, see the [Wiki](https://github.com/ybd-project/ytdl-core/wiki).
+
+## Examples
+
+See the Examples folder for [examples](https://github.com/ybd-project/ytdl-core/tree/main/examples) of using `@ybd-project/ytdl-core`.
 
 ## Usage
 
@@ -138,8 +152,7 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((info) => {
 
 These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
 
-> [!IMPORTANT]
-> **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
+> [!IMPORTANT] > **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
 > Note that OAuth2 may expire soon these days. In this case, do not use OAuth2.
 
 > [!NOTE]
@@ -255,16 +268,16 @@ import { YtdlCore } from '@ybd-project/ytdl-core';
 import { fetch, ProxyAgent } from 'undici';
 
 const AGENT = new ProxyAgent('http://xxx.xxx.xxx.xxx:PORT'),
-	ytdl = new YtdlCore({
-		fetcher: (url, options) => {
-			const REQUEST_OPTIONS: RequestInit = {
-				...options,
-				dispatcher: AGENT,
-			};
+    ytdl = new YtdlCore({
+        fetcher: (url, options) => {
+            const REQUEST_OPTIONS: RequestInit = {
+                ...options,
+                dispatcher: AGENT,
+            };
 
-			return fetch(url, REQUEST_OPTIONS);
-		},
-	});
+            return fetch(url, REQUEST_OPTIONS);
+        },
+    });
 
 ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 ```

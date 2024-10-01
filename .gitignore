@@ -3,9 +3,6 @@ src/core/CacheFiles
 package
 bundle
 package-lock.json
-.TODO
-._npmrc
-.npmrc
 publish.txt
 /reference/*
 !/reference/*.bat

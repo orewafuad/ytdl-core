@@ -23,8 +23,8 @@ switch (PUBLISH_TYPE) {
         break;
     }
     default: {
-        console.log('現在のバージョン：', version);
-        const ANSWER = await input({ message: '新しいバージョンを入力：' });
+        console.log('Current version:', version);
+        const ANSWER = await input({ message: 'Enter new version:' });
 
         version = ANSWER;
         break;
