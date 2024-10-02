@@ -152,7 +152,8 @@ ytdl.getBasicInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((info) => 
 
 These can be used to avoid age restrictions and bot errors. See below for instructions on how to use them.
 
-> [!IMPORTANT] > **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
+> [!IMPORTANT]
+> **Be sure to generate tokens with accounts that can be banned, as accounts may be banned.**
 > Note that OAuth2 may expire soon these days. In this case, do not use OAuth2.
 
 > [!NOTE]
