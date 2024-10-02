@@ -44,7 +44,7 @@
         },
         "./serverless.bundle": {
             "types": "./package/platforms/Serverless/Serverless.d.ts",
-            "default": "./bundle/serverless.js"
+            "default": "./bundle/serverless.cjs"
         },
         "./types": {
             "types": "./package/types/index.d.ts",
@@ -63,9 +63,9 @@
         "publish:npm-alpha": "node ./scripts/publish.mjs alpha && npm run build && npm publish --registry=https://registry.npmjs.org/ --tag alpha",
         "publish:npm-beta": "node ./scripts/publish.mjs beta && npm run build && npm publish --registry=https://registry.npmjs.org/ --tag beta",
         "create-bundles": "npm run create-node-bundle && npm run create-browser-bundle && npm run create-serverless-bundle",
-        "create-node-bundle": "rmdir /s /q bundle & mkdir bundle && esbuild ./package/platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --banner:js=\"/* eslint-disable */\"",
+        "create-node-bundle": "rmdir /s /q bundle & mkdir bundle && esbuild ./package/platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --banner:js=\"/* eslint-disable */\" --minify",
         "create-browser-bundle": "esbuild ./package/platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser --minify",
-        "create-serverless-bundle": "esbuild ./package/platforms/Serverless/Serverless.js --bundle --target=node16 --keep-names --platform=node --outfile=./bundle/serverless.js --banner:js=\"/* eslint-disable */\"",
+        "create-serverless-bundle": "esbuild ./package/platforms/Serverless/Serverless.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/serverless.cjs --banner:js=\"/* eslint-disable */\" --minify",
         "update": "ncu && ncu -u && npm i",
         "deleteNodeModules:examples": "node ./scripts/deleteExamplesNodeModules.js"
     },

@@ -61,10 +61,13 @@ To use `@ybd-project/ytdl-core` without problems, **use Node.js 16 or higher.** 
 
 ## Operating Environment
 
+> [!IMPORTANT]
+> `@ybd-project/ytdl-core` has not been tested in non-Node.js environments such as Deno. If you need ytdl-core optimized for these environments, please create an [issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=feature&projects=&template=feature_request.md&title=).
+
 ### Default (Node.js)
 
 As usual, when using Node.js, as noted in the prerequisites, v16 or higher will work fine.
-If you have an example that does not work with 16 or higher versions, please create an [Issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=).
+If you have an example that does not work with 16 or higher versions, please create an [issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=).
 
 > [!NOTE]
 > If the Node.js version is less than v16, an error will occur when creating an instance of YtdlCore. To disable it, set the option `disableVersionCheck` to `true`. **(Deprecated)**
@@ -79,14 +82,18 @@ However, when operating a website or other site, it is unknown which version and
 
 #### List
 
+**Live demo used for testing: [ytdlcore.static.jp](https://ytdlcore.static.jp/)**
+
 |    Browser Name     | Supported Versions  |
 | :-----------------: | :-----------------: |
-|  **Google Chrome**  | v76 - latest (v129) |
-| **Microsoft Edge**  | Under investigation |
-| **Mozilla FireFox** | Under investigation |
-|  **Apple Safari**   | Under investigation |
-|      **Brave**      | Under investigation |
-|      **Opera**      | Under investigation |
+|  **Google Chrome**  | v76 - latest        |
+| **Microsoft Edge**  | v80 - latest        |
+| **Mozilla FireFox** | v78 - latest        |
+|  **Apple Safari**   | v14 - latest        |
+|      **Brave**      | v1  - latest        |
+|      **Opera**      | v63 - latest        |
+
+(Tested with [BrowserStack](https://live.browserstack.com/))
 
 ### Serverless
 
