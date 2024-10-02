@@ -5,6 +5,8 @@ import { VERSION, REPO_URL, ISSUES_URL } from '@/utils/Constants';
 class CacheWithCacheStorage implements YtdlCore_Cache {
     isDisabled: boolean = false;
 
+    constructor(private ttl: number = 60) {}
+
     private async getCache(): Promise<Cache> {
         return await caches.open('ytdlCoreCache');
     }
@@ -14,42 +16,45 @@ class CacheWithCacheStorage implements YtdlCore_Cache {
             return null;
         }
 
-        const cache = await this.getCache();
-        const response = await cache.match(key);
+        const CACHE = await this.getCache(),
+            RESPONSE = await CACHE.match(key);
 
-        if (response) {
-            const contentType = response.headers.get('Content-Type');
+        if (RESPONSE) {
+            try {
+                const DATA = await RESPONSE.json();
 
-            if (contentType === 'application/json') {
-                return (await response.json()) as T;
-            } else {
-                return (await response.text()) as T;
-            }
+                if (Date.now() > DATA.expiration) {
+                    return null;
+                }
+
+                return DATA.contents as T;
+            } catch {}
         }
+
         return null;
     }
 
-    async set(key: string, value: any): Promise<boolean> {
+    async set(key: string, value: any, { ttl }: { ttl: number } = { ttl: this.ttl }): Promise<boolean> {
         if (this.isDisabled) {
             return true;
         }
 
-        const CACHE = await this.getCache();
-        let response: Response;
-
-        if (typeof value === 'object') {
-            response = new Response(JSON.stringify(value), {
+        const CACHE = await this.getCache(),
+            DATA = JSON.stringify({
+                contents: value,
+                expiration: Date.now() + ttl * 1000,
+            }),
+            RESPONSE: Response = new Response(DATA, {
                 headers: { 'Content-Type': 'application/json' },
             });
-        } else {
-            response = new Response(String(value), {
-                headers: { 'Content-Type': 'text/plain' },
-            });
+
+        try {
+            await CACHE.put(key, RESPONSE);
+
+            return true;
+        } catch {
+            return false;
         }
-
-        await CACHE.put(key, response);
-
-        return true;
     }
 
     async has(key: string): Promise<boolean> {
@@ -70,7 +75,11 @@ class CacheWithCacheStorage implements YtdlCore_Cache {
 
         const CACHE = await this.getCache();
 
-        return await CACHE.delete(key);
+        try {
+            return await CACHE.delete(key);
+        } catch {
+            return false;
+        }
     }
 
     disable(): void {

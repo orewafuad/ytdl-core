@@ -1,38 +1,36 @@
 # @ybd-project/ytdl-core - v6
 
 [![npm version](https://badge.fury.io/js/@ybd-project%2Fytdl-core.svg)](https://badge.fury.io/js/@ybd-project%2Fytdl-core)
+[![jsDelivr](https://data.jsdelivr.com/v1/package/npm/@ybd-project/ytdl-core/badge)](https://www.jsdelivr.com/package/npm/@ybd-project/ytdl-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube downloader that is fast, stable, and takes into account various use cases, with reference to LuanRT/YouTube.js and yt-dlp.
+YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube downloader that is fast, stable, and takes into account various use cases, with reference to [LuanRT/YouTube.js](https://github.com/LuanRT/YouTube.js) and [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ## Table of Contents
 
 <ol>
-   <li><a href="#ℹ️announcements-at-this-timeℹ️">ℹ️Announcements at this timeℹ️</a></li>
-   <li><a href="#prerequisite">Prerequisite</a></li>
-   <li>
-      <a href="#operating-environment">Operating Environment</a>
-      <ul>
-         <li><a href="#default-node.js">Default (Node.js)</a></li>
-         <li><a href="#proxy-support">Browser</a></li>
-         <li><a href="#serverless">Serverless</a></li>
-      </ul>
-   </li>
-   <li><a href="#installation">Installation</a></li>
-   <li><a href="#api-documentation">API Documentation</a></li>
-   <li>
-      <a href="#usage">Usage</a>
-      <ul>
-         <li><a href="#oauth2-support">OAuth2 Support</a></li>
-         <li><a href="#potoken-support">PoToken Support</a></li>
-         <li><a href="#proxy-support">Proxy Support</a></li>
-         <li><a href="#ip-rotation">IP Rotation</a></li>
-      </ul>
-   </li>
-   <li><a href="#limitations">Limitations</a></li>
-   <li><a href="#rate-limiting">Rate Limiting</a></li>
-   <li><a href="#update-checks">Update Checks</a></li>
-   <li><a href="#license">License</a></li>
+    <li><a href="#ℹ️announcements-at-this-timeℹ️">ℹ️Announcements at this timeℹ️</a></li>
+    <li><a href="#prerequisite">Prerequisite</a></li>
+    <li>
+        <a href="#operating-environment">Operating Environment</a>
+        <ul>
+            <li><a href="#default-nodejs">Default (Node.js)</a></li>
+            <li><a href="#proxy-support">Browser</a></li>
+            <li><a href="#serverless">Serverless</a></li>
+        </ul>
+    </li>
+    <li><a href="#installation">Installation</a></li>
+    <li><a href="#api-documentation">API Documentation</a></li>
+    <li><a href="#basic-usage">Basic Usage</a></li>
+    <li><a href="#examples">Examples</a></li>
+    <li>
+        <a href="#precautions">Precautions</a>
+        <ul>
+            <li><a href="#limitations">Limitations</a></li>
+            <li><a href="#rate-limiting">Rate Limiting</a></li>
+        </ul>
+    </li>
+    <li><a href="#license">License</a></li>
 </ol>
 
 ## ℹ️Announcements at this timeℹ️
@@ -114,11 +112,9 @@ Make sure you're installing the latest version of `@ybd-project/ytdl-core` to ke
 
 For details API documentation, see the [Wiki](https://github.com/ybd-project/ytdl-core/wiki).
 
-## Examples
+## Basic Usage
 
-See the Examples folder for [examples](https://github.com/ybd-project/ytdl-core/tree/main/examples) of using `@ybd-project/ytdl-core`.
-
-## Usage
+Only a simple example is given in the README. For a list of options and other advanced usage, please refer to the [API Documentation](#api-documentation).
 
 ```ts
 import fs from 'fs';
@@ -133,16 +129,13 @@ const ytdl = new YtdlCore({
 });
 
 // Download a video
-ytdl.download('https://www.youtube.com/watch?v=dQw4w9WgXcQ').pipe(fs.createWriteStream('video.mp4'));
+ytdl.download('https://www.youtube.com/watch?v=dQw4w9WgXcQ', {
+    streamType: 'nodejs', // Note: If you do not set the `streamType` to `nodejs`, a pipable stream will not be returned.
+}).then((stream) => stream.pipe(fs.createWriteStream('video.mp4')));
 
 // Get video info
 ytdl.getBasicInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((info) => {
     console.log(info.videoDetails.title);
-});
-
-// Get video info with download formats
-ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((info) => {
-    console.log(info.formats);
 });
 ```
 
@@ -323,14 +316,15 @@ const ytdl = new YtdlCore({
 ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 ```
 
-### IP Rotation
+## Examples
 
-The `getRandomIPv6` function has been removed in v5.1.0. Currently, there is no stable implementation method for IPv6, as the detailed use case for IPv6-related rotation is unknown.
-If you wish to use rotation, [please create a new issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=feature&projects=&template=feature_request.md&title=).
+See the Examples folder for [examples](https://github.com/ybd-project/ytdl-core/tree/main/examples) of using `@ybd-project/ytdl-core`.
 
-## Limitations
+## Precautions
 
-ytdl-core is unable to retrieve or download information from the following videos.
+### Limitations
+
+`@ybd-project/ytdl-core` is unable to retrieve or download information from the following videos.
 
 -   Regionally restricted (requires a [proxy](#proxy-support))
 -   Private (if you have access, requires [OAuth2](#oauth2-support))
@@ -340,7 +334,7 @@ ytdl-core is unable to retrieve or download information from the following video
 
 The URL to view the retrieved video is valid for 6 hours. (In some cases, downloading may only be possible from the same IP.)
 
-## Rate Limiting
+### Rate Limiting
 
 When doing too many requests YouTube might block. This will result in your requests getting denied with HTTP-StatusCode 429. The following steps might help you:
 
@@ -350,16 +344,6 @@ When doing too many requests YouTube might block. This will result in your reque
 -   Extend the Proxy Idea by rotating (IPv6-)Addresses
     -   read [this](https://github.com/fent/node-ytdl-core#how-does-using-an-ipv6-block-help) for more information about this
 -   Wait it out (it usually goes away within a few days)
-
-## Update Checks
-
-The issue of using an outdated version of ytdl-core became so prevalent, that ytdl-core now checks for updates at run time, and every 12 hours. If it finds an update, it will print a warning to the console advising you to update. Due to the nature of this library, it is important to always use the latest version as YouTube continues to update.
-
-If you'd like to disable this update check, you can do so by providing the `YTDL_NO_UPDATE` env variable.
-
-```
-env YTDL_NO_UPDATE=1 node myapp.js
-```
 
 ## License
 
