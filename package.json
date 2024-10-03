@@ -3,9 +3,6 @@
     "version": "6.0.0-beta.13",
     "description": "YBD Project fork of ytdl-core.",
     "author": "YBD Project",
-    "publishConfig": {
-        "provenance": true
-    },
     "repository": {
         "type": "git",
         "url": "git://github.com/ybd-project/ytdl-core.git"
@@ -25,6 +22,14 @@
             "browser": "./package/platforms/Browser/Browser.js",
             "default": "./package/platforms/Default/Default.js"
         },
+        "./default": {
+            "types": "./package/platforms/Default/Default.d.ts",
+            "default": "./package/platforms/Default/Default.js"
+        },
+        "./default.bundle": {
+            "types": "./package/platforms/Default/Default.d.ts",
+            "default": "./bundle/node.cjs"
+        },
         "./browser": {
             "types": "./package/platforms/Browser/Browser.d.ts",
             "default": "./package/platforms/Browser/Browser.js"
@@ -37,6 +42,10 @@
             "types": "./package/platforms/Serverless/Serverless.d.ts",
             "default": "./package/platforms/Serverless/Serverless.js"
         },
+        "./serverless.bundle": {
+            "types": "./package/platforms/Serverless/Serverless.d.ts",
+            "default": "./bundle/serverless.cjs"
+        },
         "./types": {
             "types": "./package/types/index.d.ts",
             "default": "./package/types/index.d.ts"
@@ -47,15 +56,16 @@
         "bundle"
     ],
     "scripts": {
-        "test": "npx jest ./test/main.test.ts",
-        "build": "node ./scripts/getPlayerId.js && rmdir /s /q package & tsc && tsc-alias && npm run clear-cache-files && npm run create-bundles",
+        "test": "npx jest ./test/main.test.ts --detectOpenHandles",
+        "clear-cache-files": "cd package/core && rmdir /s /q CacheFiles 2>nul & cd ../..",
+        "build": "node ./scripts/getPlayerData.mjs && rmdir /s /q package & tsc && tsc-alias && npm run clear-cache-files && npm run create-bundles",
         "publish:npm": "node ./scripts/publish.mjs latest && npm run build && npm publish --registry=https://registry.npmjs.org/",
         "publish:npm-alpha": "node ./scripts/publish.mjs alpha && npm run build && npm publish --registry=https://registry.npmjs.org/ --tag alpha",
         "publish:npm-beta": "node ./scripts/publish.mjs beta && npm run build && npm publish --registry=https://registry.npmjs.org/ --tag beta",
-        "create-bundles": "npm run create-node-bundle && npm run create-browser-bundle",
-        "create-node-bundle": "rmdir /s /q bundle & mkdir bundle && esbuild ./package/platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --banner:js=\"/* eslint-disable */\"",
+        "create-bundles": "npm run create-node-bundle && npm run create-browser-bundle && npm run create-serverless-bundle",
+        "create-node-bundle": "rmdir /s /q bundle & mkdir bundle && esbuild ./package/platforms/Default/Default.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/node.cjs --banner:js=\"/* eslint-disable */\" --minify",
         "create-browser-bundle": "esbuild ./package/platforms/Browser/Browser.js --banner:js=\"/* eslint-disable */\" --bundle --target=chrome70 --keep-names --format=esm --define:global=globalThis --conditions=module --outfile=./bundle/browser.js --platform=browser --minify",
-        "clear-cache-files": "cd package/core && rmdir /s /q CacheFiles 2>nul & cd ../..",
+        "create-serverless-bundle": "esbuild ./package/platforms/Serverless/Serverless.js --bundle --target=node16 --keep-names --format=cjs --platform=node --outfile=./bundle/serverless.cjs --banner:js=\"/* eslint-disable */\" --minify",
         "update": "ncu && ncu -u && npm i",
         "deleteNodeModules:examples": "node ./scripts/deleteExamplesNodeModules.js"
     },

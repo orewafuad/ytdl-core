@@ -192,7 +192,7 @@ function checkForUpdates() {
         lastUpdateCheck = Date.now();
 
         const GITHUB_URL = 'https://api.github.com/repos/ybd-project/ytdl-core/contents/package.json';
-        return Fetcher.request<GitHubPkgResponse>(GITHUB_URL, {
+        Fetcher.request<GitHubPkgResponse>(GITHUB_URL, {
             requestOptions: { headers: { 'User-Agent': 'Chromium";v="112", "Microsoft Edge";v="112", "Not:A-Brand";v="99' } },
         }).then(
             (response) => {
@@ -213,8 +213,6 @@ function checkForUpdates() {
             },
         );
     }
-
-    return null;
 }
 
 export { between, tryParseBetween, parseAbbreviatedNumber, cutAfterJS, lastUpdateCheck, checkForUpdates, getPropInsensitive, setPropInsensitive, generateClientPlaybackNonce };

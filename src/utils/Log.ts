@@ -71,7 +71,7 @@ export class Logger {
     }
 
     public static debug(...messages: Array<any>) {
-        if (VERSION.includes('dev') || VERSION.includes('beta') || VERSION.includes('test') || this.logDisplay.includes('debug')) {
+        if (this.logDisplay.includes('debug')) {
             console.log(this.convertMessage('<debug>[  DEBUG  ]:</debug>'), ...this.convertMessages(messages));
         }
     }

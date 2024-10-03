@@ -2,7 +2,7 @@ import { Readable } from 'readable-stream';
 
 import type { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail } from './YouTube';
 import type { YTDL_ClientTypes } from './Clients';
-import type { YTDL_GetInfoOptions } from './Options';
+import type { YTDL_DownloadOptions, YTDL_GetInfoOptions } from './Options';
 
 export type YTDL_Author = {
     id: string;
@@ -149,6 +149,12 @@ export type YTDL_VideoInfo = {
     _nextApiResponses?: {
         web: YT_NextApiResponse | null;
     };
+};
+
+export type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
+    fetcher?: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
+    logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> | [];
+    noUpdate?: boolean;
 };
 
 export class YTDL_DefaultStreamType extends ReadableStream<any> {}

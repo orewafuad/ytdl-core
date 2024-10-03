@@ -8,7 +8,6 @@ import { Signature } from '@/core/Signature';
 import { Fetcher } from '@/core/Fetcher';
 
 import { Url } from '@/utils/Url';
-import { Logger } from '@/utils/Log';
 import { CURRENT_PLAYER_ID } from '@/utils/Constants';
 
 const SHIM = Platform.getShim(),
@@ -40,23 +39,19 @@ async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5Player
         };
     }
 
-    let playerId = undefined;
+    let playerId = undefined,
+        signatureTimestamp = undefined;
 
     try {
         const IFRAME_API_BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), options);
         playerId = getPlayerId(IFRAME_API_BODY);
     } catch {}
 
-    if (!playerId && options.originalProxy && SHIM.runtime !== 'browser') {
-        Logger.debug('Could not get html5Player using your own proxy. It is retrieved again with its own proxy disabled. (Other requests will not invalidate it.)');
-
+    if (!playerId) {
         try {
-            const BODY = await Fetcher.request<string>(Url.getIframeApiUrl(), {
-                ...options,
-                rewriteRequest: undefined,
-                originalProxy: undefined,
-            });
-            playerId = getPlayerId(BODY);
+            const GITHUB_PLAYER_JSON = await Fetcher.request<{ playerId: string; signatureTimestamp: string }>('https://api.github.com/repos/ybd-project/ytdl-core/dev/contents/data/player.json?ref=dev');
+            playerId = GITHUB_PLAYER_JSON.playerId;
+            signatureTimestamp = GITHUB_PLAYER_JSON.signatureTimestamp;
         } catch {}
     }
 
@@ -64,14 +59,13 @@ async function getHtml5Player(options: YTDL_GetInfoOptions): Promise<Html5Player
         playerId = CURRENT_PLAYER_ID;
     }
 
-    const PLAYER_URL = playerId ? Url.getPlayerJsUrl(playerId) : null;
-
-    const HTML5_PLAYER_BODY = PLAYER_URL ? await Fetcher.request<string>(PLAYER_URL, options) : '',
+    const PLAYER_URL = playerId ? Url.getPlayerJsUrl(playerId) : null,
+        HTML5_PLAYER_BODY = PLAYER_URL && !signatureTimestamp ? await Fetcher.request<string>(PLAYER_URL, options) : '',
         DATA = {
             url: PLAYER_URL,
             body: HTML5_PLAYER_BODY || null,
             id: playerId,
-            signatureTimestamp: PLAYER_URL ? Signature.getSignatureTimestamp(HTML5_PLAYER_BODY) || '' : '',
+            signatureTimestamp: signatureTimestamp || (PLAYER_URL ? Signature.getSignatureTimestamp(HTML5_PLAYER_BODY) || '' : ''),
         };
 
     FileCache.set('html5Player', JSON.stringify(DATA));
