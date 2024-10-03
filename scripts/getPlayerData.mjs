@@ -22,7 +22,7 @@ function adaptToConstants(id) {
 }
 
 function adaptToPlayerJson(id) {
-    const PLAYER_JSON = JSON.parse(fs.readFileSync(process.cwd() + '/data/player.json', 'utf8'));
+    const PLAYER_JSON = JSON.parse(fs.readFileSync(process.cwd() + '/data/player/data.json', 'utf8'));
 
     fetch(`https://www.youtube.com/s/player/${id}/player_ias.vflset/en_US/base.js`)
         .then((res) => res.text())
@@ -31,7 +31,8 @@ function adaptToPlayerJson(id) {
             PLAYER_JSON.signatureTimestamp = SIGNATURE_TIMESTAMP;
             PLAYER_JSON.playerId = id;
 
-            fs.writeFileSync(process.cwd() + '/data/player.json', JSON.stringify(PLAYER_JSON));
+            fs.writeFileSync(process.cwd() + '/data/player/data.json', JSON.stringify(PLAYER_JSON));
+            fs.writeFileSync(process.cwd() + '/data/player/base.js', script);
             console.log('Player JSON has been successfully adapted.');
         })
         .catch((err) => {

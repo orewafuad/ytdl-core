@@ -44,6 +44,7 @@ const N_TRANSFORM_REGEXP = 'function\\(\\s*(\\w+)\\s*\\)\\s*\\{' + 'var\\s*(\\w+
 
 const SIGNATURE_TIMESTAMP_REGEX = /signatureTimestamp:(\d+)/g,
     SHIM = Platform.getShim(),
+    FILE_CACHE = SHIM.fileCache,
     Jinter = require('jintr').default;
 
 let decipherWarning = false,
@@ -255,9 +256,15 @@ class Signature {
         return DECIPHERED_FORMATS;
     }
 
-    public getDecipherFunctions(playerId: string, body: string) {
-        if (this.decipherFunction) {
-            return this.decipherFunction;
+    public async getDecipherFunctions(playerId: string, body: string) {
+        const CACHED_DECIPHER_FUNCTION = this.decipherFunction || (await FILE_CACHE.get('decipherFunction'));
+
+        if (CACHED_DECIPHER_FUNCTION) {
+            if (!this.decipherFunction) {
+                this.decipherFunction = CACHED_DECIPHER_FUNCTION;
+            }
+
+            return CACHED_DECIPHER_FUNCTION;
         }
 
         const DECIPHER_FUNCTION = getExtractFunctions([extractDecipherWithName, extractDecipherFunc], body);
@@ -267,12 +274,23 @@ class Signature {
             decipherWarning = true;
         }
 
+        FILE_CACHE.set('decipherFunction', DECIPHER_FUNCTION || '', { ttl: 60 * 60 * 24 });
         this.decipherFunction = DECIPHER_FUNCTION;
 
         return DECIPHER_FUNCTION;
     }
 
-    public getNTransform(playerId: string, body: string) {
+    public async getNTransform(playerId: string, body: string) {
+        const CACHED_N_TRANSFORM_FUNCTION = this.nTransformFunction || (await FILE_CACHE.get('nTransformFunction'));
+
+        if (CACHED_N_TRANSFORM_FUNCTION) {
+            if (!this.nTransformFunction) {
+                this.nTransformFunction = CACHED_N_TRANSFORM_FUNCTION;
+            }
+
+            return CACHED_N_TRANSFORM_FUNCTION;
+        }
+
         if (this.nTransformFunction) {
             return this.nTransformFunction;
         }
@@ -284,6 +302,7 @@ class Signature {
             nTransformWarning = true;
         }
 
+        FILE_CACHE.set('nTransformFunction', N_TRANSFORM_FUNCTION || '', { ttl: 60 * 60 * 24 });
         this.nTransformFunction = N_TRANSFORM_FUNCTION;
 
         return N_TRANSFORM_FUNCTION;
