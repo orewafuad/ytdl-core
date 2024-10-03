@@ -1,6 +1,6 @@
 # Changelog
 
-## v6.0.0 (2024/09/20) *Not released, planned.
+## v6.0.0 (2024/MM/DD) *Not released, planned.
 
 ### Features
 * **YtdlCore:** Support for use in browsers. (To use, import `@ybd-project/ytdl-core/browser`)
@@ -42,7 +42,9 @@ ytdl.download<YTDL_DefaultStreamType>('https://www.youtube.com/watch?v=ID', { fi
 * **Fetcher:** Add `fetcher` option to control requests. (Allows proxy adaptation, etc. (returns a Response object))
 * **Agent:** Proxy adaptation to requests by YtdlCore has been discontinued due to specification issues.
 * **PoToken:** Stop using `youtube-po-token-generator` to generate PoToken, and use [`LuanRT/BgUtils`](https://github.com/LuanRT/BgUtils) instead, because it cannot generate PoToken correctly. (Experimental, not available in the browser and serverless versions)
-* **Player:** Changed to use the default ID if the latest player ID could not be obtained (specify the latest ID at the time of build).
+* **Player:** To improve the stability of obtaining player IDs, the following two things were implemented.
+    1. If it could not be retrieved, ytdl-core retrieve the latest player ID from GitHub ([api.github.com/repos/ybd-project/ytdl-core/contents/data/player.json](https://api.github.com/repos/ybd-project/ytdl-core/dev/contents/data/player.json?ref=dev)) to get the latest player ID. **(This JSON is updated every 2 days.)**
+    2. If the player ID could not be obtained from GitHub, the latest player ID at that time obtained at build time is used.
 * **VideoDetails:** Added `playabilityStatus` to video details. The value `OK` takes precedence.
 * **Cache:** Added `disableBasicCache` option to disable basic cache.
 * **Version:** Added `disableVersionCheck` option to disable version check (In `@ybd-project/ytdl-core`, the Node.js version and browser version are checked).
