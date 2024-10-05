@@ -153,7 +153,7 @@ export type YTDL_VideoInfo = {
 
 export type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
     fetcher?: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
-    logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> | [];
+    logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> | 'none';
     noUpdate?: boolean;
 };
 

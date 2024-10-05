@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { Readable } from 'stream';
 
 import type { AvailableCacheFileNames, FileCacheOptions } from '@/platforms/types/FileCache';
 

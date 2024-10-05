@@ -1,7 +1,7 @@
 # @ybd-project/ytdl-core - v6
 
 [![npm version](https://badge.fury.io/js/@ybd-project%2Fytdl-core.svg)](https://badge.fury.io/js/@ybd-project%2Fytdl-core)
-[![jsDelivr](https://data.jsdelivr.com/v1/package/npm/@ybd-project/ytdl-core/badge)](https://www.jsdelivr.com/package/npm/@ybd-project/ytdl-core)
+[![jsDelivr](https://data.jsdelivr.com/v1/package/npm/@ybd-project/ytdl-core/badge?style=rounded)](https://www.jsdelivr.com/package/npm/@ybd-project/ytdl-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube downloader that is fast, stable, and takes into account various use cases, with reference to [LuanRT/YouTube.js](https://github.com/LuanRT/YouTube.js) and [yt-dlp](https://github.com/yt-dlp/yt-dlp).
