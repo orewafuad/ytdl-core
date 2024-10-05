@@ -129,7 +129,7 @@ export type YTDL_VideoInfo = {
     _metadata: {
         isMinimumMode: boolean;
         clients: Array<YTDL_ClientTypes>;
-        html5Player: string;
+        html5PlayerUrl: string;
         id: string;
         options: YTDL_GetInfoOptions;
     };

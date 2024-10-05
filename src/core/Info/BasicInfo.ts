@@ -61,7 +61,7 @@ const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', '
         _metadata: {
             isMinimumMode: false,
             clients: [],
-            html5Player: '',
+            html5PlayerUrl: '',
             id: '',
             options: {},
         },
@@ -141,7 +141,7 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
         PLAYER_RESPONSE_LIST = Object.values(PLAYER_RESPONSES) || [];
 
     VIDEO_INFO._metadata.isMinimumMode = isMinimalMode;
-    VIDEO_INFO._metadata.html5Player = HTML5_PLAYER_URL;
+    VIDEO_INFO._metadata.html5PlayerUrl = HTML5_PLAYER_URL;
     VIDEO_INFO._metadata.clients = options.clients;
     VIDEO_INFO._metadata.options = options;
     VIDEO_INFO._metadata.id = id;

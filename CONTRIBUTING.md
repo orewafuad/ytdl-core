@@ -1,6 +1,6 @@
 # Contributing
 
-If you wish to contribute to @ybd-project/ytdl-core, feel free to fork the repository and submit a pull request.
+If you wish to contribute to `@ybd-project/ytdl-core`, feel free to fork the repository and submit a pull request.
 
 ## Setup
 
