@@ -6,6 +6,9 @@
 
 YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube downloader that is fast, stable, and takes into account various use cases, with reference to [LuanRT/YouTube.js](https://github.com/LuanRT/YouTube.js) and [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
+> [!NOTE]
+> If you are looking for v5 documentation for `@ybd-project/ytdl-core`, please click [here](https://github.com/ybd-project/ytdl-core/blob/latest/v5/README.md).
+
 ## Table of Contents
 
 <ol>
