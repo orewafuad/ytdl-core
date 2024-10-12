@@ -1,14 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { Readable } from 'stream';
 
 import type { AvailableCacheFileNames, FileCacheOptions } from '@/platforms/types/FileCache';
 
 import { Platform } from '@/platforms/Platform';
 import { CacheWithMap, YtdlCore_Cache } from '@/platforms/utils/Classes';
 
-import { VERSION, REPO_URL, ISSUES_URL } from '@/utils/Constants';
+import { VERSION, ISSUES_URL, USER_NAME, REPO_NAME } from '@/utils/Constants';
 import { Logger } from '@/utils/Log';
 
 class FileCache implements YtdlCore_Cache {
@@ -162,7 +161,10 @@ Platform.load({
     },
     info: {
         version: VERSION,
-        repoUrl: REPO_URL,
+        repo: {
+            user: USER_NAME,
+            name: REPO_NAME,
+        },
         issuesUrl: ISSUES_URL,
     },
 });

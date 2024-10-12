@@ -22,7 +22,7 @@ function adaptToConstants(id) {
 }
 
 function adaptToPlayerJson(id) {
-    const PLAYER_JSON = JSON.parse(fs.readFileSync(process.cwd() + '/data/player.json', 'utf8'));
+    const PLAYER_JSON = JSON.parse(fs.readFileSync(process.cwd() + '/data/player/data.json', 'utf8'));
 
     fetch(`https://www.youtube.com/s/player/${id}/player_ias.vflset/en_US/base.js`)
         .then((res) => res.text())
@@ -31,7 +31,8 @@ function adaptToPlayerJson(id) {
             PLAYER_JSON.signatureTimestamp = SIGNATURE_TIMESTAMP;
             PLAYER_JSON.playerId = id;
 
-            fs.writeFileSync(process.cwd() + '/data/player.json', JSON.stringify(PLAYER_JSON));
+            fs.writeFileSync(process.cwd() + '/data/player/data.json', JSON.stringify(PLAYER_JSON));
+            fs.writeFileSync(process.cwd() + '/data/player/base.js', script);
             console.log('Player JSON has been successfully adapted.');
         })
         .catch((err) => {
@@ -39,7 +40,16 @@ function adaptToPlayerJson(id) {
         });
 }
 
-fetch('https://www.youtube.com/iframe_api')
+fetch('https://www.youtube.com/iframe_api', {
+    cache: 'no-store',
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'x-browser-channel': 'stable',
+        'x-browser-copyright': 'Copyright 2024 Google LLC. All rights reserved.',
+        'x-browser-validation': 'g+9zsjnuPhmKvFM5e6eaEzcB1JY=',
+        'x-browser-year': '2024',
+    },
+})
     .then((res) => res.text())
     .then((data) => {
         const PLAYER_ID = getPlayerId(data);

@@ -24,8 +24,8 @@ async function _getFullInfo(id: string, options: InternalDownloadOptions): Promi
         HTML5_PLAYER = await HTML5_PLAYER_PROMISE;
 
     if (HTML5_PLAYER.id && HTML5_PLAYER.body) {
-        SIGNATURE.getDecipherFunctions(HTML5_PLAYER.id, HTML5_PLAYER.body);
-        SIGNATURE.getNTransform(HTML5_PLAYER.id, HTML5_PLAYER.body);
+        await SIGNATURE.getDecipherFunctions(HTML5_PLAYER.id, HTML5_PLAYER.body);
+        await SIGNATURE.getNTransform(HTML5_PLAYER.id, HTML5_PLAYER.body);
     }
 
     try {

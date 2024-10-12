@@ -1,10 +1,13 @@
 # @ybd-project/ytdl-core - v6
 
 [![npm version](https://badge.fury.io/js/@ybd-project%2Fytdl-core.svg)](https://badge.fury.io/js/@ybd-project%2Fytdl-core)
-[![jsDelivr](https://data.jsdelivr.com/v1/package/npm/@ybd-project/ytdl-core/badge)](https://www.jsdelivr.com/package/npm/@ybd-project/ytdl-core)
+[![jsDelivr](https://data.jsdelivr.com/v1/package/npm/@ybd-project/ytdl-core/badge?style=rounded)](https://www.jsdelivr.com/package/npm/@ybd-project/ytdl-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube downloader that is fast, stable, and takes into account various use cases, with reference to [LuanRT/YouTube.js](https://github.com/LuanRT/YouTube.js) and [yt-dlp](https://github.com/yt-dlp/yt-dlp).
+
+> [!NOTE]
+> If you are looking for v5 documentation for `@ybd-project/ytdl-core`, please click [here](https://github.com/ybd-project-ver1/ytdl-core/blob/latest/v5/README.md).
 
 ## Table of Contents
 
@@ -35,7 +38,10 @@ YBD Project fork of `ytdl-core`. This fork is dedicated to developing a YouTube 
 
 ## ℹ️Announcements at this timeℹ️
 
-There are no announcements at this time.
+> [!CAUTION]
+> Currently, the account that manages this ytdl-core repository has been flagged as spam, so we are accepting issues, etc. at [ybd-project-ver1/ytdl-core](https://github.com/ybd-project-ver1/ytdl-core) instead. Thank you for your cooperation.
+
+<!-- There are no announcements at this time. -->
 
 <!-- > [!NOTE]
 > As of v5.0.5, related videos cannot be retrieved. This will be fixed later.
@@ -62,12 +68,12 @@ To use `@ybd-project/ytdl-core` without problems, **use Node.js 16 or higher.** 
 ## Operating Environment
 
 > [!IMPORTANT]
-> `@ybd-project/ytdl-core` has not been tested in non-Node.js environments such as Deno. If you need ytdl-core optimized for these environments, please create an [issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=feature&projects=&template=feature_request.md&title=).
+> `@ybd-project/ytdl-core` has not been tested in non-Node.js environments such as Deno. If you need ytdl-core optimized for these environments, please create an [issue](https://github.com/ybd-project-ver1/ytdl-core/issues/new?assignees=&labels=feature&projects=&template=feature_request.md&title=).
 
 ### Default (Node.js)
 
 As usual, when using Node.js, as noted in the prerequisites, v16 or higher will work fine.
-If you have an example that does not work with 16 or higher versions, please create an [issue](https://github.com/ybd-project/ytdl-core/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=).
+If you have an example that does not work with 16 or higher versions, please create an [issue](https://github.com/ybd-project-ver1/ytdl-core/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=).
 
 > [!NOTE]
 > If the Node.js version is less than v16, an error will occur when creating an instance of YtdlCore. To disable it, set the option `disableVersionCheck` to `true`. **(Deprecated)**
@@ -84,14 +90,14 @@ However, when operating a website or other site, it is unknown which version and
 
 **Live demo used for testing: [ytdlcore.static.jp](https://ytdlcore.static.jp/)**
 
-|    Browser Name     | Supported Versions  |
-| :-----------------: | :-----------------: |
-|  **Google Chrome**  | v76 - latest        |
-| **Microsoft Edge**  | v80 - latest        |
-| **Mozilla FireFox** | v78 - latest        |
-|  **Apple Safari**   | v14 - latest        |
-|      **Brave**      | v1  - latest        |
-|      **Opera**      | v63 - latest        |
+|    Browser Name     | Supported Versions |
+| :-----------------: | :----------------: |
+|  **Google Chrome**  |    v76 - latest    |
+| **Microsoft Edge**  |    v80 - latest    |
+| **Mozilla FireFox** |    v78 - latest    |
+|  **Apple Safari**   |    v14 - latest    |
+|      **Brave**      |    v1 - latest     |
+|      **Opera**      |    v63 - latest    |
 
 (Tested with [BrowserStack](https://live.browserstack.com/))
 
@@ -117,7 +123,7 @@ Make sure you're installing the latest version of `@ybd-project/ytdl-core` to ke
 
 ## API Documentation
 
-For details API documentation, see the [Wiki](https://github.com/ybd-project/ytdl-core/wiki).
+For details API documentation, see the [Wiki](https://github.com/ybd-project-ver1/ytdl-core/wiki).
 
 ## Basic Usage
 
@@ -287,7 +293,7 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
 Using a proxy sold by one service may not work. In such cases, you can deploy your own proxy, e.g., to Cloudflare Workers.
 
-See the [example](https://github.com/ybd-project/ytdl-core/tree/main/examples/OriginalProxy/) for a proxy server implementation.
+See the [example](https://github.com/ybd-project-ver1/ytdl-core/tree/main/examples/OriginalProxy/) for a proxy server implementation.
 
 ##### Use of proprietary proxies
 
@@ -326,7 +332,7 @@ ytdl.getFullInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
 ## Examples
 
-See the Examples folder for [examples](https://github.com/ybd-project/ytdl-core/tree/main/examples) of using `@ybd-project/ytdl-core`.
+See the Examples folder for [examples](https://github.com/ybd-project-ver1/ytdl-core/tree/main/examples) of using `@ybd-project/ytdl-core`.
 
 ## Precautions
 

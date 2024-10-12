@@ -1,5 +1,7 @@
 import { YTDL_DownloadOptions } from '@/types';
 
+import { PlatformError } from '@/core/errors';
+
 import { Logger } from '@/utils/Log';
 
 import { YtdlCore_Cache } from './utils/Classes';
@@ -24,7 +26,10 @@ interface YtdlCore_Shim {
     };
     info: {
         version: string;
-        repoUrl: string;
+        repo: {
+            user: string;
+            name: string;
+        };
         issuesUrl: string;
     };
 }
@@ -41,7 +46,7 @@ export class Platform {
 
     static getShim() {
         if (!this.#shim) {
-            throw new Error('Platform is not loaded');
+            throw new PlatformError('Platform is not loaded');
         }
 
         return this.#shim;

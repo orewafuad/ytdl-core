@@ -1,4 +1,5 @@
 import { Readable } from 'readable-stream';
+import { ReadableStream } from 'web-streams-polyfill';
 
 import type { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail } from './YouTube';
 import type { YTDL_ClientTypes } from './Clients';
@@ -129,7 +130,7 @@ export type YTDL_VideoInfo = {
     _metadata: {
         isMinimumMode: boolean;
         clients: Array<YTDL_ClientTypes>;
-        html5Player: string;
+        html5PlayerUrl: string;
         id: string;
         options: YTDL_GetInfoOptions;
     };
@@ -153,7 +154,7 @@ export type YTDL_VideoInfo = {
 
 export type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
     fetcher?: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
-    logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> | [];
+    logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> | 'none';
     noUpdate?: boolean;
 };
 
