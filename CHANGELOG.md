@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.0.4 (2024/10/16)
+
+### Bug Fixes
+* **Jinter:** Stop log output of internally used Jinter
+
 ## v6.0.3 (2024/10/14)
 
 ### Bug Fixes
