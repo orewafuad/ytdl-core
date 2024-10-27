@@ -75,16 +75,10 @@ To use `@ybd-project/ytdl-core` without problems, **use Node.js 16 or higher.** 
 As usual, when using Node.js, as noted in the prerequisites, v16 or higher will work fine.
 If you have an example that does not work with 16 or higher versions, please create an [issue](https://github.com/ybd-project-ver1/ytdl-core/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=).
 
-> [!NOTE]
-> If the Node.js version is less than v16, an error will occur when creating an instance of YtdlCore. To disable it, set the option `disableVersionCheck` to `true`. **(Deprecated)**
-
 ### Browser
 
 When using a browser, the latest version is preferred due to the API used.
 However, when operating a website or other site, it is unknown which version and browser the client will use, so the following are the main browsers (Chrome, Edge, Firefox, Brave, Opera, Safari) that are currently confirmed to work.
-
-> [!NOTE]
-> In `@ybd-project/ytdl-core`, if a browser is determined to be not in line with the following versions, an error will be raised when instantiating the YtdlCore class, stating that the version is not supported. To disable it, set the option `disableVersionCheck` to `true`. **(Deprecated)**
 
 #### List
 
@@ -131,7 +125,7 @@ Only a simple example is given in the README. For a list of options and other ad
 
 ```ts
 import fs from 'fs';
-import { YtdlCore } from '@ybd-project/ytdl-core';
+import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
 // For browser: import { YtdlCore } from '@ybd-project/ytdl-core/browser';
 // For serverless functions: import { YtdlCore } from '@ybd-project/ytdl-core/serverless';
 
@@ -142,9 +136,7 @@ const ytdl = new YtdlCore({
 });
 
 // Download a video
-ytdl.download('https://www.youtube.com/watch?v=dQw4w9WgXcQ', {
-    streamType: 'nodejs', // Note: If you do not set the `streamType` to `nodejs`, a pipable stream will not be returned.
-}).then((stream) => stream.pipe(fs.createWriteStream('video.mp4')));
+ytdl.download('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((stream) => toPipeableStream(stream).pipe(fs.createWriteStream('video.mp4')));
 
 // Get video info
 ytdl.getBasicInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ').then((info) => {

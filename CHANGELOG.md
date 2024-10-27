@@ -1,5 +1,35 @@
 # Changelog
 
+## v6.0.5 (2024/10/27)
+
+### Features
+* **URL Decipherment:** Add static function `decipherFormat` to YtdlCore instances.
+* **OAuth2:** Add static function `createOAuth2Credentials` to YtdlCore instances.
+* **Request:** Add option `disableRetryRequest`.
+
+### Change
+* **Download URL:** Changed to output to debug log which URL is being requested when downloading
+* **Default Client:** Changed default client from `['web', 'webCreator', 'tvEmbedded', 'ios', 'android']` to `['web', 'mweb', 'tv', 'ios']`.
+* **Request:** Changed to request again without specifying OriginalProxy or OAuth2 if request fails in order to increase possibility of information retrieval.
+
+### Abolition
+* **Version Check:** The browser version check function has been discontinued.
+* **DASH Format:** Removed parsing function because DASH format is not included in any client
+* **Stream Type:** The `streamType` option is obsolete and can be converted by importing the `toPipeableStream` function instead. (Default or Serverless version only)
+```ts
+import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
+
+/* Or */
+
+import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core/serverless';
+```
+
+### Bug Fixes
+* **YtdlCore:** Various bugs fixed
+
+### Improvement
+* **YtdlCore:** Remove unnecessary packages and reduce package size.
+
 ## v6.0.4 (2024/10/16)
 
 ### Bug Fixes

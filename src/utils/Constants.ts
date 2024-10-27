@@ -1,6 +1,6 @@
 import pkg from '../../package.json';
 
-export const CURRENT_PLAYER_ID = '815edc2a';
+export const CURRENT_PLAYER_ID = 'fb725ac8';
 export const VERSION = pkg.version;
 export const USER_NAME = 'ybd-project-ver1';
 export const REPO_NAME = 'ytdl-core';
