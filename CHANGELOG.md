@@ -1,6 +1,6 @@
 # Changelog
 
-## v6.0.5 (2024/10/27)
+## v6.0.5 (2024/10/28)
 
 ### Features
 * **URL Decipherment:** Add static function `decipherFormat` to YtdlCore instances.
