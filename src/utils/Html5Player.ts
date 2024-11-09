@@ -1,4 +1,6 @@
-import fs from 'fs';
+import { Platform } from '@/platforms/Platform';
+import { Logger } from './Log';
+import { YTDL_DecipherFunction, YTDL_NTransformFunction } from '@/types/Html5Player';
 
 /* Private Constants */
 const DECIPHER_NAME_REGEXPS = ['\\bm=([a-zA-Z0-9$]{2,})\\(decodeURIComponent\\(h\\.s\\)\\)', '\\bc&&\\(c=([a-zA-Z0-9$]{2,})\\(decodeURIComponent\\(c\\)\\)', '(?:\\b|[^a-zA-Z0-9$])([a-zA-Z0-9$]{2,})\\s*=\\s*function\\(\\s*a\\s*\\)\\s*\\{\\s*a\\s*=\\s*a\\.split\\(\\s*""\\s*\\)', '([\\w$]+)\\s*=\\s*function\\((\\w+)\\)\\{\\s*\\2=\\s*\\2\\.split\\(""\\)\\s*;'];
@@ -38,8 +40,10 @@ const N_TRANSFORM_REGEXP = 'function\\(\\s*(\\w+)\\s*\\)\\s*\\{' + 'var\\s*(\\w+
 
 /* ----------- */
 
+const SHIM = Platform.getShim();
+
 /* Private Functions */
-function matchRegex(regex, str) {
+function matchRegex(regex: string, str: string) {
     const MATCH = str.match(new RegExp(regex, 's'));
     if (!MATCH) {
         throw new Error(`Could not match ${regex}`);
@@ -47,15 +51,15 @@ function matchRegex(regex, str) {
     return MATCH;
 }
 
-function matchFirst(regex, str) {
+function matchFirst(regex: string, str: string) {
     return matchRegex(regex, str)[0];
 }
 
-function matchGroup1(regex, str) {
+function matchGroup1(regex: string, str: string) {
     return matchRegex(regex, str)[1];
 }
 
-function getFunctionName(body, regexps) {
+function getFunctionName(body: string, regexps: Array<string>) {
     let fn;
     for (const REGEX of regexps) {
         try {
@@ -73,7 +77,7 @@ function getFunctionName(body, regexps) {
     return fn;
 }
 
-function getExtractFunctions(extractFunctions, body) {
+function getExtractFunctions(extractFunctions: Array<Function>, body: string): string | null {
     for (const extractFunction of extractFunctions) {
         try {
             const FUNC = extractFunction(body);
@@ -88,7 +92,7 @@ function getExtractFunctions(extractFunctions, body) {
 }
 
 /* Decipher */
-function extractDecipherFunc(body) {
+function extractDecipherFunc(body: string) {
     try {
         const HELPER_OBJECT = matchFirst(HELPER_REGEXP, body),
             DECIPHER_FUNCTION = matchFirst(DECIPHER_REGEXP, body),
@@ -100,7 +104,7 @@ function extractDecipherFunc(body) {
     }
 }
 
-function extractDecipherWithName(body) {
+function extractDecipherWithName(body: string): string | null {
     try {
         const DECIPHER_FUNCTION_NAME = getFunctionName(body, DECIPHER_NAME_REGEXPS),
             FUNC_PATTERN = `(${DECIPHER_FUNCTION_NAME.replace(/\$/g, '\\$')}function\\([a-zA-Z0-9_]+\\)\\{.+?\\})`,
@@ -117,7 +121,7 @@ function extractDecipherWithName(body) {
 }
 
 /* N-Transform */
-function extractNTransformFunc(body) {
+function extractNTransformFunc(body: string) {
     try {
         const N_FUNCTION = matchFirst(N_TRANSFORM_REGEXP, body),
             RESULTS_FUNCTION = `var ${N_TRANSFORM_FUNC_NAME}=${N_FUNCTION};`,
@@ -129,7 +133,7 @@ function extractNTransformFunc(body) {
     }
 }
 
-function extractNTransformWithName(body) {
+function extractNTransformWithName(body: string): string | null {
     try {
         const N_FUNCTION_NAME = getFunctionName(body, N_TRANSFORM_NAME_REGEXPS),
             FUNCTION_PATTERN = `(${N_FUNCTION_NAME.replace(/\$/g, '\\$')}=\\s*function([\\S\\s]*?\\}\\s*return (([\\w$]+?\\.join\\(""\\))|(Array\\.prototype\\.join\\.call\\([\\w$]+?,[\\n\\s]*(("")|(\\("",""\\)))\\)))\\s*\\}))`,
@@ -142,8 +146,12 @@ function extractNTransformWithName(body) {
     }
 }
 
-function getDecipherFunction(body) {
+function getDecipherFunction(playerId: string, body: string): YTDL_DecipherFunction {
     const DECIPHER_FUNCTION = getExtractFunctions([extractDecipherWithName, extractDecipherFunc], body);
+
+    if (!DECIPHER_FUNCTION) {
+        Logger.warning(`Could not parse decipher function.\nPlease report this issue with "${playerId}" in Issues at ${SHIM.info.issuesUrl}.\nStream URL will be missing.`);
+    }
 
     return {
         argumentName: DECIPHER_ARGUMENT,
@@ -151,8 +159,12 @@ function getDecipherFunction(body) {
     };
 }
 
-function getNTransformFunction(body) {
+function getNTransformFunction(playerId: string, body: string): YTDL_NTransformFunction {
     const N_TRANSFORM_FUNCTION = getExtractFunctions([extractNTransformFunc, extractNTransformWithName], body);
+
+    if (!N_TRANSFORM_FUNCTION) {
+        Logger.warning(`Could not parse n transform function.\nPlease report this issue with "${playerId}" in Issues at ${SHIM.info.issuesUrl}.`);
+    }
 
     return {
         argumentName: N_ARGUMENT,
@@ -161,88 +173,3 @@ function getNTransformFunction(body) {
 }
 
 export { getDecipherFunction, getNTransformFunction };
-
-function getPlayerId(body) {
-    const MATCH = body.match(/player\\\/([a-zA-Z0-9]+)\\\//);
-
-    if (MATCH) {
-        return MATCH[1];
-    }
-
-    return null;
-}
-
-function adaptToConstants(id) {
-    const DATA = fs.readFileSync(process.cwd() + '/src/utils/Constants.ts', 'utf8'),
-        SPLIT_LINES = DATA.split('\n'),
-        PLAYER_ID_LINE = SPLIT_LINES.findIndex((v) => v.startsWith('export const CURRENT_PLAYER_ID = '));
-
-    SPLIT_LINES[PLAYER_ID_LINE] = `export const CURRENT_PLAYER_ID = '${id}';`;
-    fs.writeFileSync(process.cwd() + '/src/utils/Constants.ts', SPLIT_LINES.join('\n'));
-
-    console.log('Player ID has been successfully adapted.');
-}
-
-function adaptToPlayerJson(id) {
-    const PLAYER_JSON = JSON.parse(fs.readFileSync(process.cwd() + '/data/player/data.json', 'utf8'));
-
-    fetch(`https://www.youtube.com/s/player/${id}/player_ias.vflset/en_US/base.js`)
-        .then((res) => res.text())
-        .then((script) => {
-            PLAYER_JSON.info = {
-                id,
-                body: script,
-            };
-
-            PLAYER_JSON.functions = {
-                decipher: getDecipherFunction(script),
-                nTransform: getNTransformFunction(script),
-            };
-
-            const SIGNATURE_TIMESTAMP = script.match(/signatureTimestamp:(\d+)/)[1];
-            PLAYER_JSON.signatureTimestamp = SIGNATURE_TIMESTAMP;
-
-            fs.writeFileSync(process.cwd() + '/data/player/data.json', JSON.stringify(PLAYER_JSON));
-            fs.writeFileSync(process.cwd() + '/data/player/base.js', script);
-            console.log('Player JSON has been successfully adapted.');
-        })
-        .catch((err) => {
-            console.error('Failed to retrieve information from base.js:', err);
-        });
-}
-
-fetch('https://www.youtube.com/iframe_api', {
-    cache: 'no-store',
-    headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-        'x-browser-channel': 'stable',
-        'x-browser-copyright': 'Copyright 2024 Google LLC. All rights reserved.',
-        'x-browser-validation': 'g+9zsjnuPhmKvFM5e6eaEzcB1JY=',
-        'x-browser-year': '2024',
-    },
-})
-    .then((res) => res.text())
-    .then((data) => {
-        const PLAYER_ID = getPlayerId(data);
-
-        if (PLAYER_ID) {
-            console.log('The latest player ID has been successfully retrieved:', PLAYER_ID, '\n');
-            console.log('Adapting player ID...');
-
-            try {
-                if (process.argv[2] !== '--only-player-json') {
-                    adaptToConstants(PLAYER_ID);
-                }
-
-                adaptToPlayerJson(PLAYER_ID);
-            } catch (err) {
-                console.error('Failed to set the latest player ID: please manually adapt ' + PLAYER_ID + ' to utils/Constants.ts and data/player.json.');
-                console.error('Error Details:', err);
-            }
-        } else {
-            console.error('Failed to retrieve the latest player ID.');
-        }
-    })
-    .catch((err) => {
-        console.error('Failed to retrieve information from iframe_api:', err);
-    });

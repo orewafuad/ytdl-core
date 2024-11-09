@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { YtdlCore } from '@ybd-project/ytdl-core/serverless';
+import { YtdlCore, YTDL_VideoInfo, YTDL_VideoFormat } from '@ybd-project/ytdl-core/serverless';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Headers', '*');
@@ -7,10 +7,17 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const ytdl = new YtdlCore({
             hl: 'en',
             gl: 'US',
-            logDisplay: ['debug', 'info', 'success', 'warning', 'error'],
+            disableDefaultClients: true,
             disablePoTokenAutoGeneration: true,
+            disableInitialSetup: true,
+            parsesHLSFormat: false,
+            noUpdate: true,
+            logDisplay: ['warning', 'error'],
+            clients: ['mweb', 'web'],
             filter: 'videoandaudio',
-            streamType: 'default',
+            html5Player: {
+                useRetrievedFunctionsFromGithub: true,
+            },
         }),
         VIDEO_ID = req.query.id;
 
@@ -20,15 +27,28 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         });
     }
 
-    ytdl.getFullInfo('https://www.youtube.com/watch?v=' + VIDEO_ID)
-        .then((results) => {
-            res.setHeader('Cache-Control', 'public, max-age=7200, s-maxage=7200');
-            res.json(results);
-        })
-        .catch((err) => {
-            console.error(err);
-            res.json({
-                error: err.message,
-            });
+    function errorHandler(err: Error) {
+        console.error(err);
+        res.json({
+            error: err.message,
         });
+    }
+
+    ytdl.getBasicInfo('https://www.youtube.com/watch?v=' + VIDEO_ID)
+        .then((results) => {
+            // Filter your favorite format here. You can do without this code.
+            (results.formats as any) = results.formats.filter((format) => format.itag === 18);
+
+            YtdlCore.decipherFormats(results.formats, {
+                useRetrievedFunctionsFromGithub: true,
+            })
+                .then(async (formats) => {
+                    const VIDEO_INFO = results as any as YTDL_VideoInfo<YTDL_VideoFormat>;
+                    VIDEO_INFO.formats = YtdlCore.toVideoFormats(formats);
+                    VIDEO_INFO.full = true;
+                    res.json(VIDEO_INFO);
+                })
+                .catch(errorHandler);
+        })
+        .catch(errorHandler);
 }

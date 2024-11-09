@@ -2,11 +2,9 @@ name: Update Player Data
 
 on:
     schedule:
-        - cron: '0 0 * * *'
+        - cron: '0 */4 * * *'
     workflow_dispatch:
-    push:
-        branches:
-            - dev
+
 jobs:
     update-player-data:
         runs-on: ubuntu-latest

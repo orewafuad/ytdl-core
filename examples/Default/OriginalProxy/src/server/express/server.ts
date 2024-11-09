@@ -75,6 +75,10 @@ app.all('/download/', async (req, res) => {
     fetch(REQUEST_URL).then(
         async (headRes) => {
             if (headRes.ok) {
+                if (req.method === 'HEAD') {
+                    return res.status(200).end();
+                }
+
                 try {
                     const c = new URL(REQUEST_URL).searchParams.get('c') || 'WEB',
                         USER_AGENT = USER_AGENTS[c] || USER_AGENTS.DEFAULT;

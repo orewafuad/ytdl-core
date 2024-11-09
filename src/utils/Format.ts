@@ -261,7 +261,7 @@ class FormatUtils {
         }
     }
 
-    static addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOriginalFormatData: boolean): YTDL_VideoFormat {
+    static addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat<any>, includesOriginalFormatData: boolean): YTDL_VideoFormat {
         const ITAG = adaptiveFormat.itag,
             ADDITIONAL_FORMAT_DATA = FORMATS[ITAG] || null,
             CODEC = adaptiveFormat.mimeType && utils.between(adaptiveFormat.mimeType, 'codecs="', '"'),

@@ -1,6 +1,6 @@
 import type { YTDL_ClientTypes } from './Clients';
-import { YTDL_VideoFormat } from './Ytdl';
-import { YTDL_GeoCountry, YTDL_Hreflang } from './Language';
+import type { YTDL_VideoFormat } from './Ytdl';
+import type { YTDL_GeoCountry, YTDL_Hreflang } from './Language';
 
 export type YTDL_Filter = 'audioandvideo' | 'videoandaudio' | 'video' | 'videoonly' | 'audio' | 'audioonly' | ((format: YTDL_VideoFormat) => boolean);
 
@@ -24,7 +24,7 @@ export type YTDL_ChooseFormatOptions = {
 export type YTDL_OAuth2ClientData = {
     clientId: string;
     clientSecret: string;
-}
+};
 
 export type YTDL_OAuth2Credentials = {
     accessToken: string;
@@ -122,6 +122,13 @@ export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFo
     highWaterMark?: number;
     IPv6Block?: string;
     dlChunkSize?: number;
+
+    html5Player?: {
+        /* It is taken from the fallback of the html5 player, which is automatically updated once a day.
+        * Note: If this option is enabled, Base.js is not retrieved, only the function is retrieved.
+        * */
+        useRetrievedFunctionsFromGithub?: boolean;
+    };
 }
 
 export type YTDL_RequestOptions = { requestOptions?: RequestInit; rewriteRequest?: YTDL_GetInfoOptions['rewriteRequest']; originalProxy?: YTDL_GetInfoOptions['originalProxy'] };

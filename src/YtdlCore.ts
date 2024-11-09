@@ -3,16 +3,17 @@ type InitializationOptions = {
     poToken?: string;
     visitorData?: string;
     oauth2Credentials?: YTDL_OAuth2Credentials | null;
+    html5Player?: YTDL_DownloadOptions['html5Player'];
 };
 
-import type { YTDL_Constructor, YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials, YTDL_ProxyOptions, YT_StreamingAdaptiveFormat } from './types';
+import type { YTDL_Constructor, YTDL_DownloadOptions, YTDL_GetInfoOptions, YTDL_VideoInfo, YTDL_OAuth2Credentials, YTDL_ProxyOptions, YT_StreamingAdaptiveFormat, YTDL_VideoFormat } from './types';
 import type { InternalDownloadOptions } from './core/types';
 
 import { Platform } from './platforms/Platform';
 
 import { download, downloadFromInfo } from './core/Download';
 import { getBasicInfo, getFullInfo } from './core/Info';
-import { getHtml5Player } from './core/Info/parser/Html5Player';
+import { getPlayerFunctions } from './core/Info/parser/Html5Player';
 import { OAuth2 } from './core/OAuth2';
 
 import { Url } from './utils/Url';
@@ -29,21 +30,24 @@ class YtdlCore {
     public static chooseFormat = FormatUtils.chooseFormat;
     public static filterFormats = FormatUtils.filterFormats;
 
-    public static decipherFormat = function (format: YT_StreamingAdaptiveFormat): Promise<YT_StreamingAdaptiveFormat | null> {
+    public static decipherFormats = function (formats: Array<YT_StreamingAdaptiveFormat<false>>, html5Player?: YTDL_DownloadOptions['html5Player']): Promise<Array<YT_StreamingAdaptiveFormat<true>>> {
         return new Promise(async (resolve) => {
-            const HTML5_PLAYER_DATA = await getHtml5Player({});
+            const HTML5_PLAYER_DATA = await getPlayerFunctions({}, html5Player),
+                SIGNATURE = new Signature();
 
-            if (!HTML5_PLAYER_DATA.body) {
-                return resolve(null);
-            }
+            await SIGNATURE.getDecipherFunctions(HTML5_PLAYER_DATA);
+            await SIGNATURE.getNTransform(HTML5_PLAYER_DATA);
 
-            const SIGNATURE = new Signature();
+            const DECIPHERED_FORMATS = formats.map((format) => SIGNATURE.decipherFormat(format));
 
-            await SIGNATURE.getDecipherFunctions(HTML5_PLAYER_DATA.id, HTML5_PLAYER_DATA.body);
-            await SIGNATURE.getNTransform(HTML5_PLAYER_DATA.id, HTML5_PLAYER_DATA.body);
-
-            resolve(SIGNATURE.decipherFormat(format));
+            resolve(DECIPHERED_FORMATS);
         });
+    };
+
+    public static toVideoFormats = function (formats: Array<YT_StreamingAdaptiveFormat<any>>, includesOriginalFormatData: boolean = false): Array<YTDL_VideoFormat> {
+        const FORMATS = formats.map((format) => FormatUtils.addFormatMeta(format, includesOriginalFormatData));
+        FORMATS.sort(FormatUtils.sortFormats);
+        return FORMATS;
     };
 
     public static createOAuth2Credentials = OAuth2.createOAuth2Credentials;
@@ -84,12 +88,13 @@ class YtdlCore {
     public highWaterMark: YTDL_DownloadOptions['highWaterMark'] | undefined;
     public IPv6Block: YTDL_DownloadOptions['IPv6Block'] | undefined;
     public dlChunkSize: YTDL_DownloadOptions['dlChunkSize'] | undefined;
+    public html5Player: YTDL_DownloadOptions['html5Player'] | undefined;
 
     /* Metadata */
     public version = VERSION;
 
     /* Constructor */
-    constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, disableRetryRequest, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, disableBasicCache, disableFileCache, fetcher, logDisplay, noUpdate, disableInitialSetup }: YTDL_Constructor = {}) {
+    constructor({ hl, gl, rewriteRequest, poToken, disablePoTokenAutoGeneration, visitorData, includesPlayerAPIResponse, includesNextAPIResponse, includesOriginalFormatData, includesRelatedVideo, clients, disableDefaultClients, disableRetryRequest, oauth2Credentials, parsesHLSFormat, originalProxy, quality, filter, excludingClients, includingClients, range, begin, liveBuffer, highWaterMark, IPv6Block, dlChunkSize, html5Player, disableBasicCache, disableFileCache, fetcher, logDisplay, noUpdate, disableInitialSetup }: YTDL_Constructor = {}) {
         const SHIM = Platform.getShim();
 
         /* Other Options */
@@ -149,10 +154,11 @@ class YtdlCore {
         this.highWaterMark = highWaterMark || undefined;
         this.IPv6Block = IPv6Block || undefined;
         this.dlChunkSize = dlChunkSize || undefined;
+        this.html5Player = html5Player || undefined;
 
         /* Async Initial setup */
         this.init(
-            { disableInitialSetup, poToken, visitorData, oauth2Credentials },
+            { disableInitialSetup, poToken, visitorData, oauth2Credentials, html5Player },
             {
                 originalProxy,
                 rewriteRequest,
@@ -160,14 +166,42 @@ class YtdlCore {
         );
 
         /* Load */
-        SHIM.options.download = { hl: this.hl, gl: this.gl, rewriteRequest: this.rewriteRequest, poToken: this.poToken, disablePoTokenAutoGeneration: this.disablePoTokenAutoGeneration, visitorData: this.visitorData, includesPlayerAPIResponse: this.includesPlayerAPIResponse, includesNextAPIResponse: this.includesNextAPIResponse, includesOriginalFormatData: this.includesOriginalFormatData, includesRelatedVideo: this.includesRelatedVideo, clients: this.clients, disableDefaultClients: this.disableDefaultClients, oauth2Credentials, parsesHLSFormat: this.parsesHLSFormat, originalProxy: this.originalProxy, quality: this.quality, filter: this.filter, excludingClients: this.excludingClients, includingClients: this.includingClients, range: this.range, begin: this.begin, liveBuffer: this.liveBuffer, highWaterMark: this.highWaterMark, IPv6Block: this.IPv6Block, dlChunkSize: this.dlChunkSize };
+        SHIM.options.download = {
+            hl: this.hl,
+            gl: this.gl,
+            rewriteRequest: this.rewriteRequest,
+            poToken: this.poToken,
+            disablePoTokenAutoGeneration: this.disablePoTokenAutoGeneration,
+            visitorData: this.visitorData,
+            includesPlayerAPIResponse: this.includesPlayerAPIResponse,
+            includesNextAPIResponse: this.includesNextAPIResponse,
+            includesOriginalFormatData: this.includesOriginalFormatData,
+            includesRelatedVideo: this.includesRelatedVideo,
+            clients: this.clients,
+            disableDefaultClients: this.disableDefaultClients,
+            oauth2Credentials,
+            parsesHLSFormat: this.parsesHLSFormat,
+            originalProxy: this.originalProxy,
+            quality: this.quality,
+            filter: this.filter,
+            excludingClients: this.excludingClients,
+            includingClients: this.includingClients,
+            range: this.range,
+            begin: this.begin,
+            liveBuffer: this.liveBuffer,
+            highWaterMark: this.highWaterMark,
+            IPv6Block: this.IPv6Block,
+            dlChunkSize: this.dlChunkSize,
+            html5Player: this.html5Player,
+            disableRetryRequest: this.disableRetryRequest,
+        };
         Platform.load(SHIM);
     }
 
     /* Setup */
-    private async init({ disableInitialSetup, poToken, visitorData, oauth2Credentials }: InitializationOptions, requestInit: YTDL_ProxyOptions = {}) {
+    private async init({ disableInitialSetup, poToken, visitorData, oauth2Credentials, html5Player }: InitializationOptions, requestInit: YTDL_ProxyOptions = {}) {
         if (!disableInitialSetup) {
-            const HTML5_PLAYER_PROMISE = this.initializeHtml5PlayerCache();
+            const HTML5_PLAYER_PROMISE = getPlayerFunctions(requestInit, html5Player);
 
             await this.setPoToken(poToken);
             await this.setVisitorData(visitorData);
@@ -223,15 +257,6 @@ class YtdlCore {
         }
     }
 
-    private async initializeHtml5PlayerCache() {
-        const HTML5_PLAYER = await FileCache.get<{ playerUrl: string }>('html5Player');
-
-        if (!HTML5_PLAYER) {
-            Logger.debug('To speed up processing, html5Player and signatureTimestamp are pre-fetched and cached.');
-            getHtml5Player({});
-        }
-    }
-
     private automaticallyGeneratePoToken(requestInit: YTDL_ProxyOptions) {
         if (!this.poToken && !this.visitorData) {
             Logger.debug('Since PoToken and VisitorData are <warning>not specified</warning>, they are generated <info>automatically</info>.');
@@ -281,6 +306,7 @@ class YtdlCore {
         INTERNAL_OPTIONS.highWaterMark = options.highWaterMark || this.highWaterMark || undefined;
         INTERNAL_OPTIONS.IPv6Block = options.IPv6Block || this.IPv6Block || undefined;
         INTERNAL_OPTIONS.dlChunkSize = options.dlChunkSize || this.dlChunkSize || undefined;
+        INTERNAL_OPTIONS.html5Player = options.html5Player || this.html5Player || undefined;
 
         if (!INTERNAL_OPTIONS.oauth2 && options.oauth2Credentials) {
             INTERNAL_OPTIONS.oauth2 = new OAuth2(options.oauth2Credentials);

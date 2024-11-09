@@ -1,5 +1,4 @@
 import { Platform } from '@/platforms/Platform';
-import { VERSION } from './Constants';
 
 const OTHER_CONTROL_CHARACTER = {
         red: '',

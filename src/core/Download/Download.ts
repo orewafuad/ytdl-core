@@ -264,14 +264,16 @@ async function downloadFromInfo(info: YTDL_VideoInfo, options: InternalDownloadO
         throw new Error('Cannot use `ytdl.downloadFromInfo()` when called with info from `ytdl.getBasicInfo()`');
     }
 
-    return await downloadFromInfoCallback(info, { ...options });
+    return new Promise<ReadableStream>((resolve) => {
+        resolve(downloadFromInfoCallback(info, options));
+    });
 }
 
 function download(link: string, options: InternalDownloadOptions): Promise<ReadableStream> {
     return new Promise<ReadableStream>((resolve) => {
         getFullInfo(link, options)
             .then((info) => {
-                resolve(downloadFromInfoCallback(info, { ...options }));
+                resolve(downloadFromInfoCallback(info, options));
             })
             .catch((err) => {
                 throw err;

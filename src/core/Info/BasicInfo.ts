@@ -1,4 +1,4 @@
-import { YT_PlayerApiResponse, YT_StreamingAdaptiveFormat, YT_VideoDetails, YTDL_ClientTypes, YTDL_VideoDetailsAdditions, YTDL_VideoInfo } from '@/types';
+import { YT_PlayerApiResponse, YT_StreamingAdaptiveFormat, YT_VideoDetails, YTDL_ClientTypes, YTDL_VideoInfo } from '@/types';
 import { InternalDownloadOptions } from '@/core/types';
 
 import { OAuth2 } from '@/core/OAuth2';
@@ -9,12 +9,11 @@ import { Logger } from '@/utils/Log';
 import Utils from '@/utils/General';
 import { Url } from '@/utils/Url';
 
-import { getHtml5Player } from './parser/Html5Player';
+import { getPlayerFunctions } from './parser/Html5Player';
 import { FormatParser } from './parser/Formats';
 import PlayerApi from './apis/Player';
 import NextApi from './apis/Next';
 import InfoExtras from './Extras';
-import { UnrecoverableError } from '../errors';
 
 /* Private Constants */
 const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', 'youtube.com/t/community_guidelines'],
@@ -62,7 +61,7 @@ const AGE_RESTRICTED_URLS = ['support.google.com/youtube/?p=age_restrictions', '
         _metadata: {
             isMinimumMode: false,
             clients: [],
-            html5PlayerUrl: '',
+            html5PlayerId: '',
             id: '',
             options: {},
         },
@@ -94,7 +93,7 @@ function setupClients(clients: Array<YTDL_ClientTypes> | undefined, disableDefau
 
 async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFromGetInfo: boolean): Promise<YTDL_VideoInfo<YT_StreamingAdaptiveFormat>> {
     const SHIM = Platform.getShim(),
-        HTML5_PLAYER_PROMISE = getHtml5Player(options);
+        HTML5_PLAYER_PROMISE = getPlayerFunctions(options, options.html5Player);
 
     if (options.oauth2 && options.oauth2 instanceof OAuth2 && options.oauth2.shouldRefreshToken()) {
         Logger.info('The specified OAuth2 token has expired and will be renewed automatically.');
@@ -116,8 +115,7 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
 
     options.clients = setupClients(options.clients, options.disableDefaultClients ?? false);
 
-    const HTML5_PLAYER_RESPONSE = await HTML5_PLAYER_PROMISE,
-        HTML5_PLAYER_URL = HTML5_PLAYER_RESPONSE.url;
+    const HTML5_PLAYER_RESPONSE = await HTML5_PLAYER_PROMISE;
 
     /* Initialization */
     const SIGNATURE_TIMESTAMP = parseInt(HTML5_PLAYER_RESPONSE.signatureTimestamp || '0') || 0,
@@ -138,7 +136,7 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
         PLAYER_RESPONSE_LIST = Object.values(PLAYER_RESPONSES) || [];
 
     VIDEO_INFO._metadata.isMinimumMode = isMinimalMode;
-    VIDEO_INFO._metadata.html5PlayerUrl = HTML5_PLAYER_URL;
+    VIDEO_INFO._metadata.html5PlayerId = HTML5_PLAYER_RESPONSE.id;
     VIDEO_INFO._metadata.clients = options.clients;
     VIDEO_INFO._metadata.options = options;
     VIDEO_INFO._metadata.id = id;
@@ -169,21 +167,20 @@ async function _getBasicInfo(id: string, options: InternalDownloadOptions, isFro
     const STORYBOARDS = InfoExtras.getStoryboards(INCLUDE_STORYBOARDS),
         MEDIA = InfoExtras.getMedia(PLAYER_RESPONSES.web) || InfoExtras.getMedia(PLAYER_RESPONSES.webCreator) || InfoExtras.getMedia(PLAYER_RESPONSES.ios) || InfoExtras.getMedia(PLAYER_RESPONSES.android) || InfoExtras.getMedia(PLAYER_RESPONSES.webEmbedded) || InfoExtras.getMedia(PLAYER_RESPONSES.tvEmbedded) || InfoExtras.getMedia(PLAYER_RESPONSES.mweb) || InfoExtras.getMedia(PLAYER_RESPONSES.tv),
         AGE_RESTRICTED = !!MEDIA && AGE_RESTRICTED_URLS.some((url) => Object.values(MEDIA || {}).some((v) => typeof v === 'string' && v.includes(url))),
-        ADDITIONAL_DATA: YTDL_VideoDetailsAdditions = {
-            videoUrl: Url.getWatchPageUrl(id),
+        ADDITIONAL_DATA = {
             author: InfoExtras.getAuthor(NEXT_RESPONSES.web),
             media: MEDIA,
             likes: InfoExtras.getLikes(NEXT_RESPONSES.web),
             ageRestricted: AGE_RESTRICTED,
             storyboards: STORYBOARDS,
             chapters: InfoExtras.getChapters(NEXT_RESPONSES.web),
-            thumbnails: [],
-            description: '',
-        },
-        FORMATS = PLAYER_RESPONSE_LIST.reduce((items: Array<YT_StreamingAdaptiveFormat>, playerResponse) => {
-            return [...items, ...FormatParser.parseFormats(playerResponse)];
-        }, []);
+        };
 
+    const FORMATS = PLAYER_RESPONSE_LIST.reduce((items: Array<YT_StreamingAdaptiveFormat>, playerResponse) => {
+        return [...items, ...FormatParser.parseFormats(playerResponse)];
+    }, []);
+
+    VIDEO_INFO.videoDetails.videoUrl = Url.getWatchPageUrl(id);
     VIDEO_INFO.videoDetails = InfoExtras.cleanVideoDetails(Object.assign(VIDEO_INFO.videoDetails, VIDEO_DETAILS, ADDITIONAL_DATA), MICROFORMAT?.playerMicroformatRenderer || null, options.hl);
     VIDEO_INFO.videoDetails.playabilityStatus = getValue<YT_PlayerApiResponse>(PLAYER_RESPONSE_LIST, 'playabilityStatus', 'OK')?.playabilityStatus.status || PLAYER_RESPONSE_LIST[0]?.playabilityStatus.status || 'UNKNOWN';
     VIDEO_INFO.videoDetails.liveBroadcastDetails = LIVE_BROADCAST_DETAILS;

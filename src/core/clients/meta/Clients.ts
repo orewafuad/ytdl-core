@@ -78,7 +78,7 @@ const INNERTUBE_BASE_API_URL = Url.getInnertubeBaseUrl(),
             context: {
                 client: {
                     clientName: 'ANDROID',
-                    clientVersion: '18.48.37',
+                    clientVersion: '19.35.36',
                     androidSdkVersion: 33,
                     userAgent: UserAgent.android,
                     osName: 'Android',
@@ -122,7 +122,7 @@ const INNERTUBE_BASE_API_URL = Url.getInnertubeBaseUrl(),
             context: {
                 client: {
                     clientName: 'TVHTML5',
-                    clientVersion: '7.20240724.13.00',
+                    clientVersion: '7.20241016.15.00',
                     userAgent: UserAgent.tv,
                 },
             },

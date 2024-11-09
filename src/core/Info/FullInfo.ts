@@ -1,5 +1,5 @@
 import { InternalDownloadOptions } from '@/core/types';
-import { YT_PlayerApiResponse, YT_StreamingAdaptiveFormat, YTDL_VideoInfo } from '@/types';
+import { YT_StreamingAdaptiveFormat, YTDL_VideoInfo } from '@/types';
 
 import { Signature } from '@/core/Signature';
 
@@ -11,23 +11,21 @@ import { FormatUtils } from '@/utils/Format';
 
 import { FormatParser } from './parser/Formats';
 import { _getBasicInfo } from './BasicInfo';
-import { getHtml5Player } from './parser/Html5Player';
+import { getPlayerFunctions } from './parser/Html5Player';
 
 /* Private Constants */
 const CACHE = Platform.getShim().cache,
     SIGNATURE = new Signature();
 
 async function _getFullInfo(id: string, options: InternalDownloadOptions): Promise<YTDL_VideoInfo> {
-    const HTML5_PLAYER_PROMISE = getHtml5Player(options),
-        BASIC_INFO: YTDL_VideoInfo<YT_StreamingAdaptiveFormat> = await _getBasicInfo(id, options, true),
+    const BASIC_INFO: YTDL_VideoInfo<YT_StreamingAdaptiveFormat> = await _getBasicInfo(id, options, true),
+        HTML5_PLAYER_PROMISE = getPlayerFunctions(options, options.html5Player),
         INFO: YTDL_VideoInfo = Object.assign({}, BASIC_INFO) as any,
         FUNCTIONS = [],
         HTML5_PLAYER = await HTML5_PLAYER_PROMISE;
 
-    if (HTML5_PLAYER.id && HTML5_PLAYER.body) {
-        await SIGNATURE.getDecipherFunctions(HTML5_PLAYER.id, HTML5_PLAYER.body);
-        await SIGNATURE.getNTransform(HTML5_PLAYER.id, HTML5_PLAYER.body);
-    }
+    await SIGNATURE.getDecipherFunctions(HTML5_PLAYER);
+    await SIGNATURE.getNTransform(HTML5_PLAYER);
 
     try {
         const FORMATS = BASIC_INFO.formats;

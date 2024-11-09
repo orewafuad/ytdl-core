@@ -1,6 +1,3 @@
-import { InternalDownloadOptions } from '@/core/types';
-import { Logger } from './Log';
-
 const BASE_URL = 'https://www.youtube.com',
     URL_REGEX = /^https?:\/\//,
     ID_REGEX = /^[a-zA-Z0-9-_]{11}$/,
