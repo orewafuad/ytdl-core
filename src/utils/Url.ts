@@ -33,8 +33,12 @@ class Url {
         return `${BASE_URL}/tv`;
     }
 
-    static getRefreshTokenApiUrl() {
+    static getTokenApiUrl() {
         return `${BASE_URL}/o/oauth2/token`;
+    }
+
+    static getDeviceCodeApiUrl() {
+        return `${BASE_URL}/o/oauth2/device/code`;
     }
 
     static validateID(id: string): boolean {

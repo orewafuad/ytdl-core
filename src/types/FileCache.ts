@@ -1,3 +1,5 @@
+import { YTDL_DecipherFunction, YTDL_NTransformFunction } from './Html5Player';
+
 export type PoTokenCache = string;
 export type VisitorDataCache = string;
 export type OAuth2Cache = {
@@ -10,8 +12,11 @@ export type OAuth2Cache = {
     };
 };
 export type Html5PlayerCache = {
-    playerPath: string;
-    playerUrl: string;
+    id: string;
+    body: string;
     signatureTimestamp: string;
-    playerBody: string | null;
+    functions: {
+        decipher: YTDL_DecipherFunction;
+        nTransform: YTDL_NTransformFunction;
+    };
 };

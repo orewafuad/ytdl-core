@@ -1,7 +1,3 @@
-import { Readable } from 'readable-stream';
-
-import { Platform } from '@/platforms/Platform';
-
 import type { YT_Itag, YT_MicroformatRenderer, YT_NextApiResponse, YT_PlayerApiResponse, YT_Quality, YT_QualityLabel, YT_StreamingAdaptiveFormat, YT_Thumbnail } from './YouTube';
 import type { YTDL_ClientTypes } from './Clients';
 import type { YTDL_DownloadOptions, YTDL_GetInfoOptions } from './Options';
@@ -49,21 +45,21 @@ export type YTDL_Chapter = {
 };
 
 export type YTDL_VideoDetailsAdditions = {
-    videoUrl: string;
     ageRestricted: boolean;
     likes: number | null;
     media: YTDL_Media | null;
     author: YTDL_Author | null;
     storyboards: Array<YTDL_Storyboard>;
     chapters: Array<YTDL_Chapter>;
-    thumbnails: Array<YT_Thumbnail>;
-    description: string | null;
 };
 
 export type YTDL_VideoDetails = YTDL_VideoDetailsAdditions & {
+    videoUrl: string;
     videoId: string;
     title: string;
     playabilityStatus: YT_PlayerApiResponse['playabilityStatus']['status'] | 'UNKNOWN';
+    thumbnails: Array<YT_Thumbnail>;
+    description: string | null;
     lengthSeconds: number;
     keywords: Array<string>;
     channelId: string;
@@ -121,29 +117,27 @@ export type YTDL_VideoFormat = {
     originalData?: YT_StreamingAdaptiveFormat;
 };
 
-export type YTDL_VideoInfo = {
+export type YTDL_VideoInfo<F = YTDL_VideoFormat> = {
     videoDetails: YTDL_VideoDetails;
     relatedVideos: Array<YTDL_RelatedVideo>;
-    formats: Array<YTDL_VideoFormat>;
+    formats: Array<F>;
     full: boolean;
     live_chunk_readahead?: number;
-
     _metadata: {
         isMinimumMode: boolean;
         clients: Array<YTDL_ClientTypes>;
-        html5PlayerUrl: string;
+        html5PlayerId: string;
         id: string;
         options: YTDL_GetInfoOptions;
     };
     _ytdl: {
         version: string;
     };
-
     _playerApiResponses?: {
-        webCreator: YT_PlayerApiResponse | null;
-        tvEmbedded: YT_PlayerApiResponse | null;
-        ios: YT_PlayerApiResponse | null;
-        android: YT_PlayerApiResponse | null;
+        webCreator?: YT_PlayerApiResponse | null;
+        tvEmbedded?: YT_PlayerApiResponse | null;
+        ios?: YT_PlayerApiResponse | null;
+        android?: YT_PlayerApiResponse | null;
         web?: YT_PlayerApiResponse | null;
         mweb?: YT_PlayerApiResponse | null;
         tv?: YT_PlayerApiResponse | null;
@@ -157,7 +151,6 @@ export type YTDL_Constructor = Omit<YTDL_DownloadOptions, 'format'> & {
     fetcher?: (url: URL | RequestInfo, options?: RequestInit) => Promise<Response>;
     logDisplay?: Array<'debug' | 'info' | 'success' | 'warning' | 'error'> | 'none';
     noUpdate?: boolean;
+    disableInitialSetup?: boolean;
 };
 
-export class YTDL_DefaultStreamType extends Platform.getShim().polyfills.ReadableStream<any> {}
-export class YTDL_NodejsStreamType extends Readable {}

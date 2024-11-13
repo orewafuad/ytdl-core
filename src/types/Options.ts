@@ -1,6 +1,6 @@
 import type { YTDL_ClientTypes } from './Clients';
-import { YTDL_VideoFormat } from './Ytdl';
-import { YTDL_GeoCountry, YTDL_Hreflang } from './Language';
+import type { YTDL_VideoFormat } from './Ytdl';
+import type { YTDL_GeoCountry, YTDL_Hreflang } from './Language';
 
 export type YTDL_Filter = 'audioandvideo' | 'videoandaudio' | 'video' | 'videoonly' | 'audio' | 'audioonly' | ((format: YTDL_VideoFormat) => boolean);
 
@@ -21,10 +21,10 @@ export type YTDL_ChooseFormatOptions = {
     format?: YTDL_VideoFormat;
 };
 
-export interface YTDL_OAuth2ClientData {
+export type YTDL_OAuth2ClientData = {
     clientId: string;
     clientSecret: string;
-}
+};
 
 export type YTDL_OAuth2Credentials = {
     accessToken: string;
@@ -100,13 +100,16 @@ export type YTDL_GetInfoOptions = YTDL_ProxyOptions & {
     /** You can specify whether to disable the file cache. Disable this if you encounter errors.  */
     disableFileCache?: boolean;
 
+    /** You can specify whether to retry failed requests. */
+    disableRetryRequest?: boolean;
+
     /** You can specify whether to parse the HLS format. */
     parsesHLSFormat?: boolean;
 
     /** You can specify OAuth2 tokens to avoid age restrictions and bot errors.
      * @default null
      */
-    oauth2Credentials?: YTDL_OAuth2Credentials;
+    oauth2Credentials?: YTDL_OAuth2Credentials | null;
 };
 
 export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFormatOptions {
@@ -120,11 +123,12 @@ export interface YTDL_DownloadOptions extends YTDL_GetInfoOptions, YTDL_ChooseFo
     IPv6Block?: string;
     dlChunkSize?: number;
 
-    /** You can specify the type of stream you want to get.
-     * @details If you want to write to a file using `fs.createWriteStream`, e.g. Node.js, specify `nodejs`. If you want to get something else (ReadableStream), specify `default`.
-     * @default 'default'
-     */
-    streamType?: 'default' | 'nodejs';
+    html5Player?: {
+        /* It is taken from the fallback of the html5 player, which is automatically updated once a day.
+        * Note: If this option is enabled, Base.js is not retrieved, only the function is retrieved.
+        * */
+        useRetrievedFunctionsFromGithub?: boolean;
+    };
 }
 
 export type YTDL_RequestOptions = { requestOptions?: RequestInit; rewriteRequest?: YTDL_GetInfoOptions['rewriteRequest']; originalProxy?: YTDL_GetInfoOptions['originalProxy'] };

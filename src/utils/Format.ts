@@ -1,8 +1,8 @@
 import type { YT_StreamingAdaptiveFormat, YTDL_ClientTypes, YTDL_VideoFormat, YTDL_ChooseFormatOptions } from '@/types';
 
-import { FORMATS } from '@/meta/formats';
+import { FORMATS } from './meta/formats';
 
-import utils from './Utils';
+import utils from './General';
 
 /* Private Constants */
 // Use these to help sort formats, higher index is better.
@@ -256,12 +256,12 @@ class FormatUtils {
                     return 'unknown';
                 }
             }
-        } catch (err) {
+        } catch {
             return 'unknown';
         }
     }
 
-    static addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat, includesOriginalFormatData: boolean): YTDL_VideoFormat {
+    static addFormatMeta(adaptiveFormat: YT_StreamingAdaptiveFormat<any>, includesOriginalFormatData: boolean): YTDL_VideoFormat {
         const ITAG = adaptiveFormat.itag,
             ADDITIONAL_FORMAT_DATA = FORMATS[ITAG] || null,
             CODEC = adaptiveFormat.mimeType && utils.between(adaptiveFormat.mimeType, 'codecs="', '"'),

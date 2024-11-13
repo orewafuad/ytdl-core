@@ -1,5 +1,64 @@
 # Changelog
 
+## v6.0.7 (2024/11/13)
+
+### Bug Fixes
+* **YtdlCore:** Fixed a bug where the `acorn` package did not exist.
+
+## v6.0.6 (2024/11/02)
+
+### Features
+* **URL Decipherment:** Added HTML5 player related options (see below for details).
+```ts
+new YtdlCore({
+    html5Player: {
+        /* It is taken from the html5 player fallback on Github and is automatically updated 6 times a day.
+        * Note: If this option is enabled, Base.js is not retrieved, only the function is retrieved.
+        * */
+        useRetrievedFunctionsFromGithub: true,
+    }
+});
+```
+* **VideoFormat:** Added static function `toVideoFormats` to YtdlCore instance to convert `YT_StreamingAdaptiveFormat` to `YTDL_VideoFormat`.
+
+### Changes
+* **URL Decipherment:** Change to extract the decoding function and the N conversion function when the HTML5 player is acquired.
+
+## v6.0.5 (2024/10/28)
+
+### Features
+* **URL Decipherment:** Add static function `decipherFormat` to YtdlCore instances.
+* **OAuth2:** Add static function `createOAuth2Credentials` to YtdlCore instances.
+* **Request:** Add option `disableRetryRequest`.
+
+### Changes
+* **Download URL:** Changed to output to debug log which URL is being requested when downloading
+* **Default Client:** Changed default client from `['web', 'webCreator', 'tvEmbedded', 'ios', 'android']` to `['web', 'mweb', 'tv', 'ios']`.
+* **Request:** Changed to request again without specifying OriginalProxy or OAuth2 if request fails in order to increase possibility of information retrieval.
+
+### Abolition
+* **Version Check:** The browser version check function has been discontinued.
+* **DASH Format:** Removed parsing function because DASH format is not included in any client
+* **Stream Type:** The `streamType` option is obsolete and can be converted by importing the `toPipeableStream` function instead. (Default or Serverless version only)
+```ts
+import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
+
+/* Or */
+
+import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core/serverless';
+```
+
+### Bug Fixes
+* **YtdlCore:** Various bugs fixed
+
+### Improvement
+* **YtdlCore:** Remove unnecessary packages and reduce package size.
+
+## v6.0.4 (2024/10/16)
+
+### Bug Fixes
+* **Jinter:** Stop log output of internally used Jinter
+
 ## v6.0.3 (2024/10/14)
 
 ### Bug Fixes
@@ -55,7 +114,7 @@ ytdl.download<YTDL_DefaultStreamType>('https://www.youtube.com/watch?v=ID', { fi
 });
 ```
 
-### Change
+### Changes
 * **Lang:** Remove the `lang` option and add the `hl` option.
 * **Country:** Add `gl` option.
 * **Debug:** Eliminated the use of the `YTDL_DEBUG` environment variable. (For debug log display, use the `logDisplay` option instead.)
