@@ -189,18 +189,16 @@ function adaptToPlayerJson(id) {
     fetch(`https://www.youtube.com/s/player/${id}/player_ias.vflset/en_US/base.js`)
         .then((res) => res.text())
         .then((script) => {
-            PLAYER_JSON.info = {
-                id,
-                body: script,
-            };
+            const SIGNATURE_TIMESTAMP = script.match(/signatureTimestamp:(\d+)/)[1];
+
+            PLAYER_JSON.id = id;
+            PLAYER_JSON.body = script;
+            PLAYER_JSON.signatureTimestamp = SIGNATURE_TIMESTAMP;
 
             PLAYER_JSON.functions = {
                 decipher: getDecipherFunction(script),
                 nTransform: getNTransformFunction(script),
             };
-
-            const SIGNATURE_TIMESTAMP = script.match(/signatureTimestamp:(\d+)/)[1];
-            PLAYER_JSON.signatureTimestamp = SIGNATURE_TIMESTAMP;
 
             fs.writeFileSync(process.cwd() + '/data/player/data.json', JSON.stringify(PLAYER_JSON));
             fs.writeFileSync(process.cwd() + '/data/player/base.js', script);

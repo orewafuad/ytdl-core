@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.0.7 (2024/11/13)
+
+### Bug Fixes
+* **YtdlCore:** Fixed a bug where the `acorn` package did not exist.
+
 ## v6.0.6 (2024/11/02)
 
 ### Features

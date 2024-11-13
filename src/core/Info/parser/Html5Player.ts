@@ -11,7 +11,7 @@ import { Logger } from '@/utils/Log';
 import { getDecipherFunction, getNTransformFunction } from '@/utils/Html5Player';
 
 const SHIM = Platform.getShim(),
-    GITHUB_API_BASE_URL = `https://raw.githubusercontent.com/${SHIM.info.repo.user}/${SHIM.info.repo.name}/dev/data/player`,
+    GITHUB_API_BASE_URL = `https://raw.githubusercontent.com/${SHIM.info.repo.user}/${SHIM.info.repo.name}/refs/heads/dev/data/player`,
     FileCache = SHIM.fileCache;
 
 function getPlayerId(body?: string): string | null {
