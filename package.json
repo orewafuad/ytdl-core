@@ -73,7 +73,7 @@
         "acorn": "^8.14.0",
         "bgutils-js": "^3.0.0",
         "jsdom": "^25.0.1",
-        "undici": "^6.20.1"
+        "undici": "five"
     },
     "devDependencies": {
         "@inquirer/prompts": "^7.0.0",
